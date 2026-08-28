@@ -38,7 +38,8 @@ export const ProductDetailPage: React.FC = () => {
       <ErrorState
         title="Product Not Found"
         message="The product you are looking for does not exist or has been removed."
-        onRetry={() => navigate('/catalog')}
+        actionText="Back to Products"
+        onRetry={() => navigate('/products')}
       />
     );
   }

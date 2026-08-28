@@ -21,8 +21,8 @@ export const OrderConfirmationPage: React.FC = () => {
         <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
           We could not locate the details for this order.
         </p>
-        <Link to="/catalog">
-          <Button variant="primary">Return to Store</Button>
+        <Link to="/products" style={{ color: 'var(--brand-primary)', fontWeight: 600 }}>
+          Browse More Products →
         </Link>
       </div>
     );
@@ -213,9 +213,9 @@ export const OrderConfirmationPage: React.FC = () => {
               View All Orders
             </Button>
           </Link>
-          <Link to="/catalog">
-            <Button variant="gradient" size="md" rightIcon={<ArrowRight size={16} />}>
-              Continue Shopping
+          <Link to="/products">
+            <Button variant="primary" size="md" rightIcon={<ArrowRight size={16} />}>
+              Explore More Products
             </Button>
           </Link>
         </div>

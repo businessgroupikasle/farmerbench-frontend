@@ -177,8 +177,8 @@ export const DashboardPage: React.FC = () => {
                 <EmptyState
                   title="No orders yet"
                   description="When you purchase items, your orders will appear here with live tracking."
-                  actionText="Browse Collection"
-                  onAction={() => navigate('/catalog')}
+                  actionText="Browse Products"
+                  onAction={() => navigate('/products')}
                 />
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>

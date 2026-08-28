@@ -1,0 +1,38 @@
+/* CatalogPage Styles */
+.catalog-page-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.catalog-header h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  margin-bottom: 0.4rem;
+}
+
+.catalog-header p {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.catalog-grid-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.catalog-sidebar {
+  position: sticky;
+  top: 90px;
+}
+
+@media (max-width: 900px) {
+  .catalog-grid-layout {
+    grid-template-columns: 1fr;
+  }
+  .catalog-sidebar {
+    position: static;
+  }
+}

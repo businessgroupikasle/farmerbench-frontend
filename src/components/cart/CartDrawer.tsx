@@ -5,6 +5,7 @@ import { X, Trash2, ArrowRight, ShoppingBag } from 'lucide-react';
 import { QuantitySelector } from '../product/QuantitySelector';
 import { Button } from '../common/Button';
 import { Link, useNavigate } from 'react-router-dom';
+import './CartDrawer.css';
 
 export const CartDrawer: React.FC = () => {
   const { isDrawerOpen, closeDrawer } = useCartStore();
@@ -24,45 +25,13 @@ export const CartDrawer: React.FC = () => {
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 9998,
-        backgroundColor: 'rgba(0, 0, 0, 0.6)',
-        backdropFilter: 'blur(3px)',
-        display: 'flex',
-        justifyContent: 'flex-end',
-      }}
-      onClick={closeDrawer}
-    >
+    <div className="cart-drawer-overlay" onClick={closeDrawer}>
       <div
-        className="animate-slide-in-right"
-        style={{
-          width: '100%',
-          maxWidth: '420px',
-          height: '100%',
-          backgroundColor: 'var(--bg-surface)',
-          borderLeft: '1px solid var(--border-color)',
-          display: 'flex',
-          flexDirection: 'column',
-          boxShadow: 'var(--shadow-xl)',
-        }}
+        className="cart-drawer-container animate-slide-in-right"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drawer Header */}
-        <div
-          style={{
-            padding: '1.25rem 1.5rem',
-            borderBottom: '1px solid var(--border-color)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
+        <div className="cart-drawer-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             <ShoppingBag size={20} style={{ color: 'var(--brand-primary)' }} />
             <h3 style={{ fontSize: '1.15rem', fontWeight: 700 }}>
@@ -80,16 +49,7 @@ export const CartDrawer: React.FC = () => {
         </div>
 
         {/* Drawer Body - Items List */}
-        <div
-          style={{
-            flex: 1,
-            overflowY: 'auto',
-            padding: '1.25rem 1.5rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1.25rem',
-          }}
-        >
+        <div className="cart-drawer-body">
           {items.length === 0 ? (
             <div
               style={{
@@ -115,10 +75,10 @@ export const CartDrawer: React.FC = () => {
                 size="sm"
                 onClick={() => {
                   closeDrawer();
-                  navigate('/catalog');
+                  navigate('/products');
                 }}
               >
-                Start Shopping
+                Explore Products
               </Button>
             </div>
           ) : (

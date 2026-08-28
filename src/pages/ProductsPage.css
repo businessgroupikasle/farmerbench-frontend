@@ -1,0 +1,127 @@
+/* ProductsPage Component Styles */
+.products-page-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 2.25rem;
+  padding: 1.5rem 0 4rem;
+  background-color: #ffffff;
+}
+
+.products-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #E5EBE6;
+}
+
+.products-header-top {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.products-title-group h1 {
+  font-size: clamp(2rem, 3.8vw, 2.75rem);
+  font-weight: 800;
+  color: #17251E;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+  margin-bottom: 0.35rem;
+}
+
+.products-title-group p {
+  color: #556B5C;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.products-search-box {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #F8FAF8;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 0.4rem 0.85rem;
+  width: 100%;
+  max-width: 320px;
+  transition: all 0.2s ease;
+}
+
+.products-search-box:focus-within {
+  border-color: #2E7D32;
+  background-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.12);
+}
+
+.products-search-input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.9rem;
+  color: #17251E;
+  width: 100%;
+  font-family: inherit;
+}
+
+.products-search-input::placeholder {
+  color: #94A3B8;
+}
+
+/* Category Quick Filter Pills */
+.products-category-pills {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  scrollbar-width: thin;
+}
+
+.products-cat-pill {
+  padding: 0.55rem 1.15rem;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  border: 1px solid #E5EBE6;
+  background-color: #FAFCFA;
+  color: #4A5B52;
+}
+
+.products-cat-pill:hover {
+  border-color: #2E7D32;
+  color: #164627;
+  background-color: #F1F7F2;
+}
+
+.products-cat-pill.active {
+  background-color: #164627;
+  color: #ffffff;
+  border-color: #164627;
+  box-shadow: 0 4px 12px rgba(22, 70, 39, 0.25);
+}
+
+/* Main Grid Layout (Sidebar + Products) */
+.products-main-grid {
+  display: grid;
+  grid-template-columns: 270px 1fr;
+  gap: 2.25rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .products-main-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.products-sidebar {
+  position: sticky;
+  top: 100px;
+}

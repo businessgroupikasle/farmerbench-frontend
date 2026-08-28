@@ -34,9 +34,9 @@ export const CartPage: React.FC = () => {
     return (
       <EmptyState
         title="Your Shopping Bag is Empty"
-        description="You have not added any items to your bag yet. Explore our curated catalog to begin."
-        actionText="Browse Catalog"
-        onAction={() => navigate('/catalog')}
+        description="You have not added any items to your bag yet. Explore our agricultural products to begin."
+        actionText="Browse Products"
+        onAction={() => navigate('/products')}
         icon={<ShoppingBag size={32} />}
       />
     );
@@ -152,17 +152,17 @@ export const CartPage: React.FC = () => {
           })}
 
           <Link
-            to="/catalog"
+            to="/products"
             style={{
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              color: 'var(--brand-primary)',
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '0.35rem',
+              gap: '0.4rem',
+              color: 'var(--text-secondary)',
+              fontSize: '0.9rem',
+              fontWeight: 600,
             }}
           >
-            ← Continue Browsing
+            ← Continue Browsing Products
           </Link>
         </div>
 

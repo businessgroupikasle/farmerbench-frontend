@@ -1,212 +1,193 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Layers, ShieldCheck, Truck, RotateCcw, Headphones } from 'lucide-react';
+import { Phone, Mail, MapPin } from 'lucide-react';
+import './Footer.css';
 
 export const Footer: React.FC = () => {
   return (
-    <footer
-      style={{
-        backgroundColor: 'var(--bg-surface)',
-        borderTop: '1px solid var(--border-color)',
-        paddingTop: '3.5rem',
-        paddingBottom: '2rem',
-        marginTop: 'auto',
-      }}
-    >
-      <div className="container">
-        {/* Features Banner */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: '1.5rem',
-            paddingBottom: '3rem',
-            borderBottom: '1px solid var(--border-color)',
-            marginBottom: '3rem',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-            <div
-              style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: 'var(--radius-md)',
-                backgroundColor: 'var(--brand-primary-light)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--brand-primary)',
-              }}
-            >
-              <Truck size={22} />
-            </div>
-            <div>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 600 }}>Free Express Delivery</h4>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>On all orders over $100</p>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-            <div
-              style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: 'var(--radius-md)',
-                backgroundColor: 'var(--brand-primary-light)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--brand-primary)',
-              }}
-            >
-              <ShieldCheck size={22} />
-            </div>
-            <div>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 600 }}>2-Year Warranty</h4>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>100% genuine craftsmanship</p>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-            <div
-              style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: 'var(--radius-md)',
-                backgroundColor: 'var(--brand-primary-light)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--brand-primary)',
-              }}
-            >
-              <RotateCcw size={22} />
-            </div>
-            <div>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 600 }}>30-Day Free Returns</h4>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Hassle-free guarantee</p>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-            <div
-              style={{
-                width: '44px',
-                height: '44px',
-                borderRadius: 'var(--radius-md)',
-                backgroundColor: 'var(--brand-primary-light)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--brand-primary)',
-              }}
-            >
-              <Headphones size={22} />
-            </div>
-            <div>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: 600 }}>24/7 Dedicated Support</h4>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Always here to help you</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Footer Links */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '2.5rem',
-            marginBottom: '3rem',
-          }}
-        >
-          {/* Brand Info */}
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-              <div
-                style={{
-                  width: '30px',
-                  height: '30px',
-                  borderRadius: 'var(--radius-sm)',
-                  background: 'var(--brand-gradient)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#ffffff',
-                }}
-              >
-                <Layers size={16} />
+    <footer className="greenla-footer">
+      <div className="greenla-footer-container">
+        {/* Main 6-Column Footer Grid */}
+        <div className="greenla-footer-grid">
+          {/* 1. Brand Logo & Description */}
+          <div className="greenla-brand-col">
+            <Link to="/" className="greenla-brand-logo">
+              <div className="greenla-brand-icon-wrapper">
+                {/* 3-Leaf Sprout Icon matching reference */}
+                <svg width="34" height="34" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path
+                    d="M17 18C17 10 9 10 9 10C9 10 9 18 17 18Z"
+                    fill="#ffffff"
+                  />
+                  <path
+                    d="M19 18C19 10 27 10 27 10C27 10 27 18 19 18Z"
+                    fill="#ffffff"
+                  />
+                  <path
+                    d="M18 17C18 7 13 4 13 4C13 4 23 7 18 17Z"
+                    fill="#ffffff"
+                  />
+                  <path
+                    d="M18 16V30M18 30L15 26M18 30L21 26"
+                    stroke="#ffffff"
+                    strokeWidth="2.4"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
               </div>
-              <span style={{ fontFamily: 'var(--font-display)', fontSize: '1.2rem', fontWeight: 800 }}>
-                FormerBench
-              </span>
-            </div>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', lineHeight: 1.6, marginBottom: '1rem' }}>
-              Curating state-of-the-art electronics, bespoke audio systems, and modern lifestyle essentials.
+              <div className="greenla-brand-name-group">
+                <span className="greenla-brand-title">Greenla</span>
+                <span className="greenla-brand-tagline">Grow Better, Live Better</span>
+              </div>
+            </Link>
+
+            <p className="greenla-brand-desc">
+              Your one-stop online store for quality agricultural products and trusted farming solutions.
             </p>
+
+            {/* Social Icons */}
+            <div className="greenla-social-links">
+              {/* Facebook */}
+              <a href="https://facebook.com" target="_blank" rel="noreferrer" className="greenla-social-icon" aria-label="Facebook">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                </svg>
+              </a>
+              {/* Instagram */}
+              <a href="https://instagram.com" target="_blank" rel="noreferrer" className="greenla-social-icon" aria-label="Instagram">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                </svg>
+              </a>
+              {/* YouTube */}
+              <a href="https://youtube.com" target="_blank" rel="noreferrer" className="greenla-social-icon" aria-label="YouTube">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/>
+                  <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="#123C22"/>
+                </svg>
+              </a>
+              {/* WhatsApp */}
+              <a href="https://whatsapp.com" target="_blank" rel="noreferrer" className="greenla-social-icon" aria-label="WhatsApp">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                </svg>
+              </a>
+            </div>
           </div>
 
-          {/* Navigation */}
+          {/* 2. Company Column */}
           <div>
-            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '1rem' }}>Explore</h4>
-            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-              <li><Link to="/catalog">All Products</Link></li>
-              <li><Link to="/catalog?featured=true">Featured Collections</Link></li>
-              <li><Link to="/catalog?category=audio-acoustics">Audio & Acoustics</Link></li>
-              <li><Link to="/catalog?category=smart-wearables">Smart Wearables</Link></li>
+            <h4 className="greenla-footer-col-title">Company</h4>
+            <ul className="greenla-footer-links-list">
+              <li><Link to="/about" className="greenla-footer-link">About Us</Link></li>
+              <li><Link to="/about#mission" className="greenla-footer-link">Our Mission</Link></li>
+              <li><Link to="/about#careers" className="greenla-footer-link">Careers</Link></li>
+              <li><Link to="/privacy" className="greenla-footer-link">Privacy Policy</Link></li>
+              <li><Link to="/terms" className="greenla-footer-link">Terms & Conditions</Link></li>
             </ul>
           </div>
 
-          {/* Customer Service */}
+          {/* 3. Products Column */}
           <div>
-            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '1rem' }}>Customer Care</h4>
-            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-              <li><Link to="/dashboard?tab=orders">Track Orders</Link></li>
-              <li><Link to="/cart">Shopping Bag</Link></li>
-              <li><a href="#shipping">Shipping Policy</a></li>
-              <li><a href="#returns">Returns & Exchanges</a></li>
+            <h4 className="greenla-footer-col-title">Products</h4>
+            <ul className="greenla-footer-links-list">
+              <li><Link to="/products?category=fertilizers" className="greenla-footer-link">Fertilizers</Link></li>
+              <li><Link to="/products?category=biostimulants" className="greenla-footer-link">Biostimulants</Link></li>
+              <li><Link to="/products?category=pesticides" className="greenla-footer-link">Pesticides</Link></li>
+              <li><Link to="/products?category=crop-nutrition" className="greenla-footer-link">Crop Nutrition</Link></li>
+              <li><Link to="/products" className="greenla-footer-link">All Products</Link></li>
             </ul>
           </div>
 
-          {/* Newsletter */}
+          {/* 4. Services Column */}
           <div>
-            <h4 style={{ fontSize: '0.95rem', fontWeight: 700, marginBottom: '0.75rem' }}>Stay Connected</h4>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.75rem' }}>
-              Subscribe to receive exclusive releases and limited collector drops.
-            </p>
-            <div style={{ display: 'flex', gap: '0.4rem' }}>
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="input-field"
-                style={{ fontSize: '0.85rem' }}
-              />
-              <button className="btn btn-primary btn-sm">Join</button>
-            </div>
+            <h4 className="greenla-footer-col-title">Services</h4>
+            <ul className="greenla-footer-links-list">
+              <li><Link to="/#services" className="greenla-footer-link">Crop Consultation</Link></li>
+              <li><Link to="/#services" className="greenla-footer-link">Soil Testing</Link></li>
+              <li><Link to="/#services" className="greenla-footer-link">Crop Nutrition</Link></li>
+              <li><Link to="/#services" className="greenla-footer-link">Pest Control</Link></li>
+              <li><Link to="/#services" className="greenla-footer-link">All Services</Link></li>
+            </ul>
+          </div>
+
+          {/* 5. Resources Column */}
+          <div>
+            <h4 className="greenla-footer-col-title">Resources</h4>
+            <ul className="greenla-footer-links-list">
+              <li><Link to="/about#blog" className="greenla-footer-link">Blog</Link></li>
+              <li><Link to="/about#faqs" className="greenla-footer-link">FAQs</Link></li>
+              <li><Link to="/shipping" className="greenla-footer-link">Shipping Policy</Link></li>
+              <li><Link to="/returns" className="greenla-footer-link">Return Policy</Link></li>
+              <li><Link to="/dashboard?tab=orders" className="greenla-footer-link">Track Order</Link></li>
+            </ul>
+          </div>
+
+          {/* 6. Contact Us Column */}
+          <div>
+            <h4 className="greenla-footer-col-title">Contact Us</h4>
+            <ul className="greenla-contact-list">
+              <li className="greenla-contact-item">
+                <Phone size={15} className="greenla-contact-icon" />
+                <a href="tel:+919876543210">+91 98765 43210</a>
+              </li>
+              <li className="greenla-contact-item">
+                <Mail size={15} className="greenla-contact-icon" />
+                <a href="mailto:support@greenla.in">support@greenla.in</a>
+              </li>
+              <li className="greenla-contact-item">
+                <MapPin size={16} className="greenla-contact-icon" />
+                <span>123, Green Fields, Coimbatore - 641001, Tamil Nadu, India</span>
+              </li>
+            </ul>
           </div>
         </div>
 
-        {/* Bottom Copyright */}
-        <div
-          style={{
-            borderTop: '1px solid var(--border-color)',
-            paddingTop: '1.5rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            fontSize: '0.8rem',
-            color: 'var(--text-muted)',
-            flexWrap: 'wrap',
-            gap: '1rem',
-          }}
-        >
-          <p>© {new Date().getFullYear()} FormerBench Technologies, Inc. All rights reserved.</p>
-          <div style={{ display: 'flex', gap: '1.5rem' }}>
-            <a href="#privacy">Privacy Policy</a>
-            <a href="#terms">Terms of Service</a>
-            <a href="#security">Security</a>
+        {/* Bottom Copyright & Payment Badges */}
+        <div className="greenla-footer-bottom-bar">
+          <p className="greenla-copyright">
+            © 2024 Greenla. All Rights Reserved.
+          </p>
+
+          <div className="greenla-payment-badges">
+            {/* VISA */}
+            <div className="greenla-payment-badge" title="Visa">
+              <svg width="34" height="14" viewBox="0 0 36 12" fill="none">
+                <path d="M14.8 11.5L16.8 0.5H19.5L17.5 11.5H14.8ZM27.7 0.8C27.1 0.6 26.2 0.4 25.1 0.4C22.2 0.4 20.2 1.9 20.2 4.1C20.2 5.7 21.7 6.6 22.8 7.1C23.9 7.6 24.3 8 24.3 8.5C24.3 9.3 23.3 9.6 22.4 9.6C21.4 9.6 20.8 9.5 20.0 9.1L19.6 8.9L19.2 11.3C19.9 11.6 21.1 11.8 22.3 11.8C25.4 11.8 27.4 10.3 27.4 8.0C27.4 6.2 25.8 5.2 24.4 4.5C23.6 4.1 23.1 3.8 23.1 3.2C23.1 2.6 23.8 2.0 25.1 2.0C26.0 2.0 26.7 2.2 27.2 2.4L27.5 2.5L27.7 0.8ZM35.8 0.5H33.7C33.0 0.5 32.5 0.7 32.2 1.4L27.5 11.5H30.4L31.0 9.9H34.5L34.8 11.5H37.3L35.8 0.5ZM31.8 7.6L33.2 3.6L34.1 7.6H31.8ZM12.1 0.5L9.6 7.9L9.3 6.4C8.8 4.7 7.3 2.8 5.6 1.9L8.1 11.5H11.0L15.3 0.5H12.1ZM6.0 0.5H0.6L0.5 0.8C4.5 1.8 7.2 4.3 8.3 7.2L7.1 1.2C6.9 0.7 6.5 0.5 6.0 0.5Z" fill="#1A1F71"/>
+              </svg>
+            </div>
+
+            {/* Mastercard */}
+            <div className="greenla-payment-badge" title="Mastercard">
+              <svg width="28" height="18" viewBox="0 0 32 20" fill="none">
+                <circle cx="11" cy="10" r="9" fill="#EB001B"/>
+                <circle cx="21" cy="10" r="9" fill="#F79E1B"/>
+                <path d="M16 3.5C18 5.2 19.3 7.5 19.3 10C19.3 12.5 18 14.8 16 16.5C14 14.8 12.7 12.5 12.7 10C12.7 7.5 14 5.2 16 3.5Z" fill="#FF5F00"/>
+              </svg>
+            </div>
+
+            {/* BHIM / Pay */}
+            <div className="greenla-payment-badge" title="BHIM">
+              <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#5B2C6F', fontStyle: 'italic' }}>BHIM</span>
+            </div>
+
+            {/* RuPay */}
+            <div className="greenla-payment-badge" title="RuPay">
+              <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#097938', letterSpacing: '-0.02em' }}>Ru<span style={{ color: '#F37021' }}>Pay</span></span>
+            </div>
+
+            {/* UPI */}
+            <div className="greenla-payment-badge" title="UPI">
+              <span style={{ fontSize: '0.7rem', fontWeight: 900, color: '#097938', letterSpacing: '0.04em' }}>UPI<span style={{ color: '#F37021' }}>▶</span></span>
+            </div>
           </div>
         </div>
       </div>
     </footer>
   );
 };
+
+export default Footer;

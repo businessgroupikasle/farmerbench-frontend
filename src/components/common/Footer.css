@@ -1,0 +1,227 @@
+/* Greenla / AgriFlow Footer Component Styles */
+.greenla-footer {
+  background-color: #123C22;
+  background: linear-gradient(180deg, #164627 0%, #0F331C 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 3.75rem;
+  padding-bottom: 1.5rem;
+  margin-top: auto;
+  color: #E2ECE5;
+  font-family: inherit;
+}
+
+.greenla-footer-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.greenla-footer-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1.1fr 1fr 1.5fr;
+  gap: 2.25rem;
+  padding-bottom: 3.25rem;
+}
+
+@media (max-width: 1100px) {
+  .greenla-footer-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .greenla-footer-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .greenla-footer-grid {
+    grid-template-columns: 1fr;
+    gap: 2.25rem;
+  }
+}
+
+/* Brand Column */
+.greenla-brand-col {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.greenla-brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  text-decoration: none;
+}
+
+.greenla-brand-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.greenla-brand-name-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.greenla-brand-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  font-family: var(--font-display, "Outfit", sans-serif);
+}
+
+.greenla-brand-tagline {
+  font-size: 0.65rem;
+  color: #D1E5D7;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  margin-top: 0.15rem;
+}
+
+.greenla-brand-desc {
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: #D1E5D7;
+  max-width: 250px;
+}
+
+.greenla-social-links {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.greenla-social-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.greenla-social-icon:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+  color: #88CF3A;
+}
+
+/* Nav Columns */
+.greenla-footer-col-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 1.25rem;
+  letter-spacing: -0.01em;
+}
+
+.greenla-footer-links-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.greenla-footer-link {
+  font-size: 0.875rem;
+  color: #D1E5D7;
+  text-decoration: none;
+  transition: color 0.18s ease, transform 0.18s ease;
+  display: inline-block;
+}
+
+.greenla-footer-link:hover {
+  color: #ffffff;
+  transform: translateX(2px);
+}
+
+/* Contact Column */
+.greenla-contact-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.95rem;
+}
+
+.greenla-contact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  font-size: 0.875rem;
+  color: #D1E5D7;
+  line-height: 1.45;
+}
+
+.greenla-contact-icon {
+  color: #ffffff;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.greenla-contact-item a {
+  color: #D1E5D7;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.greenla-contact-item a:hover {
+  color: #ffffff;
+}
+
+/* Bottom Bar */
+.greenla-footer-bottom-bar {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 1.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.greenla-copyright {
+  font-size: 0.85rem;
+  color: #CBD5E1;
+  margin: 0;
+}
+
+.greenla-payment-badges {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.greenla-payment-badge {
+  background-color: #ffffff;
+  border-radius: 4px;
+  padding: 0.25rem 0.55rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.greenla-payment-badge img,
+.greenla-payment-badge svg {
+  height: 16px;
+  width: auto;
+}
