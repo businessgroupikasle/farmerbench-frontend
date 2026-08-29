@@ -106,11 +106,11 @@ export const Footer: React.FC = () => {
           <div>
             <h4 className="greenla-footer-col-title">Services</h4>
             <ul className="greenla-footer-links-list">
-              <li><Link to="/#services" className="greenla-footer-link">Crop Consultation</Link></li>
-              <li><Link to="/#services" className="greenla-footer-link">Soil Testing</Link></li>
-              <li><Link to="/#services" className="greenla-footer-link">Crop Nutrition</Link></li>
-              <li><Link to="/#services" className="greenla-footer-link">Pest Control</Link></li>
-              <li><Link to="/#services" className="greenla-footer-link">All Services</Link></li>
+              <li><Link to="/services" className="greenla-footer-link">Crop Consultation</Link></li>
+              <li><Link to="/services" className="greenla-footer-link">Soil Testing</Link></li>
+              <li><Link to="/services" className="greenla-footer-link">Crop Nutrition</Link></li>
+              <li><Link to="/services" className="greenla-footer-link">Pest Control</Link></li>
+              <li><Link to="/services" className="greenla-footer-link">All Services</Link></li>
             </ul>
           </div>
 

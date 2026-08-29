@@ -1,5 +1,6 @@
 import React from 'react';
 import { AboutHero } from '../components/about/AboutHero';
+import { AboutDreamGarden } from '../components/about/AboutDreamGarden';
 import { AboutDrivesUs } from '../components/about/AboutDrivesUs';
 import { AboutValues } from '../components/about/AboutValues';
 import { AboutFarmingTechniques } from '../components/about/AboutFarmingTechniques';
@@ -12,16 +13,19 @@ export const AboutPage: React.FC = () => {
       {/* 1. About Hero: Growing Better, Together */}
       <AboutHero />
 
-      {/* 2. What Drives Us: Our Mission & Our Vision */}
+      {/* 2. About Gardening: We'll Help You To Create Your Dream Garden */}
+      <AboutDreamGarden />
+
+      {/* 3. What Drives Us: Our Mission & Our Vision */}
       <AboutDrivesUs />
 
-      {/* 3. Our Core Values: Farmer First, Quality & Trust, Expert Guidance, Sustainable Growth */}
+      {/* 4. Our Core Values: Farmer First, Quality & Trust, Expert Guidance, Sustainable Growth */}
       <AboutValues />
 
-      {/* 4. Our Farming Techniques: Ascending 4-Step Process Roadmap */}
+      {/* 5. Our Farming Techniques: Ascending 4-Step Process Roadmap */}
       <AboutFarmingTechniques />
 
-      {/* 5. Cultivating Healthy Food Mission Banner */}
+      {/* 6. Cultivating Healthy Food Mission Banner */}
       <AboutBanner />
     </div>
   );

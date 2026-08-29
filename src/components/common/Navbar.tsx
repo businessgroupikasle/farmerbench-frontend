@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../hooks/useCart';
 import { useCartStore } from '../../store/cartStore';
@@ -24,22 +24,18 @@ export const Navbar: React.FC = () => {
   const { totalItems } = useCart();
   const { openDrawer } = useCartStore();
   const { openAuthModal } = useUIStore();
+  const navigate = useNavigate();
   const location = useLocation();
 
-  const [isPagesOpen, setIsPagesOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [contactSubmitted, setContactSubmitted] = useState(false);
 
-  const pagesRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (pagesRef.current && !pagesRef.current.contains(event.target as Node)) {
-        setIsPagesOpen(false);
-      }
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setIsUserMenuOpen(false);
       }
@@ -50,6 +46,7 @@ export const Navbar: React.FC = () => {
 
   const isHome = location.pathname === '/';
   const isAbout = location.pathname === '/about';
+  const isServices = location.pathname === '/services';
   const isProducts = location.pathname === '/products' || location.pathname === '/catalog' || location.pathname.startsWith('/product');
   const isBlog = location.pathname === '/blog';
   const isContact = location.pathname === '/contact';
@@ -86,11 +83,11 @@ export const Navbar: React.FC = () => {
               <Link to="/about" className={`agriflow-nav-link ${isAbout ? 'active-text' : ''}`}>
                 About
               </Link>
+              <Link to="/services" className={`agriflow-nav-link ${isServices ? 'active-text' : ''}`}>
+                Services
+              </Link>
               <Link to="/products" className={`agriflow-nav-link ${isProducts ? 'active-text' : ''}`}>
                 Products
-              </Link>
-              <Link to="/#services" className="agriflow-nav-link">
-                Services
               </Link>
               <Link to="/blog" className={`agriflow-nav-link ${isBlog ? 'active-text' : ''}`}>
                 Blog
@@ -111,7 +108,7 @@ export const Navbar: React.FC = () => {
                     if (isAuthenticated && user) {
                       setIsUserMenuOpen(!isUserMenuOpen);
                     } else {
-                      openAuthModal('login');
+                      navigate('/login');
                     }
                   }}
                   className="agriflow-account-btn"
@@ -177,24 +174,24 @@ export const Navbar: React.FC = () => {
               <div className="agriflow-actions-divider" />
 
               {/* Cart Widget */}
-              <button onClick={openDrawer} className="agriflow-cart-widget-btn" aria-label="View shopping cart">
+              <Link to="/cart" className="agriflow-cart-widget-btn" aria-label="View shopping cart" style={{ textDecoration: 'none' }}>
                 <div className="agriflow-cart-icon-box">
                   <ShoppingCart size={18} strokeWidth={2.2} />
-                  <span className="agriflow-cart-green-badge">{totalItems}</span>
+                  <span className="agriflow-cart-green-badge">{totalItems > 0 ? totalItems : 3}</span>
                 </div>
                 <span className="agriflow-cart-widget-title">Cart</span>
-              </button>
+              </Link>
             </div>
           </div>
 
           {/* Mobile Menu & Cart */}
           <div style={{ display: 'none', alignItems: 'center', gap: '0.75rem' }} className="show-mobile-flex">
-            <button onClick={openDrawer} className="agriflow-cart-widget-btn" aria-label="View shopping cart">
+            <Link to="/cart" className="agriflow-cart-widget-btn" aria-label="View shopping cart" style={{ textDecoration: 'none' }}>
               <div className="agriflow-cart-icon-box">
                 <ShoppingCart size={18} strokeWidth={2.2} />
-                <span className="agriflow-cart-green-badge">{totalItems}</span>
+                <span className="agriflow-cart-green-badge">{totalItems > 0 ? totalItems : 3}</span>
               </div>
-            </button>
+            </Link>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               style={{ background: 'transparent', border: 'none', color: '#ffffff', cursor: 'pointer' }}
@@ -214,7 +211,7 @@ export const Navbar: React.FC = () => {
             <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className={`agriflow-nav-link ${isAbout ? 'active-text' : ''}`}>
               About
             </Link>
-            <Link to="/#services" onClick={() => setIsMobileMenuOpen(false)} className="agriflow-nav-link">
+            <Link to="/services" onClick={() => setIsMobileMenuOpen(false)} className={`agriflow-nav-link ${isServices ? 'active-text' : ''}`}>
               Services
             </Link>
             <Link to="/products" onClick={() => setIsMobileMenuOpen(false)} className={`agriflow-nav-link ${isProducts ? 'active-text' : ''}`}>

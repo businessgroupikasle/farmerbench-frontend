@@ -1,0 +1,100 @@
+import React from 'react';
+import { UserCheck, Sprout, ClipboardCheck } from 'lucide-react';
+import sproutImg from '../../assets/services-sprout-left.jpg';
+
+interface ServicesHeroProps {
+  onBookConsultation?: () => void;
+  onTalkToExpert?: () => void;
+}
+
+export const ServicesHero: React.FC<ServicesHeroProps> = ({
+  onBookConsultation,
+  onTalkToExpert,
+}) => {
+  return (
+    <section className="services-hero-section">
+      {/* Background with blend overlay */}
+      <div className="services-hero-bg-overlay" />
+
+      {/* Decorative Bottom-Left Sprout */}
+      <div className="services-hero-sprout-decor">
+        <img
+          src={sproutImg}
+          alt="Sprouting plant in rich soil"
+          className="services-hero-sprout-img"
+        />
+      </div>
+
+      <div className="services-hero-container">
+        <div className="services-hero-content animate-fade-in">
+          {/* Tag / Category Badge */}
+          <div className="services-hero-badge-tag">
+            <span>EXPERT FARMING SERVICES</span>
+          </div>
+
+          {/* Main Headline */}
+          <h1 className="services-hero-title">
+            <span className="services-hero-title-dark">Practical Solutions</span>{' '}
+            <span className="services-hero-title-green">for Better Farming</span>
+          </h1>
+
+          {/* Description */}
+          <p className="services-hero-desc">
+            From soil health to crop protection, our agriculture experts provide
+            the right guidance and on-field support for every stage of your farm.
+          </p>
+
+          {/* Action CTA Buttons */}
+          <div className="services-hero-actions">
+            <button
+              onClick={onBookConsultation}
+              className="services-btn-primary"
+              id="hero-book-consultation-btn"
+            >
+              Book a Consultation
+            </button>
+            <button
+              onClick={onTalkToExpert}
+              className="services-btn-secondary"
+              id="hero-talk-expert-btn"
+            >
+              Talk to an Expert
+            </button>
+          </div>
+
+          {/* 3 Feature Highlight Badges */}
+          <div className="services-hero-features-strip">
+            {/* Feature 1: Qualified Experts */}
+            <div className="services-feature-pill">
+              <div className="services-feature-icon-box">
+                <UserCheck size={20} strokeWidth={2.4} />
+              </div>
+              <span className="services-feature-label">Qualified Experts</span>
+            </div>
+
+            {/* Feature 2: Local Farm Support */}
+            <div className="services-feature-pill">
+              <div className="services-feature-icon-box">
+                <Sprout size={20} strokeWidth={2.4} />
+              </div>
+              <span className="services-feature-label">Local Farm Support</span>
+            </div>
+
+            {/* Feature 3: Practical Recommendations */}
+            <div className="services-feature-pill">
+              <div className="services-feature-icon-box">
+                <ClipboardCheck size={20} strokeWidth={2.4} />
+              </div>
+              <span className="services-feature-label">Practical Recommendations</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Rich Soil Strip Bottom Border */}
+      <div className="services-hero-soil-bar" />
+    </section>
+  );
+};
+
+export default ServicesHero;

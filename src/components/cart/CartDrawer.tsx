@@ -70,16 +70,28 @@ export const CartDrawer: React.FC = () => {
                 </p>
                 <p style={{ fontSize: '0.875rem' }}>Explore our collection and find something you love.</p>
               </div>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => {
-                  closeDrawer();
-                  navigate('/products');
-                }}
-              >
-                Explore Products
-              </Button>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center' }}>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    closeDrawer();
+                    navigate('/cart');
+                  }}
+                >
+                  Go to Shopping Cart
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => {
+                    closeDrawer();
+                    navigate('/products');
+                  }}
+                >
+                  Explore Products
+                </Button>
+              </div>
             </div>
           ) : (
             items.map((item) => {
