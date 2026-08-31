@@ -8,6 +8,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@formerbench/shared': path.resolve(__dirname, '../farmer_backend/shared/src'),
     },
   },
   server: {

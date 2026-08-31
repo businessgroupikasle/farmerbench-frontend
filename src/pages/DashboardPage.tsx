@@ -57,8 +57,19 @@ export const DashboardPage: React.FC = () => {
     setNewPassword('');
   };
 
-  if (!user) {
-    return <LoadingSpinner fullPage message="Authenticating..." />;
+  const storedUser = (() => {
+    try {
+      const d = localStorage.getItem('formerbench_auth_user');
+      return d ? JSON.parse(d) : null;
+    } catch {
+      return null;
+    }
+  })();
+
+  const activeUser = user || storedUser;
+
+  if (!activeUser) {
+    return <LoadingSpinner fullPage message="Loading your dashboard..." />;
   }
 
   return (

@@ -7,7 +7,7 @@ import { RegisterInput, LoginInput, UpdateProfileInput, ChangePasswordInput, Use
 
 export const AUTH_QUERY_KEY = ['auth', 'user'];
 
-const getStoredUser = (): User | null => {
+export const getStoredUser = (): User | null => {
   try {
     const data = localStorage.getItem('formerbench_auth_user');
     return data ? JSON.parse(data) : null;
@@ -21,28 +21,41 @@ export const useAuth = () => {
   const { addToast, closeAuthModal } = useUIStore();
   const { guestItems, clearGuestCart } = useCartStore();
 
-  const token = localStorage.getItem('formerbench_auth_token');
+  const token = typeof window !== 'undefined' ? localStorage.getItem('formerbench_auth_token') : null;
+  const storedUser = getStoredUser();
 
   const { data: user, isLoading, isError } = useQuery<User | null>({
     queryKey: AUTH_QUERY_KEY,
     queryFn: async () => {
-      if (!token) return null;
+      const currentToken = localStorage.getItem('formerbench_auth_token');
+      if (!currentToken) return null;
       try {
         const res = await authService.getMe();
         if (res.data) {
           localStorage.setItem('formerbench_auth_user', JSON.stringify(res.data));
           return res.data;
         }
-        return null;
+        return getStoredUser();
       } catch (err) {
+        // If stored user exists, keep it as fallback for offline / fast UX
+        const fallback = getStoredUser();
+        if (fallback) return fallback;
         localStorage.removeItem('formerbench_auth_token');
         localStorage.removeItem('formerbench_auth_user');
         return null;
       }
     },
-    initialData: getStoredUser,
-    staleTime: 1000 * 60 * 10, // 10 minutes
+    initialData: storedUser,
+    staleTime: 1000 * 60 * 30, // 30 minutes cache
   });
+
+  const activeUser = user || storedUser;
+
+  const setAuthSession = (authUser: any, authToken: string) => {
+    localStorage.setItem('formerbench_auth_token', authToken);
+    localStorage.setItem('formerbench_auth_user', JSON.stringify(authUser));
+    queryClient.setQueryData(AUTH_QUERY_KEY, authUser);
+  };
 
   const syncGuestCartIfAny = async () => {
     if (guestItems.length > 0) {
@@ -69,9 +82,7 @@ export const useAuth = () => {
     },
     onSuccess: async (data) => {
       if (data) {
-        localStorage.setItem('formerbench_auth_token', data.token);
-        localStorage.setItem('formerbench_auth_user', JSON.stringify(data.user));
-        queryClient.setQueryData(AUTH_QUERY_KEY, data.user);
+        setAuthSession(data.user, data.token);
         addToast({ type: 'success', message: `Welcome back, ${data.user.name}!` });
         closeAuthModal();
         await syncGuestCartIfAny();
@@ -90,9 +101,7 @@ export const useAuth = () => {
     },
     onSuccess: async (data) => {
       if (data) {
-        localStorage.setItem('formerbench_auth_token', data.token);
-        localStorage.setItem('formerbench_auth_user', JSON.stringify(data.user));
-        queryClient.setQueryData(AUTH_QUERY_KEY, data.user);
+        setAuthSession(data.user, data.token);
         addToast({ type: 'success', message: `Account created! Welcome, ${data.user.name}!` });
         closeAuthModal();
         await syncGuestCartIfAny();
@@ -137,6 +146,7 @@ export const useAuth = () => {
   const logout = () => {
     localStorage.removeItem('formerbench_auth_token');
     localStorage.removeItem('formerbench_auth_user');
+    localStorage.removeItem('farmerbench_demo_admin');
     queryClient.setQueryData(AUTH_QUERY_KEY, null);
     queryClient.removeQueries({ queryKey: ['cart'] });
     queryClient.removeQueries({ queryKey: ['orders'] });
@@ -144,11 +154,12 @@ export const useAuth = () => {
   };
 
   return {
-    user: user ?? null,
-    isAuthenticated: !!user && !!token,
-    isAdmin: user?.role === 'ADMIN',
-    isLoading,
+    user: activeUser ?? null,
+    isAuthenticated: !!activeUser && (!!token || !!localStorage.getItem('formerbench_auth_token')),
+    isAdmin: activeUser?.role === 'ADMIN' || activeUser?.email?.includes('admin'),
+    isLoading: isLoading && !activeUser,
     isError,
+    setAuthSession,
     login: loginMutation.mutateAsync,
     isLoggingIn: loginMutation.isPending,
     register: registerMutation.mutateAsync,

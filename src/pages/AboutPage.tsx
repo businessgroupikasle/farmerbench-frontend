@@ -3,6 +3,7 @@ import { AboutHero } from '../components/about/AboutHero';
 import { AboutDreamGarden } from '../components/about/AboutDreamGarden';
 import { AboutDrivesUs } from '../components/about/AboutDrivesUs';
 import { AboutValues } from '../components/about/AboutValues';
+import { AboutJourney } from '../components/about/AboutJourney';
 import { AboutFarmingTechniques } from '../components/about/AboutFarmingTechniques';
 import { AboutBanner } from '../components/about/AboutBanner';
 import './AboutPage.css';
@@ -22,10 +23,13 @@ export const AboutPage: React.FC = () => {
       {/* 4. Our Core Values: Farmer First, Quality & Trust, Expert Guidance, Sustainable Growth */}
       <AboutValues />
 
-      {/* 5. Our Farming Techniques: Ascending 4-Step Process Roadmap */}
+      {/* 5. Our Journey: 2020 to 2024 Milestones */}
+      <AboutJourney />
+
+      {/* 6. Our Farming Techniques: Ascending 4-Step Process Roadmap */}
       <AboutFarmingTechniques />
 
-      {/* 6. Cultivating Healthy Food Mission Banner */}
+      {/* 7. Cultivating Healthy Food Mission Banner */}
       <AboutBanner />
     </div>
   );

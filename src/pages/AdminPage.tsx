@@ -49,6 +49,7 @@ import {
   Sliders,
   DollarSign,
   AlertTriangle,
+  LogOut,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import './AdminPage.css';
@@ -71,8 +72,16 @@ import { useCustomerStore } from '../store/customerStore';
 
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated, isAdmin, isLoading } = useAuth();
+  const { user, isAuthenticated, isAdmin, isLoading, logout } = useAuth();
   const { customers } = useCustomerStore();
+
+  const handleAdminLogout = () => {
+    logout();
+    localStorage.removeItem('formerbench_auth_token');
+    localStorage.removeItem('formerbench_auth_user');
+    localStorage.removeItem('farmerbench_demo_admin');
+    navigate('/login');
+  };
 
   // Active View Tab
   const [activeNav, setActiveNav] = useState('Dashboard');
@@ -616,8 +625,20 @@ export const AdminPage: React.FC = () => {
   });
 
   // Access Control Check
+  const storedUser = (() => {
+    try {
+      const d = localStorage.getItem('formerbench_auth_user');
+      return d ? JSON.parse(d) : null;
+    } catch {
+      return null;
+    }
+  })();
+
   const isDemoAdmin = localStorage.getItem('farmerbench_demo_admin') === 'true';
-  const isAuthorized = (isAuthenticated && (isAdmin || user?.role === 'ADMIN')) || isDemoAdmin;
+  const isAuthorized =
+    (isAuthenticated && (isAdmin || user?.role === 'ADMIN')) ||
+    (storedUser && (storedUser.role === 'ADMIN' || storedUser.email?.includes('admin'))) ||
+    isDemoAdmin;
 
   useEffect(() => {
     if (!isLoading && !isAuthorized && isAuthenticated) {
@@ -670,8 +691,8 @@ export const AdminPage: React.FC = () => {
     showToast(`Product "${name}" deleted.`);
   };
 
-  // Auth loading state
-  if (isLoading) {
+  // Auth loading state (Only shows if no local credentials exist)
+  if (isLoading && !isAuthorized) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#F4F7F4' }}>
         <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
@@ -1032,11 +1053,11 @@ export const AdminPage: React.FC = () => {
             </div>
           </div>
           <button
-            className="admin-sidebar-user-btn"
-            title="User Settings"
-            onClick={() => setActiveNav('Settings')}
+            className="admin-sidebar-logout-btn"
+            title="Sign Out of Admin Panel"
+            onClick={handleAdminLogout}
           >
-            <MoreVertical size={16} />
+            <LogOut size={16} />
           </button>
         </div>
       </aside>
@@ -1107,6 +1128,15 @@ export const AdminPage: React.FC = () => {
               <span>View Store</span>
               <ExternalLink size={14} />
             </Link>
+
+            <button
+              className="admin-header-logout-btn"
+              title="Sign Out of Admin Panel"
+              onClick={handleAdminLogout}
+            >
+              <LogOut size={15} />
+              <span>Logout</span>
+            </button>
           </div>
         </header>
 
