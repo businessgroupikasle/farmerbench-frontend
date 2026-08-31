@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Check, Sprout, Award, X, Send, Sparkles } from 'lucide-react';
-import { getUploadUrl } from '../../utils/image';
 import mainFieldImg from '../../assets/farming-practices.jpg';
 import vineyardImg from '../../assets/vineyard-hills.jpg';
 import wheatImg from '../../assets/wheat-sunburst.jpg';
@@ -9,10 +8,6 @@ export const HomeAgriculturePractice: React.FC = () => {
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const mainFieldUrl = getUploadUrl('farming-practices.jpg', mainFieldImg);
-  const vineyardUrl = getUploadUrl('vineyard-hills.jpg', vineyardImg);
-  const wheatUrl = getUploadUrl('wheat-sunburst.jpg', wheatImg);
-
   return (
     <>
       <section className="agriflow-practice-section">
@@ -20,7 +15,7 @@ export const HomeAgriculturePractice: React.FC = () => {
         <div className="agriflow-practice-collage">
           {/* Main Large Golden Field Pill */}
           <div className="agriflow-pill-main">
-            <img src={mainFieldUrl} alt="Eco-friendly farming practices" />
+            <img src={mainFieldImg} alt="Eco-friendly farming practices" />
             <div className="agriflow-pill-main-overlay">
               <h3 className="agriflow-pill-main-text">
                 Eco–Friendly<br />Farming Practices
@@ -30,12 +25,12 @@ export const HomeAgriculturePractice: React.FC = () => {
 
           {/* Top Left Smaller Vineyard Pill */}
           <div className="agriflow-pill-top-left">
-            <img src={vineyardUrl} alt="Organic vineyard rows" />
+            <img src={vineyardImg} alt="Organic vineyard rows" />
           </div>
 
           {/* Bottom Left Medium Wheat Sunburst Pill */}
           <div className="agriflow-pill-bottom-left">
-            <img src={wheatUrl} alt="Golden wheat sunburst" />
+            <img src={wheatImg} alt="Golden wheat sunburst" />
           </div>
         </div>
 

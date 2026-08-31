@@ -16,7 +16,14 @@ import {
   X,
   Send,
   Sparkles,
+  Tractor,
+  Droplets,
+  CloudRain,
+  Briefcase,
+  Stethoscope,
+  CalendarDays,
 } from 'lucide-react';
+import farmerLogo from '../../assets/farmerbench-logo.png';
 import './Navbar.css';
 
 export const Navbar: React.FC = () => {
@@ -47,6 +54,7 @@ export const Navbar: React.FC = () => {
   const isHome = location.pathname === '/';
   const isAbout = location.pathname === '/about';
   const isServices = location.pathname === '/services';
+  const isCropServices = location.pathname.includes('crop') || location.hash.includes('crop');
   const isProducts = location.pathname === '/products' || location.pathname === '/catalog' || location.pathname.startsWith('/product');
   const isBlog = location.pathname === '/blog';
   const isContact = location.pathname === '/contact';
@@ -55,23 +63,16 @@ export const Navbar: React.FC = () => {
     <>
       <header className="agriflow-header">
         <div className="container agriflow-nav-container">
-          {/* Brand Logo - AgriFlow */}
-          <Link to="/" className="agriflow-brand">
-            <div className="agriflow-logo-icon">
-              <svg width="36" height="28" viewBox="0 0 38 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <g transform="skewX(-24) translate(8, 0)">
-                  <rect x="0" y="2" width="22" height="2.8" rx="1.4" fill="#78B833" />
-                  <rect x="0" y="7.5" width="22" height="2.8" rx="1.4" fill="#88CF3A" />
-                  <rect x="0" y="13" width="22" height="2.8" rx="1.4" fill="#F1F5F9" />
-                  <rect x="0" y="18.5" width="22" height="2.8" rx="1.4" fill="#CBD5E1" />
-                  <rect x="0" y="24" width="22" height="2.8" rx="1.4" fill="#94A3B8" />
-                  <line x1="5.5" y1="1" x2="5.5" y2="27" stroke="#17251E" strokeWidth="1.4" />
-                  <line x1="11" y1="1" x2="11" y2="27" stroke="#17251E" strokeWidth="1.4" />
-                  <line x1="16.5" y1="1" x2="16.5" y2="27" stroke="#17251E" strokeWidth="1.4" />
-                </g>
-              </svg>
-            </div>
-            <span className="agriflow-brand-text">AgriFlow</span>
+          {/* Brand Logo - FarmerBench */}
+          <Link to="/" className="agriflow-brand" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', textDecoration: 'none' }}>
+            <img
+              src={farmerLogo}
+              alt="FarmerBench Logo"
+              style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'contain' }}
+            />
+            <span className="agriflow-brand-text" style={{ fontSize: '1.45rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#165B33' }}>
+              FarmerBench
+            </span>
           </Link>
 
           {/* Desktop Navigation & Actions */}
@@ -83,12 +84,91 @@ export const Navbar: React.FC = () => {
               <Link to="/about" className={`agriflow-nav-link ${isAbout ? 'active-text' : ''}`}>
                 About
               </Link>
-              <Link to="/services" className={`agriflow-nav-link ${isServices ? 'active-text' : ''}`}>
-                Services
-              </Link>
+
+              {/* 1. Services Dropdown on Hover */}
+              <div className="agriflow-dropdown-wrapper">
+                <Link
+                  to="/services"
+                  className={`agriflow-nav-link agriflow-dropdown-trigger ${isServices ? 'active-text' : ''}`}
+                >
+                  <span>Services</span>
+                  <ChevronDown size={14} className="agriflow-dropdown-chevron" />
+                </Link>
+                <div className="agriflow-nav-dropdown-menu">
+                  <Link to="/services#farm-development" className="agriflow-dropdown-subitem">
+                    <div className="agriflow-dropdown-icon-box">
+                      <Tractor size={17} />
+                    </div>
+                    <div className="agriflow-dropdown-info">
+                      <span className="agriflow-dropdown-title">Farm Development</span>
+                      <span className="agriflow-dropdown-sub">Land planning, leveling & setup</span>
+                    </div>
+                  </Link>
+                  <Link to="/services#well-development" className="agriflow-dropdown-subitem">
+                    <div className="agriflow-dropdown-icon-box">
+                      <Droplets size={17} />
+                    </div>
+                    <div className="agriflow-dropdown-info">
+                      <span className="agriflow-dropdown-title">Well Development</span>
+                      <span className="agriflow-dropdown-sub">Borewell & groundwater recharge</span>
+                    </div>
+                  </Link>
+                  <Link to="/services#drip-irrigation" className="agriflow-dropdown-subitem">
+                    <div className="agriflow-dropdown-icon-box">
+                      <CloudRain size={17} />
+                    </div>
+                    <div className="agriflow-dropdown-info">
+                      <span className="agriflow-dropdown-title">Drip Irrigation</span>
+                      <span className="agriflow-dropdown-sub">Micro-drip & fertigation network</span>
+                    </div>
+                  </Link>
+                  <Link to="/services#farm-consultancy" className="agriflow-dropdown-subitem">
+                    <div className="agriflow-dropdown-icon-box">
+                      <Briefcase size={17} />
+                    </div>
+                    <div className="agriflow-dropdown-info">
+                      <span className="agriflow-dropdown-title">Farm Consultancy</span>
+                      <span className="agriflow-dropdown-sub">Expert agronomy & yield guidance</span>
+                    </div>
+                  </Link>
+                </div>
+              </div>
+
               <Link to="/products" className={`agriflow-nav-link ${isProducts ? 'active-text' : ''}`}>
                 Products
               </Link>
+
+              {/* 2. Crop Services Dropdown on Hover */}
+              <div className="agriflow-dropdown-wrapper">
+                <Link
+                  to="/services"
+                  className={`agriflow-nav-link agriflow-dropdown-trigger ${isCropServices ? 'active-text' : ''}`}
+                >
+                  <span>Crop Services</span>
+                  <ChevronDown size={14} className="agriflow-dropdown-chevron" />
+                </Link>
+                <div className="agriflow-nav-dropdown-menu">
+                  <Link to="/services#crop-doctor" className="agriflow-dropdown-subitem">
+                    <div className="agriflow-dropdown-icon-box">
+                      <Stethoscope size={17} />
+                    </div>
+                    <div className="agriflow-dropdown-info">
+                      <span className="agriflow-dropdown-title">Crop Doctor</span>
+                      <span className="agriflow-dropdown-sub">AI & expert disease, pest diagnostics</span>
+                    </div>
+                  </Link>
+                  <Link to="/services#crop-calendar" className="agriflow-dropdown-subitem">
+                    <div className="agriflow-dropdown-icon-box">
+                      <CalendarDays size={17} />
+                    </div>
+                    <div className="agriflow-dropdown-info">
+                      <span className="agriflow-dropdown-title">Crop Calendar</span>
+                      <span className="agriflow-dropdown-sub">Sowing, irrigation & harvest tracker</span>
+                    </div>
+                  </Link>
+                </div>
+              </div>
+
               <Link to="/blog" className={`agriflow-nav-link ${isBlog ? 'active-text' : ''}`}>
                 Blog
               </Link>
@@ -211,9 +291,39 @@ export const Navbar: React.FC = () => {
             <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className={`agriflow-nav-link ${isAbout ? 'active-text' : ''}`}>
               About
             </Link>
-            <Link to="/services" onClick={() => setIsMobileMenuOpen(false)} className={`agriflow-nav-link ${isServices ? 'active-text' : ''}`}>
-              Services
-            </Link>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+              <Link to="/services" onClick={() => setIsMobileMenuOpen(false)} className={`agriflow-nav-link ${isServices ? 'active-text' : ''}`} style={{ fontWeight: 700 }}>
+                Services
+              </Link>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', paddingLeft: '0.75rem', borderLeft: '2px solid rgba(136, 207, 58, 0.3)' }}>
+                <Link to="/services#farm-development" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <Tractor size={14} color="#88CF3A" /> Farm Development
+                </Link>
+                <Link to="/services#well-development" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <Droplets size={14} color="#88CF3A" /> Well Development
+                </Link>
+                <Link to="/services#drip-irrigation" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <CloudRain size={14} color="#88CF3A" /> Drip Irrigation
+                </Link>
+                <Link to="/services#farm-consultancy" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <Briefcase size={14} color="#88CF3A" /> Farm Consultancy
+                </Link>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.25rem' }}>
+              <Link to="/services" onClick={() => setIsMobileMenuOpen(false)} className={`agriflow-nav-link ${isCropServices ? 'active-text' : ''}`} style={{ fontWeight: 700 }}>
+                Crop Services
+              </Link>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', paddingLeft: '0.75rem', borderLeft: '2px solid rgba(136, 207, 58, 0.3)' }}>
+                <Link to="/services#crop-doctor" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <Stethoscope size={14} color="#88CF3A" /> Crop Doctor
+                </Link>
+                <Link to="/services#crop-calendar" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <CalendarDays size={14} color="#88CF3A" /> Crop Calendar
+                </Link>
+              </div>
+            </div>
             <Link to="/products" onClick={() => setIsMobileMenuOpen(false)} className={`agriflow-nav-link ${isProducts ? 'active-text' : ''}`}>
               Products
             </Link>

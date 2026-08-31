@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getUploadUrl } from '../../utils/image';
 import { CURRENCY_SYMBOL } from '../../utils/currency';
 import walnutsImg from '../../assets/walnuts.jpg';
 import hazelnutImg from '../../assets/hazelnut.jpg';
@@ -13,7 +12,6 @@ interface SeedProduct {
   price: number;
   weight: string;
   image: string;
-  fallback: string;
   category: string;
 }
 
@@ -27,8 +25,7 @@ export const HomeOurProducts: React.FC = () => {
       name: 'Walnuts',
       price: 28.99,
       weight: '100g',
-      image: 'walnuts.jpg',
-      fallback: walnutsImg,
+      image: walnutsImg,
       category: 'Seeds',
     },
     {
@@ -36,8 +33,7 @@ export const HomeOurProducts: React.FC = () => {
       name: 'Hazelnut',
       price: 29.99,
       weight: '250g',
-      image: 'hazelnut.jpg',
-      fallback: hazelnutImg,
+      image: hazelnutImg,
       category: 'Seeds',
     },
     {
@@ -45,8 +41,7 @@ export const HomeOurProducts: React.FC = () => {
       name: 'Peapod',
       price: 24.99,
       weight: '500g',
-      image: 'peapod.jpg',
-      fallback: peapodImg,
+      image: peapodImg,
       category: 'Seeds',
     },
     {
@@ -54,8 +49,7 @@ export const HomeOurProducts: React.FC = () => {
       name: 'Burnt leaves',
       price: 24.99,
       weight: '25g',
-      image: 'burnt-leaves.jpg',
-      fallback: burntLeavesImg,
+      image: burntLeavesImg,
       category: 'Seeds',
     },
   ];
@@ -76,7 +70,6 @@ export const HomeOurProducts: React.FC = () => {
         {/* Products Grid matching screenshot */}
         <div className="agriflow-products-grid">
           {products.map((item) => {
-            const imgUrl = getUploadUrl(item.image, item.fallback);
             return (
               <div
                 key={item.id}
@@ -91,7 +84,7 @@ export const HomeOurProducts: React.FC = () => {
                 }}
               >
                 <div className="agriflow-product-img-box">
-                  <img src={imgUrl} alt={item.name} />
+                  <img src={item.image} alt={item.name} />
                 </div>
                 <h3 className="agriflow-product-name">{item.name}</h3>
                 <p className="agriflow-product-price">

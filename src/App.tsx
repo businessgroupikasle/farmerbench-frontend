@@ -29,10 +29,12 @@ const AppContent: React.FC = () => {
   const isAuthPage = ['/login', '/signin', '/signup', '/register'].some(path => 
     location.pathname.startsWith(path)
   );
+  const isAdminPage = location.pathname.startsWith('/admin');
+  const hideNavAndFooter = isAuthPage || isAdminPage;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {!isAuthPage && <Navbar />}
+      {!hideNavAndFooter && <Navbar />}
 
       <main className="main-content" style={{ padding: 0, flex: 1 }}>
         <Routes>
@@ -50,7 +52,8 @@ const AppContent: React.FC = () => {
           <Route path="/checkout" element={<div className="container" style={{ padding: '2rem 1.5rem' }}><CheckoutPage /></div>} />
           <Route path="/order-confirmation/:orderId" element={<div className="container" style={{ padding: '2rem 1.5rem' }}><OrderConfirmationPage /></div>} />
           <Route path="/dashboard" element={<div className="container" style={{ padding: '2rem 1.5rem' }}><DashboardPage /></div>} />
-          <Route path="/admin" element={<div className="container" style={{ padding: '2rem 1.5rem' }}><AdminPage /></div>} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/admin/*" element={<AdminPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signin" element={<LoginPage />} />
           <Route path="/signup" element={<LoginPage />} />
@@ -59,7 +62,7 @@ const AppContent: React.FC = () => {
         </Routes>
       </main>
 
-      {!isAuthPage && <Footer />}
+      {!hideNavAndFooter && <Footer />}
       <CartDrawer />
       <AuthModal />
       <ToastContainer />

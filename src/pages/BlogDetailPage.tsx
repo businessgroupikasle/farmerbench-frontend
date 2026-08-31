@@ -115,7 +115,7 @@ export const BlogDetailPage: React.FC = () => {
                   alt="Author"
                   className="blog-author-avatar-img"
                 />
-                <span className="blog-author-name">By Greenla Agri Expert</span>
+                <span className="blog-author-name">By FarmerBench Agri Expert</span>
               </div>
             </div>
 
@@ -235,7 +235,7 @@ export const BlogDetailPage: React.FC = () => {
               {/* Author Bio Card */}
               <div className="blog-author-bio-card">
                 <div>
-                  <h4 className="blog-bio-name">Greenla Agri Expert</h4>
+                  <h4 className="blog-bio-name">FarmerBench Agri Expert</h4>
                   <p className="blog-bio-text">
                     Agricultural expert with 10+ years of experience in sustainable farming, soil health, and crop management.
                   </p>

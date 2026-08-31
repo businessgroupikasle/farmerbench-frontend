@@ -14,6 +14,13 @@ import {
   Truck,
   Sparkles,
   Award,
+  Smartphone,
+  KeyRound,
+  CheckCircle2,
+  Send,
+  Phone,
+  MapPin,
+  Check,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useUIStore } from '../store/uiStore';
@@ -22,6 +29,7 @@ import { useUIStore } from '../store/uiStore';
 import slideImg1 from '../assets/services-hero-banner.jpg';
 import slideImg2 from '../assets/sustainable-farm.jpg';
 import slideImg3 from '../assets/farm-visit-inspection.jpg';
+import farmerLogo from '../assets/farmerbench-logo.png';
 
 import './LoginPage.css';
 
@@ -38,32 +46,68 @@ const SLIDES: SlideData[] = [
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, register, isLoggingIn, isRegistering, isAuthenticated } = useAuth();
+  const { login, isLoggingIn, isAuthenticated, isAdmin, user } = useAuth();
   const { addToast } = useUIStore();
 
-  // Determine initial mode from URL pathname or state
-  const isSignupPath = location.pathname.includes('signup') || location.pathname.includes('register');
-  const [mode, setMode] = useState<'login' | 'signup'>(isSignupPath ? 'signup' : 'login');
+  // Mode: 'login' | 'signup'
+  const [mode, setMode] = useState<'login' | 'signup'>('login');
 
-  // Slideshow state
-  const [currentSlide, setCurrentSlide] = useState(0);
+  // Login Method: 'password' | 'otp'
+  const [loginMethod, setLoginMethod] = useState<'password' | 'otp'>('password');
 
-  // Form states
-  const [name, setName] = useState('');
+  // Form State
   const [emailOrPhone, setEmailOrPhone] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState<'farmer' | 'agronomist' | 'buyer'>('farmer');
-  const [rememberMe, setRememberMe] = useState(true);
+  const [name, setName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [district, setDistrict] = useState('Thanjavur');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Background Slideshow Timer (Changes every 6 seconds)
+  // OTP State (Login Flow)
+  const [loginOtpStep, setLoginOtpStep] = useState<'input' | 'verify'>('input');
+  const [loginOtpDigits, setLoginOtpDigits] = useState<string[]>(['', '', '', '', '', '']);
+  const [loginCountdown, setLoginCountdown] = useState<number>(0);
+  const [isLoginOtpSending, setIsLoginOtpSending] = useState(false);
+  const [isLoginOtpVerifying, setIsLoginOtpVerifying] = useState(false);
+
+  // OTP State (Signup Flow - Inline in Email Textfield)
+  const [signupOtpSent, setSignupOtpSent] = useState(false);
+  const [isEmailVerified, setIsEmailVerified] = useState(false);
+  const [signupOtpDigits, setSignupOtpDigits] = useState<string[]>(['', '', '', '', '', '']);
+  const [signupCountdown, setSignupCountdown] = useState<number>(0);
+  const [isSignupOtpSending, setIsSignupOtpSending] = useState(false);
+  const [isSignupVerifying, setIsSignupVerifying] = useState(false);
+  const [isSubmittingSignup, setIsSubmittingSignup] = useState(false);
+
+  // Background Slideshow Index
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  // Slideshow auto-advance every 6.5s
   useEffect(() => {
-    const timer = setInterval(() => {
+    const interval = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % SLIDES.length);
-    }, 6000);
-    return () => clearInterval(timer);
+    }, 6500);
+    return () => clearInterval(interval);
   }, []);
+
+  // OTP Countdown Timers
+  useEffect(() => {
+    let timer: any;
+    if (loginCountdown > 0) {
+      timer = setInterval(() => setLoginCountdown((c) => c - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [loginCountdown]);
+
+  useEffect(() => {
+    let timer: any;
+    if (signupCountdown > 0) {
+      timer = setInterval(() => setSignupCountdown((c) => c - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [signupCountdown]);
 
   // Sync mode if URL changes
   useEffect(() => {
@@ -74,14 +118,318 @@ export const LoginPage: React.FC = () => {
     }
   }, [location.pathname]);
 
-  // If already authenticated, redirect to home or dashboard
+  // If already authenticated, redirect
   useEffect(() => {
     if (isAuthenticated) {
+      if (isAdmin || user?.role === 'ADMIN') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
+    }
+  }, [isAuthenticated, isAdmin, user, navigate]);
+
+  // =========================================================================
+  // 1. LOGIN VIA OTP HANDLERS
+  // =========================================================================
+  const handleSendLoginOtp = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setError(null);
+    if (!emailOrPhone.trim()) {
+      setError('Please enter your registered email address');
+      return;
+    }
+
+    setIsLoginOtpSending(true);
+
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/login-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailOrPhone.trim() }),
+      });
+      const data = await res.json();
+
+      setIsLoginOtpSending(false);
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to send OTP code');
+      }
+
+      setLoginOtpStep('verify');
+      setLoginCountdown(60);
+      setLoginOtpDigits(['', '', '', '', '', '']);
+      addToast({
+        type: 'success',
+        message: `🔐 Verification code sent to ${emailOrPhone}!`,
+      });
+      setTimeout(() => {
+        document.getElementById('login-otp-digit-0')?.focus();
+      }, 150);
+    } catch (err: any) {
+      setIsLoginOtpSending(false);
+      setError(err.message || 'Failed to send OTP. Please check your email.');
+    }
+  };
+
+  const handleLoginOtpChange = (index: number, val: string) => {
+    const clean = val.replace(/[^0-9]/g, '').slice(-1);
+    const updated = [...loginOtpDigits];
+    updated[index] = clean;
+    setLoginOtpDigits(updated);
+
+    if (clean && index < 5) {
+      document.getElementById(`login-otp-digit-${index + 1}`)?.focus();
+    }
+  };
+
+  const handleLoginOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !loginOtpDigits[index] && index > 0) {
+      document.getElementById(`login-otp-digit-${index - 1}`)?.focus();
+    }
+  };
+
+  const handleLoginOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+    if (pasted) {
+      const updated = [...loginOtpDigits];
+      for (let i = 0; i < pasted.length; i++) {
+        updated[i] = pasted[i];
+      }
+      setLoginOtpDigits(updated);
+      const focusIndex = Math.min(pasted.length, 5);
+      document.getElementById(`login-otp-digit-${focusIndex}`)?.focus();
+    }
+  };
+
+  const handleVerifyLoginOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    const entered = loginOtpDigits.join('');
+
+    if (entered.length < 6) {
+      setError('Please enter all 6 digits of the verification code');
+      return;
+    }
+
+    setIsLoginOtpVerifying(true);
+
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/verify-login-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: emailOrPhone.trim(), otp: entered }),
+      });
+      const data = await res.json();
+      setIsLoginOtpVerifying(false);
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Invalid or expired OTP');
+      }
+
+      const authUser = data.data.user;
+      const token = data.data.token;
+
+      localStorage.setItem('formerbench_auth_token', token);
+      localStorage.setItem('formerbench_auth_user', JSON.stringify(authUser));
+
+      if (authUser.role === 'ADMIN') {
+        localStorage.setItem('farmerbench_demo_admin', 'true');
+        addToast({ type: 'success', message: 'OTP Verified! Welcome to FarmerBench Admin.' });
+        navigate('/admin');
+      } else {
+        addToast({ type: 'success', message: 'OTP Verified! Welcome back to FarmerBench.' });
+        navigate('/dashboard');
+      }
+    } catch (err: any) {
+      setIsLoginOtpVerifying(false);
+      setError(err.message || 'Verification failed.');
+      addToast({ type: 'error', message: err.message || 'Verification failed.' });
+    }
+  };
+
+  // =========================================================================
+  // 2. SIGNUP WITH INLINE EMAIL OTP VERIFICATION
+  // =========================================================================
+  const handleSendSignupInlineOtp = async () => {
+    setError(null);
+    if (!emailOrPhone.trim() || !emailOrPhone.includes('@')) {
+      setError('Please enter a valid email address first to receive OTP');
+      return;
+    }
+
+    setIsSignupOtpSending(true);
+
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/register-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim() || emailOrPhone.split('@')[0],
+          email: emailOrPhone.trim(),
+          phone: phoneNumber.trim() || null,
+          location: district.trim() || null,
+          password: password || undefined,
+        }),
+      });
+      const data = await res.json();
+      setIsSignupOtpSending(false);
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to dispatch verification code');
+      }
+
+      setSignupOtpSent(true);
+      setSignupCountdown(60);
+      setSignupOtpDigits(['', '', '', '', '', '']);
+      addToast({
+        type: 'success',
+        message: `📧 6-Digit OTP sent to ${emailOrPhone}!`,
+      });
+      setTimeout(() => {
+        document.getElementById('signup-inline-otp-0')?.focus();
+      }, 150);
+    } catch (err: any) {
+      setIsSignupOtpSending(false);
+      setError(err.message || 'Failed to send OTP code.');
+    }
+  };
+
+  const handleSignupOtpChange = (index: number, val: string) => {
+    const clean = val.replace(/[^0-9]/g, '').slice(-1);
+    const updated = [...signupOtpDigits];
+    updated[index] = clean;
+    setSignupOtpDigits(updated);
+
+    if (clean && index < 5) {
+      document.getElementById(`signup-inline-otp-${index + 1}`)?.focus();
+    }
+  };
+
+  const handleSignupOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !signupOtpDigits[index] && index > 0) {
+      document.getElementById(`signup-inline-otp-${index - 1}`)?.focus();
+    }
+  };
+
+  const handleSignupOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+    if (pasted) {
+      const updated = [...signupOtpDigits];
+      for (let i = 0; i < pasted.length; i++) {
+        updated[i] = pasted[i];
+      }
+      setSignupOtpDigits(updated);
+      const focusIndex = Math.min(pasted.length, 5);
+      document.getElementById(`signup-inline-otp-${focusIndex}`)?.focus();
+    }
+  };
+
+  const handleVerifySignupInlineOtp = async () => {
+    setError(null);
+    const entered = signupOtpDigits.join('');
+
+    if (entered.length < 6) {
+      setError('Please enter all 6 digits of the verification code');
+      return;
+    }
+
+    setIsSignupVerifying(true);
+
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/verify-register-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: emailOrPhone.trim(),
+          otp: entered,
+          name: name.trim() || undefined,
+          phone: phoneNumber.trim() || undefined,
+          location: district.trim() || undefined,
+          password: password || undefined,
+        }),
+      });
+      const data = await res.json();
+      setIsSignupVerifying(false);
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Verification failed. Code mismatch.');
+      }
+
+      setIsEmailVerified(true);
+      setSignupOtpSent(false);
+
+      // Store credentials / token in case user submits right away or submits afterwards
+      if (data.data?.token) {
+        localStorage.setItem('formerbench_auth_token', data.data.token);
+        localStorage.setItem('formerbench_auth_user', JSON.stringify(data.data.user));
+      }
+
+      addToast({
+        type: 'success',
+        message: '✅ Email verified successfully! Please complete any remaining fields and submit.',
+      });
+    } catch (err: any) {
+      setIsSignupVerifying(false);
+      setError(err.message || 'Verification failed.');
+      addToast({ type: 'error', message: err.message || 'Verification failed.' });
+    }
+  };
+
+  // Final Form Submission when Submit Button is clicked
+  const handleFinalSignupSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!isEmailVerified) {
+      setError('Please verify your email address with OTP before submitting.');
+      return;
+    }
+
+    if (!name.trim()) {
+      setError('Please enter your full name');
+      return;
+    }
+
+    if (!password || password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+
+    setIsSubmittingSignup(true);
+
+    try {
+      // If token is already present from verify step, finalize session
+      const existingToken = localStorage.getItem('formerbench_auth_token');
+      if (existingToken) {
+        setIsSubmittingSignup(false);
+        addToast({
+          type: 'success',
+          message: `🌱 Welcome to FarmerBench, ${name.trim()}!`,
+        });
+        navigate('/dashboard');
+        return;
+      }
+
+      // Otherwise log in / register
+      const res = await login({ email: emailOrPhone.trim(), password });
+      setIsSubmittingSignup(false);
+      addToast({
+        type: 'success',
+        message: `🌱 Welcome to FarmerBench, ${res?.user?.name || name.trim()}!`,
+      });
+      navigate('/dashboard');
+    } catch (err: any) {
+      setIsSubmittingSignup(false);
       navigate('/dashboard');
     }
-  }, [isAuthenticated, navigate]);
+  };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // =========================================================================
+  // 3. STANDARD PASSWORD LOGIN
+  // =========================================================================
+  const handleSubmitPasswordLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -96,17 +444,12 @@ export const LoginPage: React.FC = () => {
     }
 
     try {
-      if (mode === 'login') {
-        await login({ email: emailOrPhone.trim(), password });
-        addToast({ type: 'success', message: 'Welcome back! Logged in successfully.' });
-        navigate('/dashboard');
+      const res = await login({ email: emailOrPhone.trim(), password });
+      if (res?.user?.role === 'ADMIN' || emailOrPhone.trim().toLowerCase().includes('admin')) {
+        addToast({ type: 'success', message: 'Welcome to FarmerBench Admin Panel!' });
+        navigate('/admin');
       } else {
-        if (!name.trim()) {
-          setError('Please enter your full name');
-          return;
-        }
-        await register({ name: name.trim(), email: emailOrPhone.trim(), password });
-        addToast({ type: 'success', message: 'Account created! Welcome to AgriConnect.' });
+        addToast({ type: 'success', message: 'Welcome back! Logged in successfully.' });
         navigate('/dashboard');
       }
     } catch (err: any) {
@@ -121,38 +464,44 @@ export const LoginPage: React.FC = () => {
     if (type === 'admin') {
       setEmailOrPhone('admin@formerbench.dev');
       setPassword('DemoPass123!');
-      addToast({ type: 'info', message: 'Admin demo credentials autofilled' });
+      setLoginMethod('password');
+      setMode('login');
+      addToast({ type: 'info', message: 'Demo Admin credentials filled.' });
     } else {
       setEmailOrPhone('customer@formerbench.dev');
       setPassword('DemoPass123!');
-      addToast({ type: 'info', message: 'Farmer demo credentials autofilled' });
+      setLoginMethod('password');
+      setMode('login');
+      addToast({ type: 'info', message: 'Demo Farmer credentials filled.' });
     }
   };
 
   const handleGoogleAuth = () => {
-    addToast({ type: 'info', message: 'Connecting to Google Secure Sign-In...' });
+    addToast({ type: 'info', message: 'Connecting to Google OAuth single sign-on...' });
     setTimeout(() => {
-      handleFillDemo('farmer');
+      const demoUser = {
+        id: 'google-farmer-1',
+        name: 'Karthik Raja',
+        email: 'karthik.raja@gmail.com',
+        role: 'CUSTOMER',
+        avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80',
+      };
+      localStorage.setItem('formerbench_auth_token', 'jwt_google_oauth_' + Date.now());
+      localStorage.setItem('formerbench_auth_user', JSON.stringify(demoUser));
+      addToast({ type: 'success', message: 'Google Authentication Successful!' });
+      navigate('/dashboard');
     }, 600);
-  };
-
-  const handleEmailOTP = () => {
-    if (!emailOrPhone.trim()) {
-      setError('Please enter your email or phone to receive OTP');
-      return;
-    }
-    addToast({ type: 'success', message: `OTP sent to ${emailOrPhone}! Demo code: 123456` });
   };
 
   return (
     <div className="auth-page-root">
-      {/* 1. Floating Top-Left "Back to Home" Button */}
-      <Link to="/" className="auth-back-home-btn" title="Return to Homepage">
-        <ArrowLeft size={16} strokeWidth={2.4} />
+      {/* Top Left Floating "Back to Home" Button */}
+      <Link to="/" className="auth-back-home-btn" title="Back to Homepage">
+        <ArrowLeft size={16} />
         <span>Back to Home</span>
       </Link>
 
-      {/* 2. Full Page Animated Background Slideshow */}
+      {/* Background Slideshow Layers */}
       <div className="auth-slideshow-container">
         {SLIDES.map((slide, idx) => (
           <div
@@ -161,42 +510,33 @@ export const LoginPage: React.FC = () => {
             style={{ backgroundImage: `url(${slide.image})` }}
           />
         ))}
+        <div className="auth-page-backdrop-overlay" />
       </div>
 
-      {/* 3. Full Page Dark Emerald Vignette Overlay */}
-      <div className="auth-page-backdrop-overlay" />
-
-      {/* 4. Full Page 2-Column Sliding Stage */}
-      <div className={`auth-full-stage ${mode === 'signup' ? 'signup-mode' : 'login-mode'}`}>
-        
+      {/* 2-Column Balanced Stage */}
+      <div className="auth-full-stage">
         {/* =========================================================================
-            Hero Text Block (Displays distinct content for Login vs Sign Up)
+            Hero Text Section (Left Side)
             ========================================================================= */}
         <div className="auth-hero-text-block">
-          {/* Sprout Badge */}
           <div className="auth-sprout-badge">
-            <Sprout size={26} strokeWidth={2.4} />
+            <Sprout size={24} strokeWidth={2.4} />
           </div>
 
-          {/* Hero Views Dual Stage (Smooth 1.05s Crossfade Transition in Both Directions) */}
           <div className="auth-hero-views-container">
-            {/* LOGIN HERO VIEW (Active in Login Mode) */}
+            {/* LOGIN HERO VIEW */}
             <div className={`auth-hero-content-view ${mode === 'login' ? 'active' : 'inactive'}`}>
               <span className="auth-hero-tag">SMART AGRICULTURE</span>
-
               <h1 className="auth-hero-title">
-                Growing<br />
-                a better<br />
+                Growing{`\n`}
+                a better{`\n`}
                 tomorrow
               </h1>
-
               <div className="auth-hero-bar" />
-
               <p className="auth-hero-desc">
-                Smart solutions for modern farming. Manage, Monitor and Maximize your yield with technology.
+                Smart solutions for modern farming. Manage, monitor, and maximize your crop yield with technology.
               </p>
 
-              {/* Login Feature Highlights */}
               <div className="auth-hero-features-list">
                 <div className="auth-hero-feature-pill">
                   <Users size={16} className="auth-hero-feature-icon" />
@@ -208,66 +548,63 @@ export const LoginPage: React.FC = () => {
                 </div>
                 <div className="auth-hero-feature-pill">
                   <Zap size={16} className="auth-hero-feature-icon" />
-                  <span>15-Min Priority Advisory Response</span>
+                  <span>Instant OTP Code Verification</span>
                 </div>
               </div>
             </div>
 
-            {/* SIGN UP HERO VIEW (Active in Sign Up Mode) */}
+            {/* SIGNUP HERO VIEW */}
             <div className={`auth-hero-content-view ${mode === 'signup' ? 'active' : 'inactive'}`}>
-              <span className="auth-hero-tag">GROWER COMMUNITY</span>
-
+              <span className="auth-hero-tag">JOIN FARMERBENCH</span>
               <h1 className="auth-hero-title">
-                Empowering<br />
-                Sustainable<br />
-                Agriculture
+                Empowering{`\n`}
+                every farm,{`\n`}
+                every crop
               </h1>
-
               <div className="auth-hero-bar" />
-
               <p className="auth-hero-desc">
-                Unlock personalized crop charts, doorstep agronomist visits, and lab-tested organic farm products at exclusive member prices.
+                Register today to access certified bio-fertilizers, field doctor diagnosis, and real-time advisory.
               </p>
 
-              {/* Member Benefits Highlights */}
               <div className="auth-hero-features-list">
                 <div className="auth-hero-feature-pill">
-                  <Sparkles size={16} className="auth-hero-feature-icon" />
-                  <span>Free Soil Health & Crop Assessment</span>
+                  <ShieldCheck size={16} className="auth-hero-feature-icon" />
+                  <span>100% Verified Farm Profiles & Security</span>
                 </div>
                 <div className="auth-hero-feature-pill">
                   <Truck size={16} className="auth-hero-feature-icon" />
-                  <span>Free Express Delivery on Orders &gt; ₹999</span>
+                  <span>Direct Farm Gate Deliveries in 24-48 Hours</span>
                 </div>
                 <div className="auth-hero-feature-pill">
-                  <ShieldCheck size={16} className="auth-hero-feature-icon" />
-                  <span>100% Certified Bio-Organic Products</span>
+                  <Sparkles size={16} className="auth-hero-feature-icon" />
+                  <span>Welcome Coupon: ₹120 Off First Order</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Slideshow Indicator Dots */}
+          {/* Slideshow Progress Dots */}
           <div className="auth-slideshow-dots">
             {SLIDES.map((_, idx) => (
               <button
                 key={idx}
+                type="button"
                 onClick={() => setCurrentSlide(idx)}
                 className={`auth-slide-dot ${idx === currentSlide ? 'active' : ''}`}
-                aria-label={`Go to background slide ${idx + 1}`}
+                aria-label={`Go to slide ${idx + 1}`}
               />
             ))}
           </div>
         </div>
 
         {/* =========================================================================
-            Floating Sliding Form Card (With Internal 2-Panel Slider Track)
+            Sliding Auth Card (Right Side in Login, Left Side in Sign Up)
             ========================================================================= */}
         <div className="auth-sliding-card-wrap">
           <div className="auth-form-card">
             
-            {/* Top Tab Switcher: LOGIN | SIGN UP */}
-            <div className="auth-tab-bar">
+            {/* Top Toggle Switcher: LOGIN | SIGN UP */}
+            <div className="auth-tabs-header">
               <button
                 type="button"
                 onClick={() => {
@@ -292,29 +629,13 @@ export const LoginPage: React.FC = () => {
 
             {/* Brand Logo & Tagline */}
             <div className="auth-brand-group">
-              <div className="auth-brand-icon-box">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path
-                    d="M12 2L15 8H9L12 2Z"
-                    fill="currentColor"
-                  />
-                  <path
-                    d="M5 11C5 11 8 9 12 11C16 9 19 11 19 11C19 16 16 20 12 22C8 20 5 16 5 11Z"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M12 11V18"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                </svg>
-              </div>
-              <h2 className="auth-brand-name">AgriConnect</h2>
-              <p className="auth-brand-tagline">Connect. Cultivate. Thrive.</p>
+              <img
+                src={farmerLogo}
+                alt="FarmerBench Logo"
+                style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'contain', margin: '0 auto 0.4rem', display: 'block' }}
+              />
+              <h2 className="auth-brand-name">FarmerBench</h2>
+              <p className="auth-brand-tagline">Grow Better, Live Better</p>
               <div className="auth-brand-divider-bar" />
             </div>
 
@@ -329,6 +650,7 @@ export const LoginPage: React.FC = () => {
                   padding: '0.65rem 0.85rem',
                   fontSize: '0.85rem',
                   marginBottom: '1rem',
+                  textAlign: 'center',
                 }}
               >
                 {error}
@@ -346,91 +668,201 @@ export const LoginPage: React.FC = () => {
                     ------------------------------------------------------------------- */}
                 <div className="auth-form-slide-pane">
                   <h3 className="auth-welcome-title">Welcome Back!</h3>
-                  <p className="auth-welcome-sub">Login to continue your journey</p>
+                  <p className="auth-welcome-sub">Login to continue your agricultural journey</p>
 
-                  <form onSubmit={handleSubmit} className="auth-form">
-                    {/* Email or Phone Number */}
-                    <div className="auth-input-group">
-                      <div className="auth-input-icon">
-                        <Mail size={18} />
-                      </div>
-                      <input
-                        type="text"
-                        placeholder="Email or Phone Number"
-                        value={emailOrPhone}
-                        onChange={(e) => setEmailOrPhone(e.target.value)}
-                        className="auth-input"
-                        required={mode === 'login'}
-                      />
-                    </div>
-
-                    {/* Password Field with Show/Hide Eye Toggle */}
-                    <div className="auth-input-group">
-                      <div className="auth-input-icon">
-                        <Lock size={18} />
-                      </div>
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="Password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="auth-input"
-                        required={mode === 'login'}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="auth-input-toggle-eye"
-                        aria-label={showPassword ? 'Hide password' : 'Show password'}
-                      >
-                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                      </button>
-                    </div>
-
-                    {/* Remember me & Forgot password */}
-                    <div className="auth-meta-row">
-                      <label className="auth-remember-label">
-                        <input
-                          type="checkbox"
-                          checked={rememberMe}
-                          onChange={(e) => setRememberMe(e.target.checked)}
-                          style={{ accentColor: '#165B2E', width: '16px', height: '16px', cursor: 'pointer' }}
-                        />
-                        <span>Remember me</span>
-                      </label>
-
-                      <a
-                        href="#forgot"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          addToast({ type: 'info', message: 'Password reset link will be sent to your email.' });
-                        }}
-                        className="auth-forgot-link"
-                      >
-                        Forgot Password?
-                      </a>
-                    </div>
-
-                    {/* Submit Button */}
+                  {/* Method Switcher: Password vs OTP */}
+                  <div className="auth-method-switcher">
                     <button
-                      type="submit"
-                      disabled={isLoggingIn}
-                      className="auth-submit-btn"
+                      type="button"
+                      onClick={() => {
+                        setLoginMethod('password');
+                        setError(null);
+                      }}
+                      className={`auth-method-btn ${loginMethod === 'password' ? 'active' : ''}`}
                     >
-                      <span>{isLoggingIn ? 'Logging in...' : 'Login'}</span>
-                      <Sprout size={18} strokeWidth={2.4} />
+                      <KeyRound size={15} />
+                      <span>Password Login</span>
                     </button>
-                  </form>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setLoginMethod('otp');
+                        setError(null);
+                      }}
+                      className={`auth-method-btn ${loginMethod === 'otp' ? 'active' : ''}`}
+                    >
+                      <Smartphone size={15} />
+                      <span>Instant OTP Login</span>
+                    </button>
+                  </div>
+
+                  {loginMethod === 'password' ? (
+                    <form onSubmit={handleSubmitPasswordLogin} className="auth-form">
+                      {/* Email or Phone Number */}
+                      <div className="auth-input-group">
+                        <div className="auth-input-icon">
+                          <Mail size={18} />
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Email or Phone Number"
+                          value={emailOrPhone}
+                          onChange={(e) => setEmailOrPhone(e.target.value)}
+                          className="auth-input"
+                          required={mode === 'login'}
+                        />
+                      </div>
+
+                      {/* Password Field with Show/Hide Eye Toggle */}
+                      <div className="auth-input-group">
+                        <div className="auth-input-icon">
+                          <Lock size={18} />
+                        </div>
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="Password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="auth-input"
+                          required={mode === 'login'}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="auth-input-toggle-eye"
+                          aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        >
+                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
+
+                      {/* Remember me & Forgot password */}
+                      <div className="auth-meta-row">
+                        <label className="auth-remember-label">
+                          <input
+                            type="checkbox"
+                            checked={rememberMe}
+                            onChange={(e) => setRememberMe(e.target.checked)}
+                            style={{ accentColor: '#15803D', width: '16px', height: '16px', cursor: 'pointer' }}
+                          />
+                          <span>Remember me</span>
+                        </label>
+
+                        <a
+                          href="#forgot"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            addToast({ type: 'info', message: 'Password reset instructions will be sent to your email.' });
+                          }}
+                          className="auth-forgot-link"
+                        >
+                          Forgot Password?
+                        </a>
+                      </div>
+
+                      {/* Submit Button */}
+                      <button
+                        type="submit"
+                        disabled={isLoggingIn}
+                        className="auth-submit-btn"
+                      >
+                        <span>{isLoggingIn ? 'Logging in...' : 'Login'}</span>
+                        <Sprout size={18} strokeWidth={2.4} />
+                      </button>
+                    </form>
+                  ) : (
+                    /* OTP LOGIN FLOW */
+                    <div className="auth-form">
+                      {loginOtpStep === 'input' ? (
+                        <form onSubmit={handleSendLoginOtp}>
+                          <div className="auth-input-group">
+                            <div className="auth-input-icon">
+                              <Mail size={18} />
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="Enter Registered Email"
+                              value={emailOrPhone}
+                              onChange={(e) => setEmailOrPhone(e.target.value)}
+                              className="auth-input"
+                              required
+                            />
+                          </div>
+
+                          <p style={{ fontSize: '0.78rem', color: '#64748B', margin: '0.5rem 0 1rem', lineHeight: 1.4 }}>
+                            A 6-digit one-time code will be dispatched to your email address.
+                          </p>
+
+                          <button
+                            type="submit"
+                            disabled={isLoginOtpSending}
+                            className="auth-submit-btn"
+                          >
+                            <span>{isLoginOtpSending ? 'Sending OTP Code...' : 'Send Secure OTP'}</span>
+                            <Send size={16} />
+                          </button>
+                        </form>
+                      ) : (
+                        <form onSubmit={handleVerifyLoginOtp}>
+                          <div className="auth-otp-timer-banner">
+                            <div>
+                              <span>Code sent to <strong>{emailOrPhone}</strong></span>
+                              <button
+                                type="button"
+                                onClick={() => setLoginOtpStep('input')}
+                                style={{ background: 'none', border: 'none', color: '#15803D', marginLeft: '0.5rem', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+                              >
+                                Edit
+                              </button>
+                            </div>
+                            <span style={{ fontWeight: 800 }}>
+                              {loginCountdown > 0 ? `0:${loginCountdown < 10 ? '0' : ''}${loginCountdown}` : (
+                                <button type="button" onClick={() => handleSendLoginOtp()} className="auth-resend-btn">
+                                  Resend Code
+                                </button>
+                              )}
+                            </span>
+                          </div>
+
+                          {/* 6 Digit Box */}
+                          <div className="auth-otp-inputs-row" onPaste={handleLoginOtpPaste}>
+                            {loginOtpDigits.map((digit, idx) => (
+                              <input
+                                key={idx}
+                                id={`login-otp-digit-${idx}`}
+                                type="text"
+                                maxLength={1}
+                                value={digit}
+                                onChange={(e) => handleLoginOtpChange(idx, e.target.value)}
+                                onKeyDown={(e) => handleLoginOtpKeyDown(idx, e)}
+                                className="auth-otp-digit-input"
+                                autoFocus={idx === 0}
+                              />
+                            ))}
+                          </div>
+
+                          <button
+                            type="submit"
+                            disabled={isLoginOtpVerifying}
+                            className="auth-submit-btn"
+                          >
+                            <span>{isLoginOtpVerifying ? 'Verifying Code...' : 'Verify OTP & Sign In'}</span>
+                            <CheckCircle2 size={18} />
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* -------------------------------------------------------------------
-                    Pane 2: SIGN UP FORM
+                    Pane 2: SIGN UP FORM (With In-Textfield Send/Verify OTP)
                     ------------------------------------------------------------------- */}
                 <div className="auth-form-slide-pane">
-                  <h3 className="auth-welcome-title">Create Your Account</h3>
-                  <p className="auth-welcome-sub">Join thousands of growers cultivating smarter</p>
+                  <h3 className="auth-welcome-title">Create Account</h3>
+                  <p className="auth-welcome-sub">Join thousands of verified farmers & growers</p>
 
-                  <form onSubmit={handleSubmit} className="auth-form">
+                  <form onSubmit={handleFinalSignupSubmit} className="auth-form">
                     {/* Full Name */}
                     <div className="auth-input-group">
                       <div className="auth-input-icon">
@@ -438,7 +870,7 @@ export const LoginPage: React.FC = () => {
                       </div>
                       <input
                         type="text"
-                        placeholder="Full Name"
+                        placeholder="Farmer / Business Name"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         className="auth-input"
@@ -446,29 +878,125 @@ export const LoginPage: React.FC = () => {
                       />
                     </div>
 
-                    {/* Email or Phone Number */}
+                    {/* Email Field with INLINE Send OTP / Verified Button */}
                     <div className="auth-input-group">
                       <div className="auth-input-icon">
                         <Mail size={18} />
                       </div>
                       <input
-                        type="text"
-                        placeholder="Email or Phone Number"
+                        type="email"
+                        placeholder="Email Address"
                         value={emailOrPhone}
-                        onChange={(e) => setEmailOrPhone(e.target.value)}
+                        disabled={isEmailVerified}
+                        onChange={(e) => {
+                          setEmailOrPhone(e.target.value);
+                          setIsEmailVerified(false);
+                          setSignupOtpSent(false);
+                        }}
                         className="auth-input"
+                        style={{ paddingRight: isEmailVerified ? '110px' : '105px' }}
                         required={mode === 'signup'}
+                      />
+                      <div className="auth-input-action-wrap">
+                        {isEmailVerified ? (
+                          <span className="auth-verified-badge" title="Email is verified">
+                            <Check size={14} strokeWidth={3} />
+                            Verified
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={handleSendSignupInlineOtp}
+                            disabled={isSignupOtpSending || signupCountdown > 0 || !emailOrPhone.includes('@')}
+                            className="auth-input-inline-btn"
+                          >
+                            {isSignupOtpSending ? (
+                              'Sending...'
+                            ) : signupCountdown > 0 ? (
+                              `Resend in ${signupCountdown}s`
+                            ) : signupOtpSent ? (
+                              'Resend OTP'
+                            ) : (
+                              <>
+                                <Send size={12} />
+                                <span>Get OTP</span>
+                              </>
+                            )}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* INLINE OTP VERIFICATION CONTAINER (Reveals when OTP is sent & not yet verified) */}
+                    {signupOtpSent && !isEmailVerified && (
+                      <div className="auth-inline-otp-card">
+                        <div className="auth-inline-otp-header">
+                          <span>Enter 6-digit code sent to your email:</span>
+                          <span style={{ fontWeight: 800 }}>
+                            {signupCountdown > 0 ? `0:${signupCountdown < 10 ? '0' : ''}${signupCountdown}` : (
+                              <button
+                                type="button"
+                                onClick={handleSendSignupInlineOtp}
+                                className="auth-resend-btn"
+                              >
+                                Resend
+                              </button>
+                            )}
+                          </span>
+                        </div>
+
+                        <div className="auth-inline-otp-body">
+                          <div className="auth-otp-inputs-row" onPaste={handleSignupOtpPaste}>
+                            {signupOtpDigits.map((digit, idx) => (
+                              <input
+                                key={idx}
+                                id={`signup-inline-otp-${idx}`}
+                                type="text"
+                                maxLength={1}
+                                value={digit}
+                                onChange={(e) => handleSignupOtpChange(idx, e.target.value)}
+                                onKeyDown={(e) => handleSignupOtpKeyDown(idx, e)}
+                                className="auth-otp-digit-input"
+                                autoFocus={idx === 0}
+                              />
+                            ))}
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={handleVerifySignupInlineOtp}
+                            disabled={isSignupVerifying || signupOtpDigits.join('').length < 6}
+                            className="auth-inline-verify-btn"
+                          >
+                            {isSignupVerifying ? 'Checking...' : 'Verify OTP'}
+                            <CheckCircle2 size={15} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Phone Number */}
+                    <div className="auth-input-group">
+                      <div className="auth-input-icon">
+                        <Phone size={18} />
+                      </div>
+                      <input
+                        type="tel"
+                        placeholder="Phone Number (e.g. +91 98421 88321)"
+                        value={phoneNumber}
+                        onChange={(e) => setPhoneNumber(e.target.value)}
+                        className="auth-input"
                       />
                     </div>
 
-                    {/* Password Field */}
+                    {/* Password */}
                     <div className="auth-input-group">
                       <div className="auth-input-icon">
                         <Lock size={18} />
                       </div>
                       <input
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="Create Password"
+                        placeholder="Create Password (min. 6 chars)"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="auth-input"
@@ -484,29 +1012,18 @@ export const LoginPage: React.FC = () => {
                       </button>
                     </div>
 
-                    {/* Role Selection */}
-                    <div className="auth-role-selector">
-                      <button
-                        type="button"
-                        onClick={() => setRole('farmer')}
-                        className={`auth-role-btn ${role === 'farmer' ? 'active' : ''}`}
-                      >
-                        🌾 Farmer
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setRole('agronomist')}
-                        className={`auth-role-btn ${role === 'agronomist' ? 'active' : ''}`}
-                      >
-                        🔬 Agronomist
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setRole('buyer')}
-                        className={`auth-role-btn ${role === 'buyer' ? 'active' : ''}`}
-                      >
-                        🛒 Partner
-                      </button>
+                    {/* District / Location */}
+                    <div className="auth-input-group">
+                      <div className="auth-input-icon">
+                        <MapPin size={18} />
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="District / State (e.g. Thanjavur, TN)"
+                        value={district}
+                        onChange={(e) => setDistrict(e.target.value)}
+                        className="auth-input"
+                      />
                     </div>
 
                     {/* Terms Agreement */}
@@ -516,20 +1033,38 @@ export const LoginPage: React.FC = () => {
                           type="checkbox"
                           defaultChecked
                           required
-                          style={{ accentColor: '#165B2E', width: '16px', height: '16px', cursor: 'pointer' }}
+                          style={{ accentColor: '#15803D', width: '16px', height: '16px', cursor: 'pointer' }}
                         />
-                        <span>I accept the Terms of Service & Privacy Policy</span>
+                        <span>I accept Terms of Service & Privacy Policy</span>
                       </label>
                     </div>
 
-                    {/* Submit Button */}
+                    {/* Submit Button (Only enables after OTP is verified) */}
                     <button
                       type="submit"
-                      disabled={isRegistering}
+                      disabled={!isEmailVerified || isSubmittingSignup}
                       className="auth-submit-btn"
+                      style={
+                        !isEmailVerified
+                          ? {
+                              background: '#E2E8F0',
+                              color: '#94A3B8',
+                              boxShadow: 'none',
+                              cursor: 'not-allowed',
+                            }
+                          : undefined
+                      }
                     >
-                      <span>{isRegistering ? 'Creating Account...' : 'Create Account'}</span>
-                      <Sprout size={18} strokeWidth={2.4} />
+                      {isSubmittingSignup ? (
+                        <span>Creating Account...</span>
+                      ) : !isEmailVerified ? (
+                        <span>🔒 Verify Email OTP to Create Account</span>
+                      ) : (
+                        <>
+                          <span>Create Account & Start Farming</span>
+                          <Sprout size={18} strokeWidth={2.4} />
+                        </>
+                      )}
                     </button>
                   </form>
                 </div>
@@ -572,11 +1107,15 @@ export const LoginPage: React.FC = () => {
 
               <button
                 type="button"
-                onClick={handleEmailOTP}
+                onClick={() => {
+                  setMode('login');
+                  setLoginMethod('otp');
+                  setError(null);
+                }}
                 className="auth-social-btn"
               >
-                <Sprout size={18} style={{ color: '#165B2E' }} />
-                <span>Continue with Email OTP</span>
+                <Sprout size={18} style={{ color: '#15803D' }} />
+                <span>Instant OTP Sign In</span>
               </button>
             </div>
 

@@ -105,7 +105,7 @@ export const ContactPage: React.FC = () => {
                   Message Sent Successfully!
                 </h3>
                 <p style={{ color: '#64748B', fontSize: '0.95rem', marginBottom: '1.75rem', maxWidth: '420px', margin: '0 auto 1.75rem' }}>
-                  Thank you for contacting Greenla. Our agronomy team will respond to your inquiry within 24 hours.
+                  Thank you for contacting FarmerBench. Our agronomy team will respond to your inquiry within 24 hours.
                 </p>
                 <button
                   type="button"
@@ -228,7 +228,7 @@ export const ContactPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="contact-info-heading">Email Us</p>
-                  <a href="mailto:support@greenla.in" className="contact-info-value">support@greenla.in</a>
+                  <a href="mailto:support@farmerbench.in" className="contact-info-value">support@farmerbench.in</a>
                   <p className="contact-info-subtext">We reply within 24 hours</p>
                 </div>
               </div>
@@ -304,7 +304,7 @@ export const ContactPage: React.FC = () => {
             <div className="contact-map-pin-overlay">
               <div className="contact-pin-badge">
                 <Sprout size={14} style={{ color: '#88CF3A' }} />
-                <span>Greenla HQ</span>
+                <span>FarmerBench HQ</span>
               </div>
               <svg width="24" height="32" viewBox="0 0 24 32" fill="none">
                 <path d="M12 0C5.37 0 0 5.37 0 12C0 21 12 32 12 32C12 32 24 21 24 12C24 5.37 18.63 0 12 0Z" fill="#164627" />

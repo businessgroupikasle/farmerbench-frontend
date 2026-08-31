@@ -105,6 +105,26 @@ export const DashboardPage: React.FC = () => {
           </div>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{user.email}</p>
         </div>
+
+        {user.role === 'ADMIN' && (
+          <div style={{ marginLeft: 'auto' }}>
+            <Link
+              to="/admin"
+              className="btn btn-primary"
+              style={{
+                backgroundColor: '#0F4726',
+                color: '#ffffff',
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                fontWeight: 700,
+              }}
+            >
+              Open FarmerBench Admin Portal →
+            </Link>
+          </div>
+        )}
       </div>
 
       {/* Tabs Layout */}

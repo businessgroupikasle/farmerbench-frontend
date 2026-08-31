@@ -127,8 +127,8 @@ export const CartPage: React.FC = () => {
   ]);
 
   // Coupon state
-  const [couponCode, setCouponCode] = useState('GREENLA120');
-  const [appliedCoupon, setAppliedCoupon] = useState<string | null>('GREENLA120');
+  const [couponCode, setCouponCode] = useState('FARMERBENCH120');
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>('FARMERBENCH120');
   const [discountAmount, setDiscountAmount] = useState(120);
 
   // Delivery checker state
@@ -363,17 +363,17 @@ export const CartPage: React.FC = () => {
   const handleApplyCoupon = (e: React.FormEvent) => {
     e.preventDefault();
     const code = couponCode.trim().toUpperCase();
-    if (code === 'GREENLA120' || code === 'FARMER120' || code === 'AGRI120') {
+    if (code === 'FARMERBENCH120' || code === 'FARMER120' || code === 'AGRI120') {
       setAppliedCoupon(code);
       setDiscountAmount(120);
       addToast({ type: 'success', message: `Coupon ${code} applied! You saved ₹120.00` });
-    } else if (code === 'GREENLA20') {
+    } else if (code === 'FARMERBENCH20') {
       const discount = Math.round(subtotal * 0.2);
       setAppliedCoupon(code);
       setDiscountAmount(discount);
       addToast({ type: 'success', message: `Coupon ${code} applied! 20% discount (₹${discount})` });
     } else {
-      addToast({ type: 'error', message: 'Invalid coupon code. Try GREENLA120' });
+      addToast({ type: 'error', message: 'Invalid coupon code. Try FARMERBENCH120' });
     }
   };
 
@@ -835,7 +835,7 @@ export const CartPage: React.FC = () => {
               +91 98765 43210
             </a>
             <a
-              href="https://wa.me/919876543210?text=Hi%20Greenla,%20I%20have%20a%20question%20about%20my%20order"
+              href="https://wa.me/919876543210?text=Hi%20FarmerBench,%20I%20have%20a%20question%20about%20my%20order"
               target="_blank"
               rel="noreferrer"
               className="cart-help-whatsapp"

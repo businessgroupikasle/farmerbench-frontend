@@ -1,14 +1,11 @@
 import React from 'react';
 import heroBg from '../../assets/hero-bg.jpg';
-import { getHeroBgUrl } from '../../utils/image';
 
 interface HomeHeroProps {
   onDiscoverClick?: () => void;
 }
 
 export const HomeHero: React.FC<HomeHeroProps> = ({ onDiscoverClick }) => {
-  const heroImageUrl = getHeroBgUrl(heroBg);
-
   const handleScrollToStore = () => {
     if (onDiscoverClick) {
       onDiscoverClick();
@@ -21,7 +18,7 @@ export const HomeHero: React.FC<HomeHeroProps> = ({ onDiscoverClick }) => {
   };
 
   return (
-    <section className="agriflow-hero" style={{ backgroundImage: `url(${heroImageUrl})` }}>
+    <section className="agriflow-hero" style={{ backgroundImage: `url(${heroBg})` }}>
       <div className="agriflow-hero-overlay" />
       <div className="container agriflow-hero-content animate-fade-in">
         <h1 className="agriflow-hero-title">Natural</h1>

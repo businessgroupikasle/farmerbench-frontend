@@ -8,11 +8,12 @@ export const getUploadUrl = (filenameOrPath?: string | null, fallbackUrl?: strin
     return fallbackUrl || '';
   }
 
-  // Already a full external URL (http / https) or base64 data URI
+  // Already a full external URL (http / https) or base64 / blob data URI
   if (
     filenameOrPath.startsWith('http://') ||
     filenameOrPath.startsWith('https://') ||
-    filenameOrPath.startsWith('data:')
+    filenameOrPath.startsWith('data:') ||
+    filenameOrPath.startsWith('blob:')
   ) {
     return filenameOrPath;
   }
@@ -29,9 +30,8 @@ export const getUploadUrl = (filenameOrPath?: string | null, fallbackUrl?: strin
 };
 
 /**
- * Returns backend uploads URL for the default hero background image
+ * Returns background image URL with local fallback asset
  */
 export const getHeroBgUrl = (localFallback: string): string => {
-  const backendUrl = getUploadUrl('hero-bg.jpg');
-  return backendUrl || localFallback;
+  return localFallback;
 };

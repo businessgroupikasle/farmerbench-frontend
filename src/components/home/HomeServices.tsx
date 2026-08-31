@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Sprout } from 'lucide-react';
-import { getUploadUrl } from '../../utils/image';
 import irrigationImg from '../../assets/smart-irrigation.jpg';
 import monitoringImg from '../../assets/crop-monitoring.jpg';
 import sustainableImg from '../../assets/sustainable-farm.jpg';
@@ -12,7 +11,6 @@ interface ServiceItem {
   tag: string;
   title: string;
   image: string;
-  fallback: string;
   catalogCategory: string;
   catalogSearch: string;
 }
@@ -26,8 +24,7 @@ export const HomeServices: React.FC = () => {
       id: 'smart-irrigation',
       tag: 'Crops',
       title: 'Smart Irrigation',
-      image: 'smart-irrigation.jpg',
-      fallback: irrigationImg,
+      image: irrigationImg,
       catalogCategory: 'organic-crops',
       catalogSearch: 'irrigation',
     },
@@ -35,8 +32,7 @@ export const HomeServices: React.FC = () => {
       id: 'crop-monitoring',
       tag: 'Checkup',
       title: 'Crop Monitoring',
-      image: 'crop-monitoring.jpg',
-      fallback: monitoringImg,
+      image: monitoringImg,
       catalogCategory: 'farm-supplies',
       catalogSearch: 'seeds',
     },
@@ -44,8 +40,7 @@ export const HomeServices: React.FC = () => {
       id: 'sustainable-farm',
       tag: 'Project',
       title: 'Sustainable Farm',
-      image: 'sustainable-farm.jpg',
-      fallback: sustainableImg,
+      image: sustainableImg,
       catalogCategory: 'fresh-produce',
       catalogSearch: 'organic',
     },
@@ -53,8 +48,7 @@ export const HomeServices: React.FC = () => {
       id: 'organic-farming',
       tag: 'Fruits',
       title: 'Organic Farming',
-      image: 'organic-farming.jpg',
-      fallback: organicImg,
+      image: organicImg,
       catalogCategory: 'heritage-grains',
       catalogSearch: 'farming',
     },
@@ -67,6 +61,8 @@ export const HomeServices: React.FC = () => {
   const handleNext = () => {
     setStartIndex((prev) => (prev === services.length - 1 ? 0 : prev + 1));
   };
+
+  const displayedServices = [...services.slice(startIndex), ...services.slice(0, startIndex)];
 
   const handleCardClick = (service: ServiceItem) => {
     navigate(`/products?category=${service.catalogCategory}&search=${encodeURIComponent(service.catalogSearch)}`);
@@ -111,8 +107,7 @@ export const HomeServices: React.FC = () => {
 
         {/* 4 Cards Grid */}
         <div className="agriflow-services-grid">
-          {services.map((item) => {
-            const imgUrl = getUploadUrl(item.image, item.fallback);
+          {displayedServices.map((item) => {
             return (
               <div
                 key={item.id}
@@ -127,7 +122,7 @@ export const HomeServices: React.FC = () => {
                 }}
               >
                 <div className="agriflow-service-img-wrapper">
-                  <img src={imgUrl} alt={item.title} />
+                  <img src={item.image} alt={item.title} />
                 </div>
                 <div className="agriflow-service-badge">
                   <span className="agriflow-service-badge-dot" />

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Modal } from '../common/Modal';
 import { Input } from '../common/Input';
 import { Button } from '../common/Button';
@@ -7,6 +8,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { Mail, Lock, User as UserIcon, Sparkles } from 'lucide-react';
 
 export const AuthModal: React.FC = () => {
+  const navigate = useNavigate();
   const { isAuthModalOpen, authModalTab, closeAuthModal, openAuthModal } = useUIStore();
   const { login, register, isLoggingIn, isRegistering } = useAuth();
 
@@ -21,7 +23,10 @@ export const AuthModal: React.FC = () => {
 
     try {
       if (authModalTab === 'login') {
-        await login({ email, password });
+        const res = await login({ email, password });
+        if (res?.user?.role === 'ADMIN' || email.trim().toLowerCase().includes('admin')) {
+          navigate('/admin');
+        }
       } else {
         if (!name.trim()) {
           setError('Name is required');

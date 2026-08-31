@@ -16,6 +16,11 @@ import {
   MapPin,
   Clock,
   Award,
+  Tractor,
+  Briefcase,
+  Stethoscope,
+  CloudRain,
+  CalendarDays,
 } from 'lucide-react';
 import { ServicesHero } from '../components/services/ServicesHero';
 import { ServicesHighlights } from '../components/services/ServicesHighlights';
@@ -44,70 +49,70 @@ interface ServiceItem {
 export const ServicesPage: React.FC = () => {
   const [isConsultationModalOpen, setIsConsultationModalOpen] = useState(false);
   const [isExpertModalOpen, setIsExpertModalOpen] = useState(false);
-  const [selectedService, setSelectedService] = useState<string>('Soil Health & Nutrient Audit');
+  const [selectedService, setSelectedService] = useState<string>('Farm Development');
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [callbackSuccess, setCallbackSuccess] = useState(false);
 
   const services: ServiceItem[] = [
     {
-      id: 'soil-health',
-      tag: 'Soil & Nutrition',
-      title: 'Soil Health & Nutrient Audit',
+      id: 'farm-development',
+      tag: 'Farm Engineering',
+      title: 'Farm Development',
       description:
-        'Comprehensive 14-parameter laboratory soil testing with personalized organic and chemical fertilization plans for balanced soil biology.',
-      icon: <FlaskConical size={22} />,
+        'Turnkey farm planning, precision land grading, soil enrichment, boundary fencing, road access, and structural farm layout design.',
+      icon: <Tractor size={22} />,
       image: practicesImg,
-      benefits: ['N-P-K & Micronutrient profiling', 'Soil pH & organic carbon analysis', 'Custom dosage calculator'],
+      benefits: ['Topography mapping & soil grading', 'Perimeter fencing & farm roads', 'Complete infrastructure setup'],
     },
     {
-      id: 'crop-protection',
-      tag: 'Crop Health',
-      title: 'Precision Crop Protection & Pest Shield',
+      id: 'well-development',
+      tag: 'Water Resources',
+      title: 'Well Development',
       description:
-        'Early identification of fungal, bacterial, and pest threats with bio-friendly and targeted treatments to prevent crop loss.',
-      icon: <Bug size={22} />,
-      image: monitoringImg,
-      benefits: ['On-field pest diagnostics', 'Integrated Pest Management (IPM)', 'Preventive spray calendar'],
-    },
-    {
-      id: 'smart-irrigation',
-      tag: 'Water Management',
-      title: 'Smart Drip & Irrigation Optimization',
-      description:
-        'Tailored drip, micro-sprinkler, and fertigation designs to conserve water up to 45% while boosting nutrient uptake efficiency.',
+        'Hydro-geological survey, borewell drilling, open well deepening, groundwater recharge structures, and motor pump sizing.',
       icon: <Droplets size={22} />,
-      image: irrigationImg,
-      benefits: ['Water requirement modeling', 'Fertigation system setup', 'Soil moisture sensor advisory'],
-    },
-    {
-      id: 'organic-transition',
-      tag: 'Organic & Sustainable',
-      title: 'Organic Transition & Certification',
-      description:
-        'Step-by-step guidance for transitioning conventional farms into certified organic operations with sustainable bio-inputs.',
-      icon: <Sprout size={22} />,
-      image: organicImg,
-      benefits: ['Zero-chemical farming protocols', 'Bio-fertilizer manufacturing tips', 'Certification documentation support'],
-    },
-    {
-      id: 'yield-optimization',
-      tag: 'Agronomy',
-      title: 'Yield Maximization & Seed Consulting',
-      description:
-        'High-yielding hybrid & heirloom seed selection, plant spacing, and stage-by-stage agronomic advisories throughout crop lifecycle.',
-      icon: <TrendingUp size={22} />,
-      image: sustainableImg,
-      benefits: ['Climate-resilient crop selection', 'Density & canopy management', 'Harvest timing & grading advice'],
-    },
-    {
-      id: 'farm-mechanization',
-      tag: 'Tech & Machinery',
-      title: 'Farm Mechanization & Drone Spraying',
-      description:
-        'Modern agricultural machinery recommendations and drone-based rapid foliar spraying services for large acreage farms.',
-      icon: <ShieldCheck size={22} />,
       image: heroBgImg,
-      benefits: ['Precision drone spraying', 'Machinery rental guidance', 'Labor cost reduction strategies'],
+      benefits: ['Geophysical groundwater point location', 'Rainwater harvesting well recharge', 'Optimal pump efficiency calculation'],
+    },
+    {
+      id: 'drip-irrigation',
+      tag: 'Water Management',
+      title: 'Drip Irrigation',
+      description:
+        'Precision micro-irrigation, inline/online dripper networks, automated fertigation tanks, and sand/screen filtration systems.',
+      icon: <CloudRain size={22} />,
+      image: irrigationImg,
+      benefits: ['Conserves water up to 50%', 'Direct root-zone nutrient delivery', 'Automated timer & solenoid valve setup'],
+    },
+    {
+      id: 'farm-consultancy',
+      tag: 'Agronomy Advisory',
+      title: 'Farm Consultancy',
+      description:
+        'Dedicated agronomist farm visits, soil-crop suitability analysis, organic crop nutrition planning, and high-yield profit roadmaps.',
+      icon: <Briefcase size={22} />,
+      image: sustainableImg,
+      benefits: ['Expert crop selection & spacing', 'Cost-benefit financial modeling', 'End-to-end harvest support'],
+    },
+    {
+      id: 'crop-doctor',
+      tag: 'Crop Diagnostics',
+      title: 'Crop Doctor',
+      description:
+        'Rapid pest, insect, and fungal disease diagnosis with instant bio-pesticide and curative treatment prescriptions to save crops.',
+      icon: <Stethoscope size={22} />,
+      image: monitoringImg,
+      benefits: ['AI & Agronomist leaf pest identification', 'Immediate bio-spray dosage advice', 'Preventive fungal barrier protocols'],
+    },
+    {
+      id: 'crop-calendar',
+      tag: 'Season Planning',
+      title: 'Crop Calendar',
+      description:
+        'Custom stage-by-stage sowing, vegetative growth, flowering, irrigation, and harvest timeline tailored to your local regional climate.',
+      icon: <CalendarDays size={22} />,
+      image: organicImg,
+      benefits: ['Monthly activity schedule & alerts', 'Timely fertilizer & pesticide sprays', 'Weather-forecast aligned operations'],
     },
   ];
 
