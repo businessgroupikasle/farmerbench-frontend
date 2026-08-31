@@ -6,18 +6,8 @@ import { useFilterStore } from '../store/filterStore';
 import { ProductGrid } from '../components/product/ProductGrid';
 import { ProductFilters } from '../components/product/ProductFilters';
 import { Pagination } from '../components/common/Pagination';
-import { Search, Sprout } from 'lucide-react';
+import { Search } from 'lucide-react';
 import './ProductsPage.css';
-
-const POPULAR_CATEGORIES = [
-  { id: '', name: 'All Products' },
-  { id: 'fertilizers', name: 'Fertilizers' },
-  { id: 'biostimulants', name: 'Biostimulants' },
-  { id: 'pesticides', name: 'Pesticides' },
-  { id: 'crop-nutrition', name: 'Crop Nutrition' },
-  { id: 'seeds-nuts', name: 'Seeds & Nuts' },
-  { id: 'organic-produce', name: 'Organic Produce' },
-];
 
 export const ProductsPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -68,10 +58,11 @@ export const ProductsPage: React.FC = () => {
   const products = response?.data || [];
   const pagination = response?.pagination;
 
-  // Merge API categories with defaults for pills
-  const categoryPills = apiCategories.length > 0 
-    ? [{ id: '', name: 'All Products', slug: '' }, ...apiCategories]
-    : POPULAR_CATEGORIES.map(c => ({ id: c.id, name: c.name, slug: c.id }));
+  // Pure database-backed category pills
+  const categoryPills = [
+    { id: '', name: 'All Products', slug: '' },
+    ...apiCategories,
+  ];
 
   return (
     <div className="products-page-layout">

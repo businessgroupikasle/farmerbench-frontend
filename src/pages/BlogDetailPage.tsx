@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   Calendar,
   Clock,
@@ -13,13 +13,10 @@ import {
 import wheatImg from '../assets/wheat-sunburst.jpg';
 import pastureImg from '../assets/farming-practices.jpg';
 import smartImg from '../assets/smart-irrigation.jpg';
-import sustainableImg from '../assets/sustainable-farm.jpg';
 import organicImg from '../assets/organic-farming.jpg';
-import aerialImg from '../assets/vineyard-hills.jpg';
 import './BlogDetailPage.css';
 
 export const BlogDetailPage: React.FC = () => {
-  const { idOrSlug } = useParams();
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [copied, setCopied] = useState(false);
 

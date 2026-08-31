@@ -510,7 +510,6 @@ export const LoginPage: React.FC = () => {
       const res = await authService.resetPassword({
         resetToken,
         newPassword,
-        confirmPassword,
       });
       setIsResettingPassword(false);
 

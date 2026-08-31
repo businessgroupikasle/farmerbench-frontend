@@ -1,5 +1,5 @@
 import React from 'react';
-import { Check, Sprout, Sparkles } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 interface JourneyMilestone {
   year: string;

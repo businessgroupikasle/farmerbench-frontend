@@ -1,6 +1,7 @@
 import React from 'react';
 import { HomeHero } from '../components/home/HomeHero';
 import { HomeAgriculturePractice } from '../components/home/HomeAgriculturePractice';
+import { HomeOurProducts } from '../components/home/HomeOurProducts';
 import { HomeServices } from '../components/home/HomeServices';
 import { HomeLatestNews } from '../components/home/HomeLatestNews';
 import './HomePage.css';
@@ -15,6 +16,9 @@ export const HomePage: React.FC = () => {
       <div className="container homepage-sections-container">
         {/* Agriculture & Natural Product Farming Section */}
         <HomeAgriculturePractice />
+
+        {/* Live Featured Products Section from Database */}
+        <HomeOurProducts />
 
         {/* Latest Services: Revolutionizing the Way Food is Grown */}
         <HomeServices />

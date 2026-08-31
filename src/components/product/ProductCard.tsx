@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Product } from '@formerbench/shared';
 import { RatingStars } from './RatingStars';
 import { Badge } from '../common/Badge';
@@ -12,14 +12,24 @@ interface ProductCardProps {
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart } = useCart();
+  const navigate = useNavigate();
 
-  const isDiscounted = !!product.discountPrice && product.discountPrice < product.price;
-  const discountPercent = isDiscounted
-    ? Math.round(((product.price - product.discountPrice!) / product.price) * 100)
+  const isDiscounted = Boolean(product.discountPrice && product.discountPrice < product.price);
+  const discountPercent = isDiscounted && product.discountPrice
+    ? Math.round(((product.price - product.discountPrice) / product.price) * 100)
     : 0;
 
   const isLowStock = product.stock > 0 && product.stock <= 5;
   const isOutOfStock = product.stock === 0;
+
+  const handleAddAndGoToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isOutOfStock) {
+      addToCart(product, 1);
+      navigate('/cart');
+    }
+  };
 
   return (
     <div
@@ -136,7 +146,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             {isDiscounted ? (
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
                 <span style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  ${product.discountPrice?.toFixed(2)}
+                  ₹{product.discountPrice?.toFixed(2)}
                 </span>
                 <span
                   style={{
@@ -145,12 +155,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                     textDecoration: 'line-through',
                   }}
                 >
-                  ${product.price.toFixed(2)}
+                  ₹{product.price.toFixed(2)}
                 </span>
               </div>
             ) : (
               <span style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                ${product.price.toFixed(2)}
+                ₹{product.price.toFixed(2)}
               </span>
             )}
           </div>
@@ -159,17 +169,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             type="button"
             className="btn btn-secondary btn-icon"
             disabled={isOutOfStock}
-            onClick={(e) => {
-              e.preventDefault();
-              addToCart(product, 1);
-            }}
+            onClick={handleAddAndGoToCart}
             style={{
               borderRadius: 'var(--radius-full)',
               width: '38px',
               height: '38px',
               padding: 0,
             }}
-            title={isOutOfStock ? 'Out of stock' : 'Add to cart'}
+            title={isOutOfStock ? 'Out of stock' : 'Add to cart and view basket'}
             aria-label="Add to cart"
           >
             <ShoppingBag size={17} style={{ color: 'var(--brand-primary)' }} />
@@ -179,3 +186,5 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     </div>
   );
 };
+
+export default ProductCard;

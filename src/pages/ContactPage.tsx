@@ -11,7 +11,6 @@ import {
   Headphones,
   ShieldCheck,
   Truck,
-  Sparkles,
   CheckCircle2,
 } from 'lucide-react';
 import './ContactPage.css';

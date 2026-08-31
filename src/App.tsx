@@ -23,8 +23,10 @@ import { BlogPage } from './pages/BlogPage';
 import { BlogDetailPage } from './pages/BlogDetailPage';
 import { LoginPage } from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { useSocketSync } from './socket';
 
 const AppContent: React.FC = () => {
+  useSocketSync();
   const location = useLocation();
   const isAuthPage = ['/login', '/signin', '/signup', '/register'].some(path => 
     location.pathname.startsWith(path)

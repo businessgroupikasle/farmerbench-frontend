@@ -1,11 +1,8 @@
 import React, { useState } from 'react';
 import {
   FlaskConical,
-  Bug,
   Droplets,
-  Sprout,
   TrendingUp,
-  ShieldCheck,
   PhoneCall,
   Calendar,
   CheckCircle2,

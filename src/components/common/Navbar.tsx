@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../hooks/useCart';
-import { useCartStore } from '../../store/cartStore';
 import { useUIStore } from '../../store/uiStore';
 import {
   ShoppingCart,
@@ -29,7 +28,6 @@ import './Navbar.css';
 export const Navbar: React.FC = () => {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const { totalItems } = useCart();
-  const { openDrawer } = useCartStore();
   const { openAuthModal } = useUIStore();
   const navigate = useNavigate();
   const location = useLocation();
@@ -257,7 +255,7 @@ export const Navbar: React.FC = () => {
               <Link to="/cart" className="agriflow-cart-widget-btn" aria-label="View shopping cart" style={{ textDecoration: 'none' }}>
                 <div className="agriflow-cart-icon-box">
                   <ShoppingCart size={18} strokeWidth={2.2} />
-                  <span className="agriflow-cart-green-badge">{totalItems > 0 ? totalItems : 3}</span>
+                  <span className="agriflow-cart-green-badge">{totalItems}</span>
                 </div>
                 <span className="agriflow-cart-widget-title">Cart</span>
               </Link>
@@ -269,7 +267,7 @@ export const Navbar: React.FC = () => {
             <Link to="/cart" className="agriflow-cart-widget-btn" aria-label="View shopping cart" style={{ textDecoration: 'none' }}>
               <div className="agriflow-cart-icon-box">
                 <ShoppingCart size={18} strokeWidth={2.2} />
-                <span className="agriflow-cart-green-badge">{totalItems > 0 ? totalItems : 3}</span>
+                <span className="agriflow-cart-green-badge">{totalItems}</span>
               </div>
             </Link>
             <button

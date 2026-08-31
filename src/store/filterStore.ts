@@ -3,7 +3,7 @@ import { ProductQueryInput } from '@formerbench/shared';
 
 interface FilterState {
   filters: ProductQueryInput;
-  setSearch: (search: string) => void;
+  setSearch: (search: string | undefined) => void;
   setCategory: (category: string | undefined) => void;
   setPriceRange: (minPrice?: number, maxPrice?: number) => void;
   setMinRating: (minRating?: number) => void;

@@ -1042,6 +1042,78 @@
   background-color: #F8FAFC;
 }
 
+/* Top Selling Products Row-based List */
+.admin-top-product-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.admin-top-product-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: 10px;
+  background-color: #F8FAFC;
+  border: 1px solid #F1F5F9;
+  transition: all 0.15s ease;
+}
+
+.admin-top-product-row:hover {
+  background-color: #F0FDF4;
+  border-color: #BBF7D0;
+  transform: translateX(2px);
+}
+
+.admin-top-product-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.admin-top-product-thumb {
+  width: 44px !important;
+  min-width: 44px !important;
+  max-width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid #E2E8F0;
+  background-color: #FFFFFF;
+  display: block;
+}
+
+.admin-top-product-name {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0F291B;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 170px;
+}
+
+.admin-top-product-sold {
+  font-size: 0.75rem;
+  color: #64748B;
+  font-weight: 500;
+}
+
+.admin-top-product-revenue {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #15803D;
+  white-space: nowrap;
+  padding-left: 0.5rem;
+}
+
 .admin-action-btn-group {
   display: flex;
   align-items: center;
@@ -1407,3 +1479,97 @@
   border-radius: 50%;
   background-color: #10B981;
 }
+
+/* --------------------------------------------------------------------------
+   Product CMS Multi-Tab Modal Styles
+   -------------------------------------------------------------------------- */
+.admin-cms-modal-card {
+  max-width: 840px !important;
+}
+
+.admin-cms-tabs-bar {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid #E2E8F0;
+  padding: 0 1.5rem;
+  background-color: #F8FAFC;
+  overflow-x: auto;
+}
+
+.admin-cms-tab-btn {
+  background: none;
+  border: none;
+  padding: 0.75rem 0.85rem;
+  font-size: 0.825rem;
+  font-weight: 600;
+  color: #64748B;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.admin-cms-tab-btn:hover {
+  color: #0F4726;
+}
+
+.admin-cms-tab-btn.active {
+  color: #0F4726;
+  font-weight: 700;
+  border-bottom-color: #0F4726;
+  background-color: #FFFFFF;
+}
+
+.admin-cms-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.admin-dynamic-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+}
+
+.admin-btn-add-row {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: #F0FDF4;
+  border: 1px dashed #86EFAC;
+  color: #15803D;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 0.45rem 0.85rem;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.admin-btn-add-row:hover {
+  background-color: #DCFCE7;
+  border-color: #15803D;
+}
+
+.admin-btn-remove-row {
+  background: none;
+  border: none;
+  color: #94A3B8;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s;
+}
+
+.admin-btn-remove-row:hover {
+  color: #EF4444;
+}
+

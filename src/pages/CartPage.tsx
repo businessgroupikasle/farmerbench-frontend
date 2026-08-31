@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Trash2,
+  Minus,
+  Plus,
   Heart,
   ChevronLeft,
   ChevronRight,
@@ -9,17 +11,17 @@ import {
   Check,
   MapPin,
   Headphones,
-  MessageSquare,
   ShieldCheck,
   Star,
   ArrowRight,
   Sparkles,
+  ShoppingBag,
 } from 'lucide-react';
 import { useCart } from '../hooks/useCart';
 import { useUIStore } from '../store/uiStore';
 import './CartPage.css';
 
-// Product images
+// Product fallback images for recommendations
 import growthBoosterImg from '../assets/growth-booster.jpg';
 import neemOilImg from '../assets/neem-oil-bottle.jpg';
 import humicPowerImg from '../assets/humic-power.jpg';
@@ -27,84 +29,18 @@ import bioPowerImg from '../assets/bio-power-promoter.jpg';
 import seaweedExtractImg from '../assets/seaweed-extract.jpg';
 import trichodermaImg from '../assets/trichoderma-fungicide.jpg';
 
-interface CartItemData {
-  id: string;
-  productId: string;
-  title: string;
-  category: string;
-  rating: number;
-  reviewsCount: number;
-  stockStatus: 'in-stock' | 'low-stock';
-  stockLabel: string;
-  packSize: string;
-  availableSizes: string[];
-  price: number;
-  quantity: number;
-  image: string;
-}
-
 interface SavedItemData {
   id: string;
   productId: string;
   title: string;
   price: number;
   image: string;
-  stockStatus: 'in-stock' | 'low-stock';
 }
 
 export const CartPage: React.FC = () => {
   const navigate = useNavigate();
   const { addToast } = useUIStore();
-  const { clearCart: hookClearCart } = useCart();
-
-  // Local cart items initialized to match reference design exactly
-  const [cartItems, setCartItems] = useState<CartItemData[]>([
-    {
-      id: 'cart-item-1',
-      productId: 'growth-booster',
-      title: 'Growth Booster for All Crops',
-      category: 'Crop Nutrition',
-      rating: 4.8,
-      reviewsCount: 124,
-      stockStatus: 'in-stock',
-      stockLabel: 'In Stock',
-      packSize: '1 kg',
-      availableSizes: ['500 g', '1 kg', '5 kg', '10 kg'],
-      price: 580,
-      quantity: 2,
-      image: growthBoosterImg,
-    },
-    {
-      id: 'cart-item-2',
-      productId: 'neem-oil',
-      title: 'Neem Oil 100% Cold Pressed',
-      category: 'Plant Protection',
-      rating: 4.7,
-      reviewsCount: 112,
-      stockStatus: 'in-stock',
-      stockLabel: 'In Stock',
-      packSize: '500 ml',
-      availableSizes: ['250 ml', '500 ml', '1 L', '5 L'],
-      price: 320,
-      quantity: 1,
-      image: neemOilImg,
-    },
-    {
-      id: 'cart-item-3',
-      productId: 'humic-power',
-      title: 'Humic Power Soil Conditioner',
-      category: 'Crop Nutrition',
-      rating: 4.6,
-      reviewsCount: 76,
-      stockStatus: 'low-stock',
-      stockLabel: 'Only 4 left',
-      packSize: '1 kg',
-      availableSizes: ['1 kg', '2.5 kg', '5 kg'],
-      price: 650,
-      quantity: 1,
-      image: humicPowerImg,
-    },
-  ]);
+  const { items, subtotal, totalItems, updateQuantity, removeItem, clearCart, addToCart } = useCart();
 
   // Saved for Later items
   const [savedItems, setSavedItems] = useState<SavedItemData[]>([
@@ -114,7 +50,6 @@ export const CartPage: React.FC = () => {
       title: 'Bio Power Organic Growth Promoter',
       price: 450,
       image: bioPowerImg,
-      stockStatus: 'in-stock',
     },
     {
       id: 'saved-item-2',
@@ -122,14 +57,13 @@ export const CartPage: React.FC = () => {
       title: 'Seaweed Extract Plant Enhancer',
       price: 550,
       image: seaweedExtractImg,
-      stockStatus: 'in-stock',
     },
   ]);
 
   // Coupon state
   const [couponCode, setCouponCode] = useState('FARMERBENCH120');
-  const [appliedCoupon, setAppliedCoupon] = useState<string | null>('FARMERBENCH120');
-  const [discountAmount, setDiscountAmount] = useState(120);
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(subtotal >= 500 ? 'FARMERBENCH120' : null);
+  const [discountAmount, setDiscountAmount] = useState(subtotal >= 500 ? 120 : 0);
 
   // Delivery checker state
   const [pincode, setPincode] = useState('641001');
@@ -228,33 +162,21 @@ export const CartPage: React.FC = () => {
   };
 
   const handleAddRecommendedToCart = (prod: typeof recommendedProducts[0]) => {
-    const existingIndex = cartItems.findIndex((i) => i.productId === prod.productId);
-    if (existingIndex > -1) {
-      setCartItems((prev) =>
-        prev.map((item, idx) =>
-          idx === existingIndex ? { ...item, quantity: item.quantity + 1 } : item
-        )
-      );
-    } else {
-      setCartItems((prev) => [
-        ...prev,
-        {
-          id: `cart-${Date.now()}`,
-          productId: prod.productId,
-          title: prod.title,
-          category: prod.category,
-          rating: prod.rating,
-          reviewsCount: prod.reviewsCount,
-          stockStatus: 'in-stock',
-          stockLabel: 'In Stock',
-          packSize: prod.packSize,
-          availableSizes: prod.availableSizes,
-          price: prod.price,
-          quantity: 1,
-          image: prod.image,
-        },
-      ]);
-    }
+    addToCart({
+      id: prod.productId,
+      title: prod.title,
+      slug: prod.productId,
+      description: prod.title,
+      price: prod.price,
+      stock: 50,
+      rating: prod.rating,
+      numReviews: prod.reviewsCount,
+      featured: false,
+      images: [prod.image],
+      categoryId: 'recommended',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any, 1);
     addToast({ type: 'success', message: `${prod.title} added to cart!` });
   };
 
@@ -267,95 +189,51 @@ export const CartPage: React.FC = () => {
   };
 
   // Calculations
-  const totalItemCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
-  const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
   const freeDeliveryThreshold = 999;
   const isFreeDelivery = subtotal >= freeDeliveryThreshold;
-  const deliveryFee = isFreeDelivery || cartItems.length === 0 ? 0 : 80;
-  const estimatedTax = 0;
-  const grandTotal = Math.max(0, subtotal - (appliedCoupon ? discountAmount : 0) + deliveryFee + estimatedTax);
+  const deliveryFee = isFreeDelivery || items.length === 0 ? 0 : 80;
+  const effectiveDiscount = subtotal > 0 && appliedCoupon ? Math.min(discountAmount, subtotal) : 0;
+  const grandTotal = Math.max(0, subtotal - effectiveDiscount + deliveryFee);
   const freeDeliveryProgress = Math.min(100, Math.round((subtotal / freeDeliveryThreshold) * 100));
 
-  // Handlers
-  const handleQuantityChange = (itemId: string, newQty: number) => {
-    if (newQty <= 0) {
-      handleRemoveItem(itemId);
-      return;
-    }
-    setCartItems((prev) =>
-      prev.map((item) => (item.id === itemId ? { ...item, quantity: newQty } : item))
-    );
-  };
-
-  const handlePackSizeChange = (itemId: string, newSize: string) => {
-    setCartItems((prev) =>
-      prev.map((item) => (item.id === itemId ? { ...item, packSize: newSize } : item))
-    );
-    addToast({ type: 'info', message: `Pack size updated to ${newSize}` });
-  };
-
-  const handleRemoveItem = (itemId: string) => {
-    const itemToRemove = cartItems.find((i) => i.id === itemId);
-    setCartItems((prev) => prev.filter((item) => item.id !== itemId));
-    if (itemToRemove) {
-      addToast({ type: 'info', message: `${itemToRemove.title} removed from cart` });
-    }
-  };
-
-  const handleSaveForLater = (itemId: string) => {
-    const item = cartItems.find((i) => i.id === itemId);
-    if (!item) return;
-
-    setCartItems((prev) => prev.filter((i) => i.id !== itemId));
+  const handleSaveForLater = (productId: string, title: string, price: number, image: string) => {
+    removeItem(productId, productId);
     setSavedItems((prev) => [
-      ...prev,
+      ...prev.filter((i) => i.productId !== productId),
       {
         id: `saved-${Date.now()}`,
-        productId: item.productId,
-        title: item.title,
-        price: item.price,
-        image: item.image,
-        stockStatus: 'in-stock',
+        productId,
+        title,
+        price,
+        image,
       },
     ]);
-    addToast({ type: 'success', message: `${item.title} moved to Saved for Later` });
+    addToast({ type: 'info', message: `${title} moved to Saved for Later` });
   };
 
-  const handleMoveToCart = (savedId: string) => {
-    const item = savedItems.find((i) => i.id === savedId);
-    if (!item) return;
-
-    setSavedItems((prev) => prev.filter((i) => i.id !== savedId));
-    setCartItems((prev) => [
-      ...prev,
-      {
-        id: `cart-${Date.now()}`,
-        productId: item.productId,
-        title: item.title,
-        category: 'Organic Farm Care',
-        rating: 4.8,
-        reviewsCount: 45,
-        stockStatus: 'in-stock',
-        stockLabel: 'In Stock',
-        packSize: '1 L',
-        availableSizes: ['500 ml', '1 L', '5 L'],
-        price: item.price,
-        quantity: 1,
-        image: item.image,
-      },
-    ]);
-    addToast({ type: 'success', message: `${item.title} moved to Cart` });
-  };
-
-  const handleRemoveSavedItem = (savedId: string) => {
-    setSavedItems((prev) => prev.filter((i) => i.id !== savedId));
-    addToast({ type: 'info', message: 'Item removed from saved list' });
+  const handleMoveToCart = (item: SavedItemData) => {
+    addToCart({
+      id: item.productId,
+      title: item.title,
+      slug: item.productId,
+      description: item.title,
+      price: item.price,
+      stock: 50,
+      rating: 4.8,
+      numReviews: 20,
+      featured: false,
+      images: [item.image],
+      categoryId: 'saved',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as any, 1);
+    setSavedItems((prev) => prev.filter((i) => i.id !== item.id));
+    addToast({ type: 'success', message: `${item.title} moved back to cart` });
   };
 
   const handleClearCart = () => {
     if (window.confirm('Are you sure you want to clear all items in your cart?')) {
-      setCartItems([]);
-      hookClearCart();
+      clearCart();
       addToast({ type: 'info', message: 'Cart has been cleared' });
     }
   };
@@ -401,6 +279,10 @@ export const CartPage: React.FC = () => {
           Home
         </Link>
         <span className="cart-breadcrumb-separator">/</span>
+        <Link to="/products" className="cart-breadcrumb-link">
+          Products
+        </Link>
+        <span className="cart-breadcrumb-separator">/</span>
         <span className="cart-breadcrumb-current">Shopping Cart</span>
       </nav>
 
@@ -409,7 +291,7 @@ export const CartPage: React.FC = () => {
         <div>
           <h1 className="cart-title">Your Shopping Cart</h1>
           <p className="cart-subtitle">
-            {cartItems.length} {cartItems.length === 1 ? 'item' : 'items'} in your cart
+            {totalItems} {totalItems === 1 ? 'item' : 'items'} in your cart
           </p>
         </div>
 
@@ -419,10 +301,10 @@ export const CartPage: React.FC = () => {
         </Link>
       </div>
 
-      {/* 3. Step Checkout Progress Bar */}
+      {/* 3. Continuous Checkout Progress Bar */}
       <div className="cart-progress-wrap">
         {/* Step 1: Cart */}
-        <div className="cart-step-node">
+        <div className="cart-step-node" style={{ cursor: 'default' }}>
           <div className="cart-step-circle active">1</div>
           <span className="cart-step-label active">Cart</span>
         </div>
@@ -430,7 +312,14 @@ export const CartPage: React.FC = () => {
         <div className="cart-step-line" />
 
         {/* Step 2: Delivery */}
-        <div className="cart-step-node">
+        <div
+          className="cart-step-node"
+          onClick={() => {
+            if (items.length > 0) navigate('/checkout');
+          }}
+          style={{ cursor: items.length > 0 ? 'pointer' : 'not-allowed' }}
+          title={items.length > 0 ? 'Proceed to Delivery Address' : 'Cart is empty'}
+        >
           <div className="cart-step-circle inactive">2</div>
           <span className="cart-step-label">Delivery</span>
         </div>
@@ -438,7 +327,14 @@ export const CartPage: React.FC = () => {
         <div className="cart-step-line" />
 
         {/* Step 3: Payment */}
-        <div className="cart-step-node">
+        <div
+          className="cart-step-node"
+          onClick={() => {
+            if (items.length > 0) navigate('/checkout');
+          }}
+          style={{ cursor: items.length > 0 ? 'pointer' : 'not-allowed' }}
+          title={items.length > 0 ? 'Proceed to Payment Option' : 'Cart is empty'}
+        >
           <div className="cart-step-circle inactive">3</div>
           <span className="cart-step-label">Payment</span>
         </div>
@@ -460,201 +356,213 @@ export const CartPage: React.FC = () => {
             </div>
 
             {/* Cart Item Rows */}
-            {cartItems.length === 0 ? (
-              <div style={{ padding: '3.5rem 1.5rem', textAlign: 'center' }}>
-                <p style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '1.25rem' }}>
-                  Your shopping cart is currently empty.
+            {items.length === 0 ? (
+              <div style={{ padding: '4rem 1.5rem', textAlign: 'center' }}>
+                <div
+                  style={{
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '50%',
+                    backgroundColor: '#F0FDF4',
+                    color: '#15803D',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 1.25rem',
+                  }}
+                >
+                  <ShoppingBag size={32} />
+                </div>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0F4726', marginBottom: '0.5rem' }}>
+                  Your Shopping Cart is Empty
+                </h3>
+                <p style={{ fontSize: '0.9rem', color: '#64748B', maxWidth: '420px', margin: '0 auto 1.5rem' }}>
+                  Looks like you haven't added any agricultural products to your cart yet. Explore our farm inputs, seeds, and bio-nutrients!
                 </p>
                 <Link to="/products" className="cart-footer-continue-btn">
                   Browse Agricultural Products
                 </Link>
               </div>
             ) : (
-              cartItems.map((item) => (
-                <div key={item.id} className="cart-table-row">
-                  {/* Product Details Cell */}
-                  <div className="cart-product-cell">
-                    <img src={item.image} alt={item.title} className="cart-product-img" />
-                    <div className="cart-product-details">
-                      <Link to={`/products`} className="cart-product-title">
-                        {item.title}
-                      </Link>
-                      <span className="cart-product-category">{item.category}</span>
+              items.map((item) => {
+                const prod = item.product || {};
+                const price = prod.discountPrice ?? prod.price ?? 0;
+                const originalPrice = prod.price ?? price;
+                const title = prod.title || 'Agricultural Product';
+                const category = prod.category?.name || 'Bio-Inputs & Farming';
+                const image = prod.images?.[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600';
+                const packSize = item.selectedAttributes?.packSize || '500 g';
+                const rating = prod.rating || 4.6;
+                const reviewsCount = prod.numReviews || 14;
+                const isLowStock = (prod.stock || 99) <= 5;
+                const stockLabel = isLowStock ? `Only ${prod.stock} left` : 'In Stock';
+                const stockStatus = isLowStock ? 'low-stock' : 'in-stock';
+                const itemTotal = price * item.quantity;
 
-                      {/* Star Rating */}
-                      <div className="cart-product-rating">
-                        <div className="cart-stars-wrap">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              size={13}
-                              fill={i < Math.floor(item.rating) ? '#F59E0B' : 'none'}
-                              stroke="#F59E0B"
-                            />
-                          ))}
+                return (
+                  <div key={item.id || item.productId} className="cart-table-row">
+                    {/* Product Details Cell */}
+                    <div className="cart-product-cell">
+                      <img src={image} alt={title} className="cart-product-img" />
+                      <div className="cart-product-details">
+                        <Link to={`/product/${prod.slug || item.productId}`} className="cart-product-title">
+                          {title}
+                        </Link>
+                        <span className="cart-product-category">{category}</span>
+
+                        {/* Star Rating */}
+                        <div className="cart-product-rating">
+                          <div className="cart-stars-wrap">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                size={13}
+                                fill={i < Math.floor(rating) ? '#F59E0B' : 'none'}
+                                stroke="#F59E0B"
+                              />
+                            ))}
+                          </div>
+                          <span>{rating}</span>
+                          <span className="cart-rating-count">({reviewsCount})</span>
                         </div>
-                        <span>{item.rating}</span>
-                        <span className="cart-rating-count">({item.reviewsCount})</span>
-                      </div>
 
-                      {/* Stock Status */}
-                      <div className={`cart-stock-badge ${item.stockStatus}`}>
-                        <span className={`cart-stock-dot ${item.stockStatus}`} />
-                        <span>{item.stockLabel}</span>
-                      </div>
+                        {/* Stock Status */}
+                        <div className={`cart-stock-badge ${stockStatus}`}>
+                          <span className={`cart-stock-dot ${stockStatus}`} />
+                          <span>{stockLabel}</span>
+                        </div>
 
-                      {/* Actions: Save for later & Remove */}
-                      <div className="cart-item-actions">
+                        {/* Actions: Save for later & Remove */}
+                        <div className="cart-item-actions">
+                          <button
+                            onClick={() => handleSaveForLater(item.productId, title, price, image)}
+                            className="cart-action-btn save"
+                          >
+                            <Heart size={14} />
+                            <span>Save for Later</span>
+                          </button>
+                          <button
+                            onClick={() => removeItem(item.id, item.productId)}
+                            className="cart-action-btn remove"
+                          >
+                            <Trash2 size={14} />
+                            <span>Remove</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Pack Size Selector */}
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                      <span className="cart-pack-select">
+                        {packSize}
+                      </span>
+                    </div>
+
+                    {/* Quantity Selector */}
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                      <div className="cart-qty-control">
                         <button
-                          onClick={() => handleSaveForLater(item.id)}
-                          className="cart-action-btn save"
+                          onClick={() => updateQuantity(item.id, item.productId, item.quantity - 1)}
+                          className="cart-qty-btn"
+                          aria-label="Decrease quantity"
+                          disabled={item.quantity <= 1}
                         >
-                          <Heart size={14} />
-                          <span>Save for Later</span>
+                          <Minus size={13} strokeWidth={2.5} />
                         </button>
+                        <span className="cart-qty-val">{item.quantity}</span>
                         <button
-                          onClick={() => handleRemoveItem(item.id)}
-                          className="cart-action-btn remove"
+                          onClick={() => updateQuantity(item.id, item.productId, item.quantity + 1)}
+                          className="cart-qty-btn"
+                          aria-label="Increase quantity"
                         >
-                          <Trash2 size={14} />
-                          <span>Remove</span>
+                          <Plus size={13} strokeWidth={2.5} />
                         </button>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Pack Size Selector */}
-                  <div style={{ display: 'flex', justifyContent: 'center' }}>
-                    <select
-                      value={item.packSize}
-                      onChange={(e) => handlePackSizeChange(item.id, e.target.value)}
-                      className="cart-pack-select"
-                    >
-                      {item.availableSizes.map((size) => (
-                        <option key={size} value={size}>
-                          {size}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                    {/* Price Cell */}
+                    <div className="cart-price-cell">
+                      <span className="cart-price-main">₹{price.toFixed(2)}</span>
+                      {prod.discountPrice && prod.discountPrice < originalPrice && (
+                        <span className="cart-price-orig">₹{originalPrice.toFixed(2)}</span>
+                      )}
+                    </div>
 
-                  {/* Quantity Selector */}
-                  <div style={{ display: 'flex', justifyContent: 'center' }}>
-                    <div className="cart-qty-control">
-                      <button
-                        onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                        className="cart-qty-btn"
-                        aria-label="Decrease quantity"
-                      >
-                        −
-                      </button>
-                      <span className="cart-qty-val">{item.quantity}</span>
-                      <button
-                        onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                        className="cart-qty-btn"
-                        aria-label="Increase quantity"
-                      >
-                        +
-                      </button>
+                    {/* Total Cell */}
+                    <div className="cart-total-cell">
+                      <span className="cart-total-val">₹{itemTotal.toFixed(2)}</span>
                     </div>
                   </div>
-
-                  {/* Unit Price */}
-                  <div style={{ textAlign: 'right' }}>
-                    <span className="cart-item-price">₹{item.price.toFixed(2)}</span>
-                  </div>
-
-                  {/* Line Total */}
-                  <div style={{ textAlign: 'right' }}>
-                    <span className="cart-item-total">
-                      ₹{(item.price * item.quantity).toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
 
-            {/* Bottom Actions in Cart Card */}
-            {cartItems.length > 0 && (
+            {/* Bottom Actions Bar inside Card */}
+            {items.length > 0 && (
               <div className="cart-table-footer">
                 <Link to="/products" className="cart-footer-continue-btn">
-                  Continue Shopping
+                  <ChevronLeft size={16} strokeWidth={2.4} />
+                  <span>Continue Shopping</span>
                 </Link>
-                <button onClick={handleClearCart} className="cart-clear-btn">
-                  Clear Cart
+
+                <button onClick={handleClearCart} className="cart-footer-clear-btn">
+                  <Trash2 size={15} />
+                  <span>Clear Shopping Cart</span>
                 </button>
               </div>
             )}
           </div>
 
-          {/* 5. Free Delivery Progress Card */}
+          {/* 5. Free Delivery Progress Box */}
           <div className="cart-free-delivery-card">
-            <div className="cart-free-delivery-header">
-              <div className="cart-free-delivery-left">
-                <div className="cart-truck-icon-badge">
-                  <Truck size={22} strokeWidth={2.4} />
-                </div>
-                <div>
-                  <h3 className="cart-free-delivery-title">
-                    {isFreeDelivery
-                      ? "You've unlocked FREE delivery!"
-                      : `Add ₹${(freeDeliveryThreshold - subtotal).toFixed(2)} more for FREE delivery!`}
-                  </h3>
-                  <p className="cart-free-delivery-subtitle">
-                    {isFreeDelivery
-                      ? 'Your cart total is above ₹999.'
-                      : 'Free delivery applied on orders above ₹999.'}
-                  </p>
+            <div className="cart-delivery-header">
+              <div className="cart-delivery-icon-box">
+                <Truck size={20} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <p className="cart-delivery-title">
+                  {isFreeDelivery ? (
+                    <span style={{ color: '#15803D', fontWeight: 800 }}>
+                      🎉 Congratulations! You have unlocked FREE Express Delivery.
+                    </span>
+                  ) : (
+                    <>
+                      Add <strong style={{ color: '#0F4726' }}>₹{(freeDeliveryThreshold - subtotal).toFixed(2)}</strong>{' '}
+                      more of farm inputs to get <strong>FREE Delivery</strong>!
+                    </>
+                  )}
+                </p>
+                <div className="cart-progress-bar-bg">
+                  <div
+                    className="cart-progress-bar-fill"
+                    style={{ width: `${freeDeliveryProgress}%` }}
+                  />
                 </div>
               </div>
-
-              {isFreeDelivery && (
-                <div className="cart-free-delivery-check">
-                  <Check size={16} strokeWidth={3} />
-                </div>
-              )}
-            </div>
-
-            <div className="cart-free-delivery-progress-track">
-              <div
-                className="cart-free-delivery-progress-fill"
-                style={{ width: `${freeDeliveryProgress}%` }}
-              />
             </div>
           </div>
 
           {/* 6. Saved for Later Section */}
           {savedItems.length > 0 && (
             <div className="cart-saved-section">
-              <h2 className="cart-saved-title">Saved for Later</h2>
-              <div className="cart-saved-card">
-                {savedItems.map((item) => (
-                  <div key={item.id} className="cart-saved-row">
-                    <div className="cart-saved-left">
-                      <img src={item.image} alt={item.title} className="cart-saved-img" />
-                      <div className="cart-saved-info">
-                        <h4 className="cart-saved-item-title">{item.title}</h4>
-                        <div className="cart-stock-badge in-stock">
-                          <span className="cart-stock-dot in-stock" />
-                          <span>In Stock</span>
-                        </div>
-                      </div>
-                    </div>
+              <div className="cart-saved-header">
+                <h2 className="cart-saved-title">Saved for Later ({savedItems.length})</h2>
+                <span style={{ fontSize: '0.82rem', color: '#64748B' }}>Items saved from previous visits</span>
+              </div>
 
-                    <div className="cart-saved-right">
-                      <span className="cart-saved-price">₹{item.price.toFixed(2)}</span>
+              <div className="cart-saved-grid">
+                {savedItems.map((item) => (
+                  <div key={item.id} className="cart-saved-card">
+                    <img src={item.image} alt={item.title} className="cart-saved-img" />
+                    <div className="cart-saved-info">
+                      <h4 className="cart-saved-name">{item.title}</h4>
+                      <p className="cart-saved-price">₹{item.price.toFixed(2)}</p>
                       <button
-                        onClick={() => handleMoveToCart(item.id)}
+                        onClick={() => handleMoveToCart(item)}
                         className="cart-move-btn"
                       >
                         Move to Cart
-                      </button>
-                      <button
-                        onClick={() => handleRemoveSavedItem(item.id)}
-                        className="cart-saved-delete-btn"
-                        aria-label="Delete saved item"
-                      >
-                        <Trash2 size={18} />
                       </button>
                     </div>
                   </div>
@@ -662,274 +570,206 @@ export const CartPage: React.FC = () => {
               </div>
             </div>
           )}
-        </div>
 
-        {/* Right Sidebar */}
-        <aside className="cart-sidebar">
-          {/* Order Summary Card */}
-          <div className="cart-sidebar-card">
-            <h3 className="cart-sidebar-card-title">Order Summary</h3>
-
-            <div className="cart-summary-breakdown">
-              <div className="cart-summary-line">
-                <span>Subtotal ({totalItemCount} items)</span>
-                <span style={{ fontWeight: 700 }}>₹{subtotal.toFixed(2)}</span>
+          {/* 7. Recommended Products Carousel ("You May Also Like") */}
+          <div className="cart-recommended-section">
+            <div className="cart-rec-header">
+              <div>
+                <h2 className="cart-rec-title">You May Also Like</h2>
+                <p className="cart-rec-subtitle">Top-rated bio-inputs recommended for your crops</p>
               </div>
 
-              {appliedCoupon && (
-                <div className="cart-summary-line discount">
-                  <span>Discount</span>
-                  <span>− ₹{discountAmount.toFixed(2)}</span>
-                </div>
-              )}
-
-              <div className="cart-summary-line">
-                <span>Delivery</span>
-                <div className="cart-delivery-free">
-                  <span className="cart-strike-price">₹80.00</span>
-                  <span className="cart-free-tag">FREE</span>
-                </div>
-              </div>
-
-              <div className="cart-summary-line">
-                <span>Estimated Tax</span>
-                <span style={{ fontWeight: 600 }}>₹{estimatedTax.toFixed(2)}</span>
-              </div>
-
-              <div className="cart-summary-divider" />
-
-              <div className="cart-total-row">
-                <span className="cart-total-label">Total</span>
-                <span className="cart-total-price">₹{grandTotal.toFixed(2)}</span>
-              </div>
-
-              <span className="cart-tax-note">Inclusive of all taxes</span>
-            </div>
-
-            <button
-              onClick={() => navigate('/checkout')}
-              className="cart-checkout-btn"
-              id="proceed-to-checkout-btn"
-            >
-              <span>Proceed to Checkout</span>
-            </button>
-
-            <div className="cart-secure-text">
-              <ShieldCheck size={16} style={{ color: '#165B2E' }} />
-              <span>Safe & Secure Checkout</span>
-            </div>
-
-            {/* Payment Gateway Badges */}
-            <div className="cart-payment-icons">
-              {/* Visa */}
-              <div className="cart-pay-badge" title="Visa">
-                <svg width="34" height="12" viewBox="0 0 36 12" fill="none">
-                  <path
-                    d="M14.8 11.5L16.8 0.5H19.5L17.5 11.5H14.8ZM27.7 0.8C27.1 0.6 26.2 0.4 25.1 0.4C22.2 0.4 20.2 1.9 20.2 4.1C20.2 5.7 21.7 6.6 22.8 7.1C23.9 7.6 24.3 8 24.3 8.5C24.3 9.3 23.3 9.6 22.4 9.6C21.4 9.6 20.8 9.5 20.0 9.1L19.6 8.9L19.2 11.3C19.9 11.6 21.1 11.8 22.3 11.8C25.4 11.8 27.4 10.3 27.4 8.0C27.4 6.2 25.8 5.2 24.4 4.5C23.6 4.1 23.1 3.8 23.1 3.2C23.1 2.6 23.8 2.0 25.1 2.0C26.0 2.0 26.7 2.2 27.2 2.4L27.5 2.5L27.7 0.8ZM35.8 0.5H33.7C33.0 0.5 32.5 0.7 32.2 1.4L27.5 11.5H30.4L31.0 9.9H34.5L34.8 11.5H37.3L35.8 0.5ZM31.8 7.6L33.2 3.6L34.1 7.6H31.8ZM12.1 0.5L9.6 7.9L9.3 6.4C8.8 4.7 7.3 2.8 5.6 1.9L8.1 11.5H11.0L15.3 0.5H12.1ZM6.0 0.5H0.6L0.5 0.8C4.5 1.8 7.2 4.3 8.3 7.2L7.1 1.2C6.9 0.7 6.5 0.5 6.0 0.5Z"
-                    fill="#1A1F71"
-                  />
-                </svg>
-              </div>
-
-              {/* Mastercard */}
-              <div className="cart-pay-badge" title="Mastercard">
-                <svg width="28" height="16" viewBox="0 0 32 20" fill="none">
-                  <circle cx="11" cy="10" r="9" fill="#EB001B" />
-                  <circle cx="21" cy="10" r="9" fill="#F79E1B" />
-                  <path
-                    d="M16 3.5C18 5.2 19.3 7.5 19.3 10C19.3 12.5 18 14.8 16 16.5C14 14.8 12.7 12.5 12.7 10C12.7 7.5 14 5.2 16 3.5Z"
-                    fill="#FF5F00"
-                  />
-                </svg>
-              </div>
-
-              {/* RuPay */}
-              <div className="cart-pay-badge" title="RuPay">
-                <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#097938' }}>
-                  Ru<span style={{ color: '#F37021' }}>Pay</span>
-                </span>
-              </div>
-
-              {/* UPI */}
-              <div className="cart-pay-badge" title="UPI">
-                <span style={{ fontSize: '0.72rem', fontWeight: 900, color: '#097938', letterSpacing: '0.02em' }}>
-                  UPI<span style={{ color: '#F37021' }}>▶</span>
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Apply Coupon Card */}
-          <div className="cart-sidebar-card">
-            <h3 className="cart-sidebar-card-title">Apply Coupon</h3>
-            <form onSubmit={handleApplyCoupon} className="cart-coupon-form">
-              <input
-                type="text"
-                placeholder="Enter coupon code"
-                value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value)}
-                className="cart-coupon-input"
-              />
-              <button type="submit" className="cart-coupon-btn">
-                Apply
-              </button>
-            </form>
-
-            {appliedCoupon && (
-              <div className="cart-coupon-applied-box">
-                <div className="cart-coupon-applied-left">
-                  <Check size={16} strokeWidth={3} style={{ color: '#165B2E' }} />
-                  <div>
-                    <span className="cart-coupon-code">{appliedCoupon}</span>
-                    <div className="cart-coupon-saved-text">
-                      You saved ₹{discountAmount.toFixed(2)}
-                    </div>
-                  </div>
-                </div>
+              <div className="cart-rec-nav">
                 <button
-                  type="button"
-                  onClick={handleRemoveCoupon}
-                  className="cart-coupon-remove-btn"
+                  onClick={handlePrevRec}
+                  className="cart-rec-nav-btn"
+                  aria-label="Previous recommended products"
                 >
-                  Remove
+                  <ChevronLeft size={18} />
+                </button>
+                <button
+                  onClick={handleNextRec}
+                  className="cart-rec-nav-btn"
+                  aria-label="Next recommended products"
+                >
+                  <ChevronRight size={18} />
                 </button>
               </div>
-            )}
-          </div>
+            </div>
 
-          {/* Check Delivery Card */}
-          <div className="cart-sidebar-card">
-            <h3 className="cart-sidebar-card-title">Check Delivery</h3>
-            <form onSubmit={handleCheckPincode} className="cart-delivery-form">
-              <div className="cart-delivery-input-wrap">
-                <MapPin size={16} className="cart-delivery-pin-icon" />
+            <div className="cart-rec-grid">
+              {recommendedProducts.slice(recStartIndex, recStartIndex + 3).map((prod) => {
+                const isWishlisted = wishlistIds.includes(prod.id);
+                return (
+                  <div key={prod.id} className="cart-rec-card">
+                    <div className="cart-rec-img-wrap">
+                      <img src={prod.image} alt={prod.title} className="cart-rec-img" />
+                      <button
+                        onClick={() => handleToggleWishlist(prod.id, prod.title)}
+                        className={`cart-rec-wish-btn ${isWishlisted ? 'active' : ''}`}
+                        aria-label="Add to wishlist"
+                      >
+                        <Heart size={16} fill={isWishlisted ? '#DC2626' : 'none'} stroke={isWishlisted ? '#DC2626' : '#475569'} />
+                      </button>
+                    </div>
+
+                    <div className="cart-rec-body">
+                      <span className="cart-rec-category">{prod.category}</span>
+                      <h4 className="cart-rec-name">{prod.title}</h4>
+
+                      <div className="cart-rec-rating">
+                        <div className="cart-stars-wrap">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              size={12}
+                              fill={i < Math.floor(prod.rating) ? '#F59E0B' : 'none'}
+                              stroke="#F59E0B"
+                            />
+                          ))}
+                        </div>
+                        <span>{prod.rating}</span>
+                        <span style={{ color: '#94A3B8' }}>({prod.reviewsCount})</span>
+                      </div>
+
+                      <div className="cart-rec-footer">
+                        <div>
+                          <span className="cart-rec-price">₹{prod.price.toFixed(2)}</span>
+                          <span className="cart-rec-size"> / {prod.packSize}</span>
+                        </div>
+
+                        <button
+                          onClick={() => handleAddRecommendedToCart(prod)}
+                          className="cart-rec-add-btn"
+                          aria-label="Add to Cart"
+                        >
+                          <ShoppingBag size={15} />
+                          <span>Add</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Sticky Column: Order Summary & Checkout */}
+        <div className="cart-right-col">
+          <div className="cart-summary-card">
+            <h2 className="cart-summary-title">Order Summary</h2>
+
+            {/* Delivery Pincode Checker */}
+            <div className="cart-pincode-box">
+              <span className="cart-pincode-label">
+                <MapPin size={14} />
+                <span>Estimate Delivery to Pincode</span>
+              </span>
+              <form onSubmit={handleCheckPincode} className="cart-pincode-form">
                 <input
                   type="text"
                   maxLength={6}
                   value={pincode}
-                  onChange={(e) => setPincode(e.target.value)}
+                  onChange={(e) => setPincode(e.target.value.replace(/[^0-9]/g, ''))}
                   placeholder="Enter Pincode"
-                  className="cart-delivery-input"
+                  className="cart-pincode-input"
                 />
-              </div>
-              <button type="submit" className="cart-delivery-btn">
-                Check
-              </button>
-            </form>
-
-            {deliveryChecked && (
-              <div className="cart-delivery-result">
-                <span className="cart-delivery-date">Delivery by Monday, 31 Aug</span>
-                <span className="cart-delivery-cutoff">Order within 4 hrs 20 mins</span>
-              </div>
-            )}
-          </div>
-
-          {/* Need Help With Your Order? Card */}
-          <div className="cart-help-card">
-            <div className="cart-help-icon-box">
-              <Headphones size={22} strokeWidth={2.4} />
+                <button type="submit" className="cart-pincode-btn">
+                  Check
+                </button>
+              </form>
+              {deliveryChecked && (
+                <div className="cart-pincode-result">
+                  <Check size={14} />
+                  <span>Delivery in 24-48 Hours to {pincode}</span>
+                </div>
+              )}
             </div>
-            <h4 className="cart-help-title">Need Help With Your Order?</h4>
-            <a href="tel:+919876543210" className="cart-help-phone">
-              +91 98765 43210
-            </a>
-            <a
-              href="https://wa.me/919876543210?text=Hi%20FarmerBench,%20I%20have%20a%20question%20about%20my%20order"
-              target="_blank"
-              rel="noreferrer"
-              className="cart-help-whatsapp"
-            >
-              <MessageSquare size={16} />
-              <span>Chat on WhatsApp</span>
-            </a>
-          </div>
-        </aside>
-      </div>
 
-      {/* 8. Recommended Products: You May Also Like */}
-      <section className="cart-recommendations-section">
-        <div className="cart-rec-header">
-          <h2 className="cart-rec-title">You May Also Like</h2>
-          <div className="cart-rec-nav-arrows">
-            <button
-              onClick={handlePrevRec}
-              className="cart-rec-nav-btn"
-              aria-label="Previous recommended products"
-            >
-              <ChevronLeft size={18} />
-            </button>
-            <button
-              onClick={handleNextRec}
-              className="cart-rec-nav-btn"
-              aria-label="Next recommended products"
-            >
-              <ChevronRight size={18} />
-            </button>
-          </div>
-        </div>
-
-        <div className="cart-rec-grid">
-          {recommendedProducts.slice(recStartIndex, recStartIndex + 4).map((prod) => {
-            const isWishlisted = wishlistIds.includes(prod.id);
-            return (
-              <div key={prod.id} className="cart-rec-card">
-                {/* Wishlist Button */}
-                <button
-                  onClick={() => handleToggleWishlist(prod.id, prod.title)}
-                  className={`cart-rec-wish-btn ${isWishlisted ? 'active' : ''}`}
-                  aria-label="Save to wishlist"
-                >
-                  <Heart
-                    size={18}
-                    fill={isWishlisted ? '#DC2626' : 'none'}
-                    stroke={isWishlisted ? '#DC2626' : 'currentColor'}
-                  />
-                </button>
-
-                {/* Product Image */}
-                <div className="cart-rec-img-wrap">
-                  <img src={prod.image} alt={prod.title} className="cart-rec-img" />
-                </div>
-
-                {/* Product Info */}
-                <h3 className="cart-rec-item-title">{prod.title}</h3>
-                <span className="cart-rec-item-cat">{prod.category}</span>
-
-                {/* Star Rating */}
-                <div className="cart-rec-rating">
-                  <div className="cart-stars-wrap">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        size={12}
-                        fill={i < Math.floor(prod.rating) ? '#F59E0B' : 'none'}
-                        stroke="#F59E0B"
-                      />
-                    ))}
-                  </div>
-                  <span>{prod.rating}</span>
-                  <span className="cart-rating-count">({prod.reviewsCount})</span>
-                </div>
-
-                {/* Price */}
-                <div className="cart-rec-price">₹{prod.price.toFixed(2)}</div>
-
-                {/* Add to Cart Button */}
-                <button
-                  onClick={() => handleAddRecommendedToCart(prod)}
-                  className="cart-rec-add-btn"
-                >
-                  Add to Cart
-                </button>
+            {/* Price Line Items */}
+            <div className="cart-summary-lines">
+              <div className="cart-summary-row">
+                <span className="cart-summary-label">Subtotal ({totalItems} items)</span>
+                <span className="cart-summary-val">₹{subtotal.toFixed(2)}</span>
               </div>
-            );
-          })}
+
+              <div className="cart-summary-row">
+                <span className="cart-summary-label">Estimated Delivery</span>
+                <span className="cart-summary-val" style={{ color: isFreeDelivery ? '#15803D' : undefined }}>
+                  {isFreeDelivery ? 'FREE' : items.length === 0 ? '₹0.00' : `₹${deliveryFee.toFixed(2)}`}
+                </span>
+              </div>
+
+              {appliedCoupon && effectiveDiscount > 0 && (
+                <div className="cart-summary-row discount">
+                  <span className="cart-summary-label">
+                    Coupon ({appliedCoupon})
+                    <button onClick={handleRemoveCoupon} className="cart-remove-coupon-btn">
+                      ✕
+                    </button>
+                  </span>
+                  <span className="cart-summary-val discount">- ₹{effectiveDiscount.toFixed(2)}</span>
+                </div>
+              )}
+
+              <div className="cart-summary-row total">
+                <span className="cart-summary-total-label">Grand Total</span>
+                <span className="cart-summary-total-val">₹{grandTotal.toFixed(2)}</span>
+              </div>
+              <span className="cart-tax-notice">Includes all applicable GST & farm taxes</span>
+            </div>
+
+            {/* Promo Code Input */}
+            <div className="cart-coupon-box">
+              <form onSubmit={handleApplyCoupon} className="cart-coupon-form">
+                <input
+                  type="text"
+                  placeholder="Promo code (e.g. FARMERBENCH120)"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  className="cart-coupon-input"
+                />
+                <button type="submit" className="cart-coupon-btn">
+                  Apply
+                </button>
+              </form>
+              <p className="cart-coupon-hint">
+                <Sparkles size={13} />
+                <span>Tip: Use code <strong>FARMERBENCH120</strong> for ₹120 off orders</span>
+              </p>
+            </div>
+
+            {/* Primary Checkout Button */}
+            <button
+              onClick={() => navigate('/checkout')}
+              disabled={items.length === 0}
+              className="cart-checkout-btn"
+            >
+              <span>Proceed to Checkout</span>
+              <ArrowRight size={18} strokeWidth={2.4} />
+            </button>
+
+            {/* Safe & Secure Guarantee Badges */}
+            <div className="cart-trust-badges">
+              <div className="cart-trust-item">
+                <ShieldCheck size={16} className="cart-trust-icon" />
+                <span>100% Certified Genuine Agri-Inputs</span>
+              </div>
+              <div className="cart-trust-item">
+                <Truck size={16} className="cart-trust-icon" />
+                <span>Direct Farm Gate Dispatch in 24-48 Hours</span>
+              </div>
+              <div className="cart-trust-item">
+                <Headphones size={16} className="cart-trust-icon" />
+                <span>Free Agronomist Advisory: 1800-AGRI-FLOW</span>
+              </div>
+            </div>
+          </div>
         </div>
-      </section>
+      </div>
     </div>
   );
 };
 
 export default CartPage;
-

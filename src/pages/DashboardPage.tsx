@@ -102,22 +102,22 @@ export const DashboardPage: React.FC = () => {
             flexShrink: 0,
           }}
         >
-          {user.avatarUrl ? (
-            <img src={user.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          {activeUser.avatarUrl ? (
+            <img src={activeUser.avatarUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
-            user.name[0]
+            activeUser.name[0]
           )}
         </div>
 
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.25rem' }}>
-            <h1 style={{ fontSize: '1.6rem', fontWeight: 800 }}>{user.name}</h1>
-            <Badge variant={user.role === 'ADMIN' ? 'primary' : 'neutral'}>{user.role}</Badge>
+            <h1 style={{ fontSize: '1.6rem', fontWeight: 800 }}>{activeUser.name}</h1>
+            <Badge variant={activeUser.role === 'ADMIN' ? 'primary' : 'neutral'}>{activeUser.role}</Badge>
           </div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{user.email}</p>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{activeUser.email}</p>
         </div>
 
-        {user.role === 'ADMIN' && (
+        {activeUser.role === 'ADMIN' && (
           <div style={{ marginLeft: 'auto' }}>
             <Link
               to="/admin"
@@ -325,7 +325,7 @@ export const DashboardPage: React.FC = () => {
 
                 <Input
                   label="Email Address"
-                  value={user.email}
+                  value={activeUser.email}
                   disabled
                   helperText="Email cannot be changed directly."
                 />
