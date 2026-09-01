@@ -1,0 +1,1366 @@
+/* ==========================================================================
+   Drip Irrigation Service Details Page Styling
+   ========================================================================== */
+
+.drip-dev-page {
+  background-color: #FFFFFF;
+  color: var(--text-primary, #17251E);
+  min-height: 100vh;
+  font-family: inherit;
+}
+
+/* ==========================================================================
+   1. Hero Banner Section
+   ========================================================================== */
+.drip-dev-hero {
+  position: relative;
+  background: linear-gradient(135deg, #092617 0%, #114224 50%, #164627 100%);
+  color: #FFFFFF;
+  padding: 2rem 0 3.5rem;
+  overflow: hidden;
+}
+
+.drip-dev-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top right, rgba(120, 184, 51, 0.18) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.drip-dev-hero-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 3rem;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.drip-dev-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #A3C9B0;
+  margin-bottom: 1.5rem;
+}
+
+.drip-dev-breadcrumbs a {
+  color: #A3C9B0;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.drip-dev-breadcrumbs a:hover {
+  color: #FFFFFF;
+  text-decoration: underline;
+}
+
+.breadcrumb-separator {
+  color: #6E9B7E;
+  font-size: 0.8rem;
+}
+
+.breadcrumb-current {
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+.drip-dev-hero-title {
+  font-size: clamp(2.2rem, 3.8vw, 3.2rem);
+  font-weight: 800;
+  line-height: 1.18;
+  letter-spacing: -0.025em;
+  color: #FFFFFF;
+  margin-bottom: 1.25rem;
+}
+
+.drip-dev-hero-desc {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #D3E5D9;
+  max-width: 580px;
+  margin-bottom: 2rem;
+  font-weight: 400;
+}
+
+.drip-dev-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.drip-dev-btn-primary {
+  background-color: #78B833;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.9rem 1.8rem;
+  border-radius: 8px;
+  font-size: 0.975rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(120, 184, 51, 0.35);
+  text-decoration: none;
+}
+
+.drip-dev-btn-primary:hover {
+  background-color: #68A229;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(120, 184, 51, 0.45);
+}
+
+.drip-dev-btn-secondary {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  padding: 0.85rem 1.6rem;
+  border-radius: 8px;
+  font-size: 0.975rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
+}
+
+.drip-dev-btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: #FFFFFF;
+  transform: translateY(-2px);
+}
+
+.drip-dev-hero-media {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.drip-dev-hero-img-card {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+  border: 4px solid rgba(255, 255, 255, 0.12);
+  max-width: 480px;
+  width: 100%;
+}
+
+.drip-dev-hero-img {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+  display: block;
+}
+
+.drip-dev-hero-badge {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  right: 14px;
+  background: rgba(9, 38, 23, 0.92);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(136, 207, 58, 0.3);
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #FFFFFF;
+}
+
+.drip-dev-hero-badge strong {
+  display: block;
+  font-size: 0.85rem;
+  color: #FFFFFF;
+}
+
+.drip-dev-hero-badge span {
+  display: block;
+  font-size: 0.75rem;
+  color: #A3C9B0;
+}
+
+@media (max-width: 960px) {
+  .drip-dev-hero-container {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+  .drip-dev-hero-img-card {
+    max-width: 100%;
+  }
+}
+
+/* ==========================================================================
+   2. About Drip Irrigation Section
+   ========================================================================== */
+.drip-dev-about-section {
+  padding: 5rem 0 4rem;
+  background-color: #FFFFFF;
+}
+
+.drip-dev-about-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 3.5rem;
+  align-items: center;
+}
+
+.drip-dev-about-media {
+  position: relative;
+}
+
+.drip-dev-about-img-wrap {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  border: 1px solid #E5EBE7;
+}
+
+.drip-dev-about-img {
+  width: 100%;
+  height: 360px;
+  object-fit: cover;
+  display: block;
+}
+
+.drip-dev-about-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.drip-dev-about-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.drip-dev-about-desc {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: #4A5B52;
+  margin-bottom: 2rem;
+}
+
+.drip-dev-pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.drip-dev-pillar-card {
+  background-color: #FAFCFA;
+  border: 1px solid #E5EBE7;
+  border-radius: 12px;
+  padding: 1.5rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  transition: all 0.25s ease;
+}
+
+.drip-dev-pillar-card:hover {
+  border-color: #78B833;
+  box-shadow: 0 8px 22px rgba(120, 184, 51, 0.12);
+  transform: translateY(-3px);
+}
+
+.drip-dev-pillar-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background-color: #EBF5ED;
+  color: #164627;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.drip-dev-pillar-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 0.5rem;
+}
+
+.drip-dev-pillar-text {
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #64748B;
+}
+
+@media (max-width: 960px) {
+  .drip-dev-about-container {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .drip-dev-pillars-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   3. Complete Drip & Micro-Irrigation Support (11 Modules)
+   ========================================================================== */
+.drip-dev-modules-section {
+  padding: 4.5rem 0 5rem;
+  background-color: #F8FBF9;
+  border-top: 1px solid #EAEFEA;
+  border-bottom: 1px solid #EAEFEA;
+}
+
+.drip-dev-modules-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.drip-dev-section-header {
+  text-align: center;
+  margin-bottom: 3.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.drip-dev-leaf-icon {
+  color: #78B833;
+  margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drip-dev-section-title {
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 800;
+  color: #17251E;
+  letter-spacing: -0.02em;
+}
+
+.drip-dev-modules-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1.15rem;
+}
+
+.drip-dev-module-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E5EBE7;
+  border-radius: 14px;
+  padding: 1.5rem 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.25s ease;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.02);
+}
+
+.drip-dev-module-card:hover {
+  border-color: #78B833;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 24px rgba(120, 184, 51, 0.12);
+}
+
+.drip-dev-module-icon-box {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background-color: #F2F8F3;
+  color: #164627;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.9rem;
+  transition: all 0.25s ease;
+}
+
+.drip-dev-module-card:hover .drip-dev-module-icon-box {
+  background-color: #164627;
+  color: #88CF3A;
+}
+
+.drip-dev-module-title {
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.01em;
+}
+
+.drip-dev-module-desc {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: #64748B;
+}
+
+@media (max-width: 1100px) {
+  .drip-dev-modules-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .drip-dev-modules-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 460px) {
+  .drip-dev-modules-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   4. Crops Showcase Strip
+   ========================================================================== */
+.drip-dev-crops-section {
+  padding: 4.5rem 0 5rem;
+  background-color: #FFFFFF;
+}
+
+.drip-dev-crops-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.drip-dev-crops-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 1rem;
+}
+
+.drip-dev-crop-card {
+  background-color: #FAFCFA;
+  border: 1px solid #E5EBE7;
+  border-radius: 12px;
+  padding: 1rem 0.6rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.25s ease;
+}
+
+.drip-dev-crop-card:hover {
+  border-color: #78B833;
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(120, 184, 51, 0.12);
+}
+
+.drip-dev-crop-img-wrap {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+  border: 2px solid #EBF5ED;
+}
+
+.drip-dev-crop-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.drip-dev-crop-name {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 0.2rem;
+}
+
+.drip-dev-crop-desc {
+  font-size: 0.7rem;
+  color: #64748B;
+  line-height: 1.35;
+}
+
+@media (max-width: 1100px) {
+  .drip-dev-crops-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .drip-dev-crops-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .drip-dev-crops-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ==========================================================================
+   5. Workflow Process (7 Steps)
+   ========================================================================== */
+.drip-dev-workflow-section {
+  padding: 5rem 0;
+  background-color: #F8FBF9;
+  border-top: 1px solid #EAEFEA;
+  border-bottom: 1px solid #EAEFEA;
+}
+
+.drip-dev-workflow-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.drip-dev-timeline-track {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1.25rem;
+  position: relative;
+  margin-top: 2rem;
+}
+
+.drip-dev-timeline-track::before {
+  content: '';
+  position: absolute;
+  top: 24px;
+  left: 6%;
+  right: 6%;
+  height: 3px;
+  background: linear-gradient(90deg, #164627 0%, #78B833 50%, #164627 100%);
+  z-index: 0;
+}
+
+.drip-dev-step-item {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.drip-dev-step-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #164627;
+  color: #FFFFFF;
+  font-size: 1.1rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4px solid #FFFFFF;
+  box-shadow: 0 4px 12px rgba(22, 70, 39, 0.25);
+  margin-bottom: 1rem;
+  transition: all 0.25s ease;
+}
+
+.drip-dev-step-item:hover .drip-dev-step-circle {
+  background-color: #78B833;
+  transform: scale(1.1);
+}
+
+.drip-dev-step-heading {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 0.35rem;
+}
+
+.drip-dev-step-text {
+  font-size: 0.775rem;
+  line-height: 1.4;
+  color: #64748B;
+  max-width: 150px;
+}
+
+@media (max-width: 1000px) {
+  .drip-dev-timeline-track {
+    grid-template-columns: repeat(4, 1fr);
+    row-gap: 2.5rem;
+  }
+  .drip-dev-timeline-track::before {
+    display: none;
+  }
+}
+
+@media (max-width: 580px) {
+  .drip-dev-timeline-track {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ==========================================================================
+   6. Benefits & Visual Plan
+   ========================================================================== */
+.drip-dev-reasons-section {
+  padding: 5rem 0;
+  background-color: #FFFFFF;
+}
+
+.drip-dev-reasons-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 3.5rem;
+  align-items: center;
+}
+
+.drip-dev-reasons-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #17251E;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.85rem;
+}
+
+.drip-dev-title-divider {
+  width: 48px;
+  height: 4px;
+  background-color: #78B833;
+  border-radius: 2px;
+  margin-bottom: 2rem;
+}
+
+.drip-dev-benefits-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.drip-dev-benefit-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.drip-dev-benefit-check {
+  color: #164627;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.drip-dev-plan-wrapper {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+  background-color: #F8FAF9;
+}
+
+.drip-dev-plan-img {
+  width: 100%;
+  height: 380px;
+  object-fit: cover;
+  display: block;
+}
+
+/* Callout Overlay Badges */
+.drip-dev-tag {
+  position: absolute;
+  background-color: #FFFFFF;
+  color: #17251E;
+  font-size: 0.675rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+}
+
+.tag-water-source { top: 12%; left: 16%; }
+.tag-pump { top: 48%; left: 18%; }
+.tag-filter { top: 38%; left: 40%; }
+.tag-fertigation { top: 30%; left: 52%; }
+.tag-mainline { bottom: 22%; left: 34%; }
+.tag-submain { bottom: 20%; right: 28%; }
+.tag-lateral { bottom: 10%; left: 14%; }
+.tag-emitters { bottom: 10%; right: 28%; }
+
+@media (max-width: 960px) {
+  .drip-dev-reasons-container {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+}
+
+/* ==========================================================================
+   7. Form Section
+   ========================================================================== */
+.drip-dev-consultation-section {
+  padding: 5rem 0;
+  background-color: #F4F7F4;
+  border-top: 1px solid #E5ECE5;
+}
+
+.drip-dev-consultation-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.drip-dev-consultation-heading-wrap {
+  margin-bottom: 2.5rem;
+}
+
+.drip-dev-form-main-title {
+  font-size: clamp(1.8rem, 3vw, 2.3rem);
+  font-weight: 800;
+  color: #17251E;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+
+.drip-dev-form-main-desc {
+  font-size: 0.95rem;
+  color: #64748B;
+}
+
+.drip-dev-form-layout-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 0.65fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.drip-dev-form-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E5EBE7;
+  border-radius: 18px;
+  padding: 2.5rem;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
+}
+
+.drip-dev-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.drip-dev-row-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 900px) {
+  .drip-dev-row-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.drip-dev-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.drip-dev-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.drip-dev-input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #1E293B;
+  background-color: #FAFCFA;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.drip-dev-input:focus {
+  border-color: #78B833;
+  background-color: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(120, 184, 51, 0.15);
+}
+
+.drip-dev-input::placeholder {
+  color: #94A3B8;
+  font-size: 0.85rem;
+}
+
+.drip-dev-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  background-size: 16px;
+  padding-right: 2.2rem;
+}
+
+/* Service Pills */
+.drip-dev-service-pills {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.drip-dev-service-pill {
+  padding: 0.6rem 1.25rem;
+  border-radius: 20px;
+  border: 1.5px solid #E2E8F0;
+  background-color: #FAFCFA;
+  color: #475569;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.drip-dev-service-pill:hover {
+  border-color: #78B833;
+  color: #164627;
+}
+
+.drip-dev-service-pill.active {
+  background-color: #EBF5ED;
+  border-color: #164627;
+  color: #164627;
+  box-shadow: 0 2px 8px rgba(22, 70, 39, 0.15);
+}
+
+/* File Upload */
+.drip-dev-upload-box {
+  border: 2px dashed #CBD5E1;
+  background-color: #F8FAFC;
+  border-radius: 10px;
+  padding: 1.25rem;
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.drip-dev-upload-box:hover,
+.drip-dev-upload-box.drag-over {
+  border-color: #78B833;
+  background-color: #F0F9ED;
+}
+
+.drip-dev-upload-icon {
+  color: #78B833;
+  flex-shrink: 0;
+}
+
+.drip-dev-upload-prompt {
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.drip-dev-upload-prompt span {
+  color: #78B833;
+  text-decoration: underline;
+}
+
+.drip-dev-upload-hint {
+  font-size: 0.75rem;
+  color: #94A3B8;
+}
+
+.drip-dev-file-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.drip-dev-file-item {
+  background-color: #EBF5ED;
+  color: #164627;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid rgba(120, 184, 51, 0.3);
+}
+
+.drip-dev-file-remove {
+  background: none;
+  border: none;
+  color: #164627;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0;
+}
+
+.drip-dev-consent-row {
+  margin-top: 0.25rem;
+}
+
+.drip-dev-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  color: #475569;
+  cursor: pointer;
+}
+
+.drip-dev-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #164627;
+  cursor: pointer;
+}
+
+.drip-dev-btn-submit {
+  background-color: #164627;
+  color: #FFFFFF;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(22, 70, 39, 0.25);
+  margin-top: 0.5rem;
+}
+
+.drip-dev-btn-submit:hover:not(:disabled) {
+  background-color: #0E301A;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(22, 70, 39, 0.35);
+}
+
+.drip-dev-btn-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Success State */
+.drip-dev-success-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.drip-dev-success-icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background-color: #EBF5ED;
+  color: #164627;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+
+.drip-dev-success-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 0.75rem;
+}
+
+.drip-dev-success-desc {
+  color: #64748B;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  max-width: 480px;
+  margin: 0 auto 2rem;
+}
+
+/* Right Card: What Happens Next? */
+.drip-dev-next-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E5EBE7;
+  border-radius: 18px;
+  padding: 2.25rem 2rem;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
+}
+
+.drip-dev-next-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 1.75rem;
+  letter-spacing: -0.01em;
+}
+
+.drip-dev-next-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+}
+
+.drip-dev-next-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.drip-dev-next-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: #F2F8F3;
+  color: #164627;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.drip-dev-next-heading {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 0.2rem;
+}
+
+.drip-dev-next-desc {
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #475569;
+}
+
+@media (max-width: 960px) {
+  .drip-dev-form-layout-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   8. Frequently Asked Questions
+   ========================================================================== */
+.drip-dev-faqs-section {
+  padding: 5rem 0;
+  background-color: #FFFFFF;
+}
+
+.drip-dev-faqs-container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.drip-dev-faqs-title {
+  text-align: center;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 3rem;
+  letter-spacing: -0.02em;
+}
+
+.drip-dev-faqs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.drip-dev-faq-card {
+  background-color: #FAFCFA;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.drip-dev-faq-card:hover {
+  border-color: #78B833;
+  background-color: #FFFFFF;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.drip-dev-faq-card.active {
+  border-color: #78B833;
+  background-color: #FFFFFF;
+  box-shadow: 0 6px 20px rgba(120, 184, 51, 0.08);
+}
+
+.drip-dev-faq-question-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.drip-dev-faq-question {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #17251E;
+}
+
+.drip-dev-faq-toggle {
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.drip-dev-faq-card.active .drip-dev-faq-toggle {
+  color: #78B833;
+}
+
+.drip-dev-faq-answer {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid #EAEFEA;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #4A5B52;
+}
+
+@media (max-width: 800px) {
+  .drip-dev-faqs-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   9. Bottom CTA Banner
+   ========================================================================== */
+.drip-dev-bottom-banner {
+  background: linear-gradient(135deg, #092617 0%, #164627 100%);
+  color: #FFFFFF;
+  padding: 3.5rem 0;
+}
+
+.drip-dev-bottom-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.drip-dev-bottom-content {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 760px;
+}
+
+.drip-dev-bottom-icon {
+  color: #88CF3A;
+  flex-shrink: 0;
+}
+
+.drip-dev-bottom-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  margin-bottom: 0.4rem;
+}
+
+.drip-dev-bottom-desc {
+  font-size: 0.95rem;
+  color: #D3E5D9;
+  line-height: 1.5;
+}
+
+.drip-dev-bottom-btn {
+  background-color: #FFFFFF;
+  color: #164627;
+  border: none;
+  padding: 0.95rem 1.85rem;
+  border-radius: 8px;
+  font-size: 0.975rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  white-space: nowrap;
+}
+
+.drip-dev-bottom-btn:hover {
+  background-color: #EBF5ED;
+  color: #0E301A;
+  transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   Modal Dialog Styles
+   ========================================================================== */
+.drip-dev-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+}
+
+.drip-dev-modal-card {
+  background-color: #FFFFFF;
+  border-radius: 18px;
+  max-width: 460px;
+  width: 100%;
+  padding: 2.25rem;
+  position: relative;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+  animation: dripDevFadeIn 0.25s ease;
+}
+
+@keyframes dripDevFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.drip-dev-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: #F1F5F9;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.drip-dev-modal-close:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+}
+
+.drip-dev-modal-header {
+  margin-bottom: 1.5rem;
+}
+
+.drip-dev-modal-tag {
+  display: inline-block;
+  background-color: #EBF5ED;
+  color: #164627;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  margin-bottom: 0.6rem;
+}
+
+.drip-dev-modal-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 0.4rem;
+}
+
+.drip-dev-modal-desc {
+  font-size: 0.875rem;
+  color: #64748B;
+  line-height: 1.5;
+}
+
+.drip-dev-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.drip-dev-modal-footer-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: #64748B;
+  margin-top: 0.5rem;
+}
+
+.drip-dev-modal-success {
+  text-align: center;
+  padding: 1.5rem 0 0.5rem;
+}
+
+.drip-dev-modal-icon-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: #EBF5ED;
+  color: #164627;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.25rem;
+}

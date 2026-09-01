@@ -318,41 +318,91 @@
   border-radius: 18px;
   overflow: hidden;
   position: relative;
-  min-height: 260px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  min-height: 300px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
 }
 
-.contact-map-img {
+.contact-map-wrapper iframe {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  min-height: 300px;
+  border: none;
+  display: block;
 }
 
-.contact-map-pin-overlay {
+.contact-map-floating-badge {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -100%);
+  top: 14px;
+  left: 14px;
   display: flex;
-  flex-direction: column;
   align-items: center;
-  pointer-events: none;
+  gap: 0.5rem;
+  z-index: 2;
+  flex-wrap: wrap;
 }
 
 .contact-pin-badge {
   background-color: #164627;
   color: #ffffff;
-  padding: 0.4rem 0.85rem;
+  padding: 0.45rem 0.9rem;
   border-radius: 20px;
   font-size: 0.8rem;
   font-weight: 700;
   box-shadow: 0 4px 14px rgba(0,0,0,0.25);
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  margin-bottom: 2px;
+  gap: 0.45rem;
+}
+
+.contact-map-directions-btn {
+  background-color: #ffffff;
+  color: #164627;
+  padding: 0.45rem 0.85rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+  border: 1px solid #E5EBE7;
+  transition: all 0.2s ease;
+}
+
+.contact-map-directions-btn:hover {
+  background-color: #EBF5ED;
+  color: #0E301A;
+  transform: translateY(-1px);
+}
+
+.contact-visit-actions {
+  margin-top: 1.25rem;
+}
+
+.contact-directions-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: #164627;
+  font-weight: 700;
+  font-size: 0.925rem;
+  text-decoration: none;
+  padding: 0.75rem 1.25rem;
+  background-color: #EBF5ED;
+  border-radius: 10px;
+  border: 1px solid rgba(120, 184, 51, 0.25);
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.contact-directions-link:hover {
+  background-color: #164627;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(22, 70, 39, 0.2);
 }
 
 .contact-hours-box {

@@ -93,7 +93,7 @@ export const Navbar: React.FC = () => {
                   <ChevronDown size={14} className="agriflow-dropdown-chevron" />
                 </Link>
                 <div className="agriflow-nav-dropdown-menu">
-                  <Link to="/services#farm-development" className="agriflow-dropdown-subitem">
+                  <Link to="/services/farm-development" className="agriflow-dropdown-subitem">
                     <div className="agriflow-dropdown-icon-box">
                       <Tractor size={17} />
                     </div>
@@ -102,7 +102,7 @@ export const Navbar: React.FC = () => {
                       <span className="agriflow-dropdown-sub">Land planning, leveling & setup</span>
                     </div>
                   </Link>
-                  <Link to="/services#well-development" className="agriflow-dropdown-subitem">
+                  <Link to="/services/well-development" className="agriflow-dropdown-subitem">
                     <div className="agriflow-dropdown-icon-box">
                       <Droplets size={17} />
                     </div>
@@ -111,7 +111,7 @@ export const Navbar: React.FC = () => {
                       <span className="agriflow-dropdown-sub">Borewell & groundwater recharge</span>
                     </div>
                   </Link>
-                  <Link to="/services#drip-irrigation" className="agriflow-dropdown-subitem">
+                  <Link to="/services/drip-irrigation" className="agriflow-dropdown-subitem">
                     <div className="agriflow-dropdown-icon-box">
                       <CloudRain size={17} />
                     </div>
@@ -120,7 +120,7 @@ export const Navbar: React.FC = () => {
                       <span className="agriflow-dropdown-sub">Micro-drip & fertigation network</span>
                     </div>
                   </Link>
-                  <Link to="/services#farm-consultancy" className="agriflow-dropdown-subitem">
+                  <Link to="/services/farm-consultancy" className="agriflow-dropdown-subitem">
                     <div className="agriflow-dropdown-icon-box">
                       <Briefcase size={17} />
                     </div>
@@ -294,16 +294,16 @@ export const Navbar: React.FC = () => {
                 Services
               </Link>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', paddingLeft: '0.75rem', borderLeft: '2px solid rgba(136, 207, 58, 0.3)' }}>
-                <Link to="/services#farm-development" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Link to="/services/farm-development" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <Tractor size={14} color="#88CF3A" /> Farm Development
                 </Link>
-                <Link to="/services#well-development" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Link to="/services/well-development" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <Droplets size={14} color="#88CF3A" /> Well Development
                 </Link>
-                <Link to="/services#drip-irrigation" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Link to="/services/drip-irrigation" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <CloudRain size={14} color="#88CF3A" /> Drip Irrigation
                 </Link>
-                <Link to="/services#farm-consultancy" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Link to="/services/farm-consultancy" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <Briefcase size={14} color="#88CF3A" /> Farm Consultancy
                 </Link>
               </div>

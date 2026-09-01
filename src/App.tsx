@@ -19,6 +19,10 @@ import { DashboardPage } from './pages/DashboardPage';
 import { AdminPage } from './pages/AdminPage';
 import { ContactPage } from './pages/ContactPage';
 import { ServicesPage } from './pages/ServicesPage';
+import { FarmDevelopmentPage } from './pages/FarmDevelopmentPage';
+import { WellDevelopmentPage } from './pages/WellDevelopmentPage';
+import { DripIrrigationPage } from './pages/DripIrrigationPage';
+import { FarmConsultancyPage } from './pages/FarmConsultancyPage';
 import { BlogPage } from './pages/BlogPage';
 import { BlogDetailPage } from './pages/BlogDetailPage';
 import { LoginPage } from './pages/LoginPage';
@@ -43,6 +47,16 @@ const AppContent: React.FC = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/services" element={<ServicesPage />} />
+          <Route path="/services/farm-development" element={<FarmDevelopmentPage />} />
+          <Route path="/services/development" element={<Navigate to="/services/farm-development" replace />} />
+          <Route path="/services/well-development" element={<WellDevelopmentPage />} />
+          <Route path="/services/well" element={<Navigate to="/services/well-development" replace />} />
+          <Route path="/services/drip-irrigation" element={<DripIrrigationPage />} />
+          <Route path="/services/drip" element={<Navigate to="/services/drip-irrigation" replace />} />
+          <Route path="/services/irrigation" element={<Navigate to="/services/drip-irrigation" replace />} />
+          <Route path="/services/farm-consultancy" element={<FarmConsultancyPage />} />
+          <Route path="/services/consultancy" element={<Navigate to="/services/farm-consultancy" replace />} />
+          <Route path="/services/consult" element={<Navigate to="/services/farm-consultancy" replace />} />
           <Route path="/products" element={<div className="container" style={{ padding: '2rem 1.5rem' }}><ProductsPage /></div>} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:idOrSlug" element={<BlogDetailPage />} />

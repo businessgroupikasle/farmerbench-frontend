@@ -43,31 +43,16 @@ export const CartPage: React.FC = () => {
   const { items, subtotal, totalItems, updateQuantity, removeItem, clearCart, addToCart } = useCart();
 
   // Saved for Later items
-  const [savedItems, setSavedItems] = useState<SavedItemData[]>([
-    {
-      id: 'saved-item-1',
-      productId: 'bio-power',
-      title: 'Bio Power Organic Growth Promoter',
-      price: 450,
-      image: bioPowerImg,
-    },
-    {
-      id: 'saved-item-2',
-      productId: 'seaweed-extract',
-      title: 'Seaweed Extract Plant Enhancer',
-      price: 550,
-      image: seaweedExtractImg,
-    },
-  ]);
+  const [savedItems, setSavedItems] = useState<SavedItemData[]>([]);
 
   // Coupon state
-  const [couponCode, setCouponCode] = useState('FARMERBENCH120');
-  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(subtotal >= 500 ? 'FARMERBENCH120' : null);
-  const [discountAmount, setDiscountAmount] = useState(subtotal >= 500 ? 120 : 0);
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null);
+  const [discountAmount, setDiscountAmount] = useState(0);
 
   // Delivery checker state
-  const [pincode, setPincode] = useState('641001');
-  const [deliveryChecked, setDeliveryChecked] = useState(true);
+  const [pincode, setPincode] = useState('');
+  const [deliveryChecked, setDeliveryChecked] = useState(false);
 
   // Recommended Products ("You May Also Like")
   const recommendedProducts = [

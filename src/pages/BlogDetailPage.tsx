@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   Calendar,
   Clock,
@@ -8,17 +8,65 @@ import {
   CheckCircle2,
   Share2,
   Stethoscope,
-  Lightbulb,
+  ChevronRight,
+  ArrowLeft,
+  Eye,
+  Tag,
 } from 'lucide-react';
+import { useBlog, useRelatedBlogs, useBlogCategories, useBlogs } from '../hooks/useBlogs';
+import { getUploadUrl } from '../utils/image';
 import wheatImg from '../assets/wheat-sunburst.jpg';
-import pastureImg from '../assets/farming-practices.jpg';
-import smartImg from '../assets/smart-irrigation.jpg';
-import organicImg from '../assets/organic-farming.jpg';
 import './BlogDetailPage.css';
 
 export const BlogDetailPage: React.FC = () => {
+  const { idOrSlug } = useParams<{ idOrSlug: string }>();
+  const navigate = useNavigate();
+
   const [sidebarSearch, setSidebarSearch] = useState('');
   const [copied, setCopied] = useState(false);
+
+  // 1. Fetch live database blog post
+  const { data: blog, isLoading, isError } = useBlog(idOrSlug);
+
+  // 2. Fetch categories with counts
+  const { data: categories = [] } = useBlogCategories();
+
+  // 3. Fetch related articles
+  const { data: relatedArticles = [] } = useRelatedBlogs(idOrSlug, blog?.category, 3);
+
+  // 4. Fetch popular articles
+  const { data: popularData } = useBlogs({ sortBy: 'popular', limit: 3 });
+  const popularArticles = (popularData?.blogs || []).filter((b) => b.id !== blog?.id && b.slug !== blog?.slug).slice(0, 3);
+
+  // Dynamic SEO management
+  useEffect(() => {
+    if (blog) {
+      document.title = `${blog.metaTitle || blog.title} | FarmerBench Agri Insights`;
+
+      // Update meta description
+      let metaDesc = document.querySelector('meta[name="description"]');
+      if (!metaDesc) {
+        metaDesc = document.createElement('meta');
+        metaDesc.setAttribute('name', 'description');
+        document.head.appendChild(metaDesc);
+      }
+      metaDesc.setAttribute('content', blog.metaDescription || blog.excerpt || blog.title);
+
+      // Update Open Graph tags
+      let ogTitle = document.querySelector('meta[property="og:title"]');
+      if (ogTitle) {
+        ogTitle.setAttribute('content', blog.metaTitle || blog.title);
+      }
+      let ogDesc = document.querySelector('meta[property="og:description"]');
+      if (ogDesc) {
+        ogDesc.setAttribute('content', blog.metaDescription || blog.excerpt);
+      }
+    }
+
+    return () => {
+      document.title = 'FarmerBench — Sustainable Agriculture & Commercial Inputs';
+    };
+  }, [blog]);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -26,224 +74,218 @@ export const BlogDetailPage: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const categories = [
-    { name: 'All Categories', count: 36, slug: 'all' },
-    { name: 'Crop Nutrition', count: 9, slug: 'crop-nutrition' },
-    { name: 'Plant Protection', count: 8, slug: 'plant-protection' },
-    { name: 'Soil Health', count: 6, slug: 'soil-health' },
-    { name: 'Irrigation', count: 4, slug: 'irrigation' },
-    { name: 'Pest Management', count: 5, slug: 'pest-management' },
-    { name: 'Farming Tips', count: 4, slug: 'farming-tips' },
-    { name: 'Crop Planning', count: 3, slug: 'crop-planning' },
-    { name: 'Technology', count: 3, slug: 'technology' },
-  ];
+  const handleSidebarSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (sidebarSearch.trim()) {
+      navigate(`/blog?search=${encodeURIComponent(sidebarSearch.trim())}`);
+    }
+  };
 
-  const popularArticles = [
-    {
-      id: '1',
-      title: 'How to Choose the Right Fertilizer for Your Crop?',
-      date: '20 May 2024',
-      image: wheatImg,
-    },
-    {
-      id: '2',
-      title: 'Simple Ways to Improve Soil Health Naturally',
-      date: '12 May 2024',
-      image: smartImg,
-    },
-    {
-      id: '3',
-      title: 'Common Crop Pests and How to Control Them',
-      date: '10 May 2024',
-      image: pastureImg,
-    },
-  ];
+  // Loading Skeleton State
+  if (isLoading) {
+    return (
+      <div className="blog-detail-layout">
+        <div className="blog-detail-container">
+          <div className="blog-detail-main-grid">
+            <article className="animate-pulse-subtle">
+              <div className="blog-skeleton-line" style={{ width: '25%', height: 24, borderRadius: 20 }} />
+              <div className="blog-skeleton-line" style={{ width: '90%', height: 38, margin: '1rem 0' }} />
+              <div className="blog-skeleton-line" style={{ width: '45%', height: 16, marginBottom: '1.5rem' }} />
+              <div className="blog-skeleton-cover" />
+              <div className="blog-skeleton-line" style={{ width: '100%', height: 16, marginTop: '2rem' }} />
+              <div className="blog-skeleton-line" style={{ width: '95%', height: 16 }} />
+              <div className="blog-skeleton-line" style={{ width: '80%', height: 16 }} />
+            </article>
+            <aside className="blog-sidebar-wrap">
+              <div className="blog-sidebar-card blog-skeleton-card" />
+              <div className="blog-sidebar-card blog-skeleton-card" />
+            </aside>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  const relatedArticles = [
-    {
-      id: '2',
-      title: 'Simple Ways to Improve Soil Health Naturally',
-      date: '12 May 2024',
-      image: smartImg,
-    },
-    {
-      id: '4',
-      title: 'Crop Nutrition: A Practical Guide',
-      date: '05 May 2024',
-      image: organicImg,
-    },
-    {
-      id: '5',
-      title: 'Best Time to Apply Fertilizer',
-      date: '28 Apr 2024',
-      image: wheatImg,
-    },
-  ];
+  // Not Found / Error State
+  if (isError || !blog) {
+    return (
+      <div className="blog-detail-layout">
+        <div className="blog-detail-container" style={{ textAlign: 'center', padding: '4rem 1rem' }}>
+          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🌾</div>
+          <h2 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#17251E', marginBottom: '0.75rem' }}>
+            Article Not Found
+          </h2>
+          <p style={{ color: '#64748B', maxWidth: '480px', margin: '0 auto 2rem' }}>
+            The requested blog post might have been unpublished, moved, or the link has changed.
+          </p>
+          <Link to="/blog" className="btn btn-primary" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+            <ArrowLeft size={16} /> Back to All Articles
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const formattedDate = blog.publishedAt
+    ? new Date(blog.publishedAt).toLocaleDateString('en-GB', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
+    : 'Recent';
+
+  const coverImageUrl = getUploadUrl(blog.featuredImage, wheatImg);
+  const authorAvatarUrl = getUploadUrl(
+    blog.authorAvatar,
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80'
+  );
 
   return (
     <div className="blog-detail-layout">
       <div className="blog-detail-container">
+        {/* Breadcrumbs */}
+        <nav className="blog-breadcrumbs" aria-label="Breadcrumb">
+          <Link to="/">Home</Link>
+          <ChevronRight size={13} />
+          <Link to="/blog">Blog</Link>
+          <ChevronRight size={13} />
+          <Link to={`/blog?category=${encodeURIComponent(blog.category.toLowerCase().replace(/ /g, '-'))}`}>
+            {blog.category}
+          </Link>
+          <ChevronRight size={13} />
+          <span className="current">{blog.title}</span>
+        </nav>
+
         {/* Main 2-Column Grid */}
         <div className="blog-detail-main-grid">
           {/* LEFT ARTICLE CONTENT */}
           <article>
             {/* Header / Category Tag */}
             <div className="blog-article-header">
-              <span className="blog-article-cat-tag">Crop Nutrition</span>
-              <h1 className="blog-article-main-title">
-                How to Choose the Right Fertilizer for Your Crop?
-              </h1>
+              <Link
+                to={`/blog?category=${encodeURIComponent(blog.category.toLowerCase().replace(/ /g, '-'))}`}
+                className="blog-article-cat-tag"
+              >
+                {blog.category}
+              </Link>
+              <h1 className="blog-article-main-title">{blog.title}</h1>
 
-              {/* Meta: Date & Read Time */}
+              {/* Meta: Date, Read Time & Views */}
               <div className="blog-article-meta-row">
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <Calendar size={15} style={{ color: '#5D7A68' }} /> 20 May 2024
+                  <Calendar size={15} style={{ color: '#5D7A68' }} /> {formattedDate}
                 </span>
                 <span>•</span>
+                {blog.readingTime && (
+                  <>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <Clock size={15} style={{ color: '#5D7A68' }} /> {blog.readingTime}
+                    </span>
+                    <span>•</span>
+                  </>
+                )}
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <Clock size={15} style={{ color: '#5D7A68' }} /> 8 min read
+                  <Eye size={15} style={{ color: '#5D7A68' }} /> {blog.views || 1} views
                 </span>
               </div>
 
               {/* Author Row */}
               <div className="blog-article-author-row">
                 <img
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80"
-                  alt="Author"
+                  src={authorAvatarUrl}
+                  alt={blog.author}
                   className="blog-author-avatar-img"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src =
+                      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80';
+                  }}
                 />
-                <span className="blog-author-name">By FarmerBench Agri Expert</span>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span className="blog-author-name">By {blog.author || 'FarmerBench Agri Expert'}</span>
+                  <span className="blog-author-role">Certified Agricultural Specialist</span>
+                </div>
               </div>
             </div>
 
             {/* Cover Hero Photo */}
-            <img
-              src="https://images.unsplash.com/photo-1592417817098-8f3d6910985c?w=1200&auto=format&fit=crop&q=80"
-              alt="Fertilizer Application"
-              className="blog-article-cover-img"
+            <div className="blog-article-cover-wrap">
+              <img
+                src={coverImageUrl}
+                alt={blog.title}
+                className="blog-article-cover-img"
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = wheatImg;
+                }}
+              />
+            </div>
+
+            {/* Dynamic Article Content Body */}
+            <div
+              className="blog-article-body"
+              dangerouslySetInnerHTML={{ __html: blog.content }}
             />
 
-            {/* Article Content */}
-            <div className="blog-article-body">
-              <p>
-                Choosing the right fertilizer is one of the most important decisions for healthy crop growth and higher yield. Different crops need different nutrients at different stages. Here's a simple guide to help you pick the best fertilizer for your crops.
-              </p>
-
-              <h2 className="blog-section-heading">1. Understanding Your Crop's Nutrient Needs</h2>
-              <p>
-                Every crop requires a mix of essential nutrients – Nitrogen (N), Phosphorus (P), Potassium (K) and micronutrients. For example, leafy vegetables need more nitrogen, while flowering and fruiting crops need more phosphorus and potassium.
-              </p>
-
-              <h2 className="blog-section-heading">2. Know the Main Fertilizer Types</h2>
-              <p>Fertilizers are generally of three types:</p>
-              <ul className="blog-article-list">
-                <li>
-                  <strong>Organic Fertilizers:</strong> Natural sources like compost, manure, and vermicompost that build long-term soil structure.
-                </li>
-                <li>
-                  <strong>Inorganic Fertilizers:</strong> Chemical-based mineral fertilizers for quick nutrient supply and targeted feeding.
-                </li>
-                <li>
-                  <strong>Bio-fertilizers:</strong> Contain beneficial live microbial cultures that enhance root uptake and nitrogen fixation.
-                </li>
-              </ul>
-
-              {/* Expert Tip Highlight Box */}
-              <div className="blog-expert-tip-box">
-                <Lightbulb size={24} className="blog-tip-icon" />
-                <div>
-                  <h4 className="blog-tip-title">Expert Tip</h4>
-                  <p className="blog-tip-text">
-                    Using organic and inorganic fertilizers together can give better results and improve soil fertility over time.
-                  </p>
+            {/* Tags Row if present */}
+            {blog.tags && blog.tags.length > 0 && (
+              <div className="blog-tags-container">
+                <Tag size={16} style={{ color: '#166534' }} />
+                <span className="blog-tags-label">Tags:</span>
+                <div className="blog-tags-list">
+                  {blog.tags.map((tag, idx) => (
+                    <Link key={idx} to={`/blog?search=${encodeURIComponent(tag)}`} className="blog-tag-pill">
+                      #{tag}
+                    </Link>
+                  ))}
                 </div>
               </div>
+            )}
 
-              <h2 className="blog-section-heading">3. Read the NPK Ratio</h2>
-              <p>
-                The NPK ratio on fertilizer bags shows the percentage of Nitrogen (N), Phosphorus (P) and Potassium (K). For example, 10-26-26 means 10% Nitrogen, 26% Phosphorus and 26% Potassium. Choose the ratio as per your crop's growth stage and nutrient requirement.
-              </p>
+            {/* Social Share Bar */}
+            <div className="blog-share-row">
+              <span className="blog-share-label">Share this article:</span>
+              <a
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="blog-share-btn facebook"
+                title="Share on Facebook"
+              >
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+                </svg>
+              </a>
+              <a
+                href={`https://api.whatsapp.com/send?text=${encodeURIComponent(blog.title + ' ' + window.location.href)}`}
+                target="_blank"
+                rel="noreferrer"
+                className="blog-share-btn whatsapp"
+                title="Share on WhatsApp"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                </svg>
+              </a>
+              <button onClick={handleCopyLink} className="blog-share-btn copy" title="Copy Article Link">
+                {copied ? <CheckCircle2 size={15} color="#166534" /> : <Share2 size={15} />}
+                <span style={{ fontSize: '0.775rem', fontWeight: 600 }}>{copied ? 'Link Copied!' : 'Copy Link'}</span>
+              </button>
+            </div>
 
-              <h2 className="blog-section-heading">4. Test Your Soil Before Applying</h2>
-              <p>
-                A soil test helps you understand the existing nutrient levels and pH of your soil. This prevents overuse of fertilizers and helps save costs while improving crop productivity.
-              </p>
-
-              {/* In-Article Demonstration Photo */}
+            {/* Author Bio Card */}
+            <div className="blog-author-bio-card">
+              <div>
+                <h4 className="blog-bio-name">{blog.author || 'FarmerBench Agri Expert'}</h4>
+                <p className="blog-bio-text">
+                  {blog.authorBio ||
+                    'Agricultural expert with 10+ years of experience in sustainable farming, soil health, and crop management.'}
+                </p>
+              </div>
               <img
-                src="https://images.unsplash.com/photo-1585314062340-f1a5a7c9328d?w=1000&auto=format&fit=crop&q=80"
-                alt="Soil Testing Demonstration"
-                className="blog-inline-img"
+                src={authorAvatarUrl}
+                alt={blog.author}
+                className="blog-author-avatar-img"
+                style={{ width: '56px', height: '56px' }}
               />
-
-              <h2 className="blog-section-heading">5. Choose the Right Application Method</h2>
-              <p>Different crops and fertilizers require different application methods:</p>
-              <ul className="blog-article-list">
-                <li>
-                  <strong>Broadcasting:</strong> Spreading fertilizer evenly over the field surface before sowing.
-                </li>
-                <li>
-                  <strong>Drip or Fertigation:</strong> Applying water-soluble fertilizers directly through drip irrigation to the root zone.
-                </li>
-                <li>
-                  <strong>Foliar Spray:</strong> Spraying micronutrients directly onto leaves for rapid absorption during critical bloom periods.
-                </li>
-              </ul>
-
-              <h2 className="blog-section-heading">6. Final Thoughts</h2>
-              <p>
-                The right fertilizer at the right time in the right amount can transform your crop yield and quality. Always follow recommended doses, monitor crop response and keep improving your soil health for long-term success.
-              </p>
-
-              {/* Social Share Bar */}
-              <div className="blog-share-row">
-                <span className="blog-share-label">Share this article</span>
-                <a
-                  href="https://facebook.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="blog-share-btn facebook"
-                  title="Share on Facebook"
-                >
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
-                  </svg>
-                </a>
-                <a
-                  href="https://whatsapp.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="blog-share-btn whatsapp"
-                  title="Share on WhatsApp"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-                  </svg>
-                </a>
-                <button
-                  onClick={handleCopyLink}
-                  className="blog-share-btn copy"
-                  title="Copy Link"
-                >
-                  {copied ? <CheckCircle2 size={15} /> : <Share2 size={15} />}
-                </button>
-              </div>
-
-              {/* Author Bio Card */}
-              <div className="blog-author-bio-card">
-                <div>
-                  <h4 className="blog-bio-name">FarmerBench Agri Expert</h4>
-                  <p className="blog-bio-text">
-                    Agricultural expert with 10+ years of experience in sustainable farming, soil health, and crop management.
-                  </p>
-                </div>
-                <img
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80"
-                  alt="Author"
-                  className="blog-author-avatar-img"
-                  style={{ width: '56px', height: '56px' }}
-                />
-              </div>
             </div>
           </article>
 
@@ -252,21 +294,14 @@ export const BlogDetailPage: React.FC = () => {
             {/* 1. Search Blog Card */}
             <div className="blog-sidebar-card">
               <h3 className="blog-sidebar-title">Search Blog</h3>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (sidebarSearch.trim()) {
-                    window.location.href = `/blog?search=${encodeURIComponent(sidebarSearch.trim())}`;
-                  }
-                }}
-                className="blog-sidebar-search"
-              >
+              <form onSubmit={handleSidebarSearch} className="blog-sidebar-search">
                 <input
                   type="text"
                   placeholder="Search articles..."
                   value={sidebarSearch}
                   onChange={(e) => setSidebarSearch(e.target.value)}
                   className="blog-sidebar-input"
+                  aria-label="Search articles"
                 />
                 <button type="submit" className="blog-sidebar-search-btn" aria-label="Search">
                   <Search size={16} />
@@ -274,41 +309,67 @@ export const BlogDetailPage: React.FC = () => {
               </form>
             </div>
 
-            {/* 2. Categories List Card */}
+            {/* 2. Categories List Card (Dynamic from Database) */}
             <div className="blog-sidebar-card">
               <h3 className="blog-sidebar-title">
                 Categories <Sprout size={18} style={{ color: '#78B833' }} />
               </h3>
               <ul className="blog-sidebar-cat-list">
-                {categories.map((cat) => (
-                  <li key={cat.slug}>
-                    <Link
-                      to={`/blog?category=${cat.slug}`}
-                      className={`blog-sidebar-cat-item ${cat.slug === 'crop-nutrition' ? 'active' : ''}`}
-                    >
-                      <span>{cat.name}</span>
-                      <span className="blog-cat-count-badge">{cat.count}</span>
-                    </Link>
-                  </li>
-                ))}
+                {categories.map((cat) => {
+                  const isActive =
+                    cat.slug === blog.category.toLowerCase().replace(/[^a-z0-9]+/g, '-') ||
+                    cat.name.toLowerCase() === blog.category.toLowerCase();
+                  return (
+                    <li key={cat.slug}>
+                      <Link
+                        to={`/blog?category=${cat.slug}`}
+                        className={`blog-sidebar-cat-item ${isActive ? 'active' : ''}`}
+                      >
+                        <span>{cat.name}</span>
+                        <span className="blog-cat-count-badge">{cat.count}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
 
             {/* 3. Popular Articles Card */}
-            <div className="blog-sidebar-card">
-              <h3 className="blog-sidebar-title">Popular Articles</h3>
-              <div className="blog-popular-list">
-                {popularArticles.map((art) => (
-                  <Link key={art.id} to={`/blog/${art.id}`} className="blog-popular-item">
-                    <img src={art.image} alt={art.title} className="blog-popular-img" />
-                    <div>
-                      <h4 className="blog-popular-title">{art.title}</h4>
-                      <span className="blog-popular-date">{art.date}</span>
-                    </div>
-                  </Link>
-                ))}
+            {popularArticles.length > 0 && (
+              <div className="blog-sidebar-card">
+                <h3 className="blog-sidebar-title">Popular Articles</h3>
+                <div className="blog-popular-list">
+                  {popularArticles.map((art) => {
+                    const artDate = art.publishedAt
+                      ? new Date(art.publishedAt).toLocaleDateString('en-GB', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                        })
+                      : 'Recent';
+
+                    const artImg = getUploadUrl(art.featuredImage, wheatImg);
+
+                    return (
+                      <Link key={art.id} to={`/blog/${art.slug || art.id}`} className="blog-popular-item">
+                        <img
+                          src={artImg}
+                          alt={art.title}
+                          className="blog-popular-img"
+                          onError={(e) => {
+                            (e.currentTarget as HTMLImageElement).src = wheatImg;
+                          }}
+                        />
+                        <div>
+                          <h4 className="blog-popular-title">{art.title}</h4>
+                          <span className="blog-popular-date">{artDate}</span>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* 4. Need Expert Advice? CTA Card */}
             <div className="blog-cta-advice-card">
@@ -317,7 +378,7 @@ export const BlogDetailPage: React.FC = () => {
                 <Stethoscope size={32} />
               </div>
               <p className="blog-cta-desc">
-                Talk to our crop experts and get personalized solutions for your farm.
+                Talk to our crop agronomists and get personalized fertilization & pest solutions for your farm.
               </p>
               <Link to="/contact" className="blog-cta-btn">
                 Ask Crop Doctor
@@ -326,24 +387,46 @@ export const BlogDetailPage: React.FC = () => {
           </aside>
         </div>
 
-        {/* BOTTOM: Related Articles */}
-        <section className="blog-related-section">
-          <h2 className="blog-related-title">
-            Related Articles <Sprout size={24} style={{ color: '#78B833' }} />
-          </h2>
+        {/* BOTTOM: Dynamic Related Articles */}
+        {relatedArticles.length > 0 && (
+          <section className="blog-related-section">
+            <h2 className="blog-related-title">
+              Related Articles <Sprout size={24} style={{ color: '#78B833' }} />
+            </h2>
 
-          <div className="blog-related-grid">
-            {relatedArticles.map((rel) => (
-              <Link key={rel.id} to={`/blog/${rel.id}`} className="blog-related-card">
-                <img src={rel.image} alt={rel.title} className="blog-related-img" />
-                <div className="blog-related-body">
-                  <h4 className="blog-related-heading">{rel.title}</h4>
-                  <span className="blog-related-date">{rel.date}</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
+            <div className="blog-related-grid">
+              {relatedArticles.map((rel) => {
+                const relDate = rel.publishedAt
+                  ? new Date(rel.publishedAt).toLocaleDateString('en-GB', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })
+                  : 'Recent';
+
+                const relImg = getUploadUrl(rel.featuredImage, wheatImg);
+
+                return (
+                  <Link key={rel.id} to={`/blog/${rel.slug || rel.id}`} className="blog-related-card">
+                    <img
+                      src={relImg}
+                      alt={rel.title}
+                      className="blog-related-img"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = wheatImg;
+                      }}
+                    />
+                    <div className="blog-related-body">
+                      <span className="blog-related-cat-label">{rel.category}</span>
+                      <h4 className="blog-related-heading">{rel.title}</h4>
+                      <span className="blog-related-date">{relDate}</span>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );
