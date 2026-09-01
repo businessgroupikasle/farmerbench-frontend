@@ -26,6 +26,23 @@ declare global {
   }
 }
 
+const loadRazorpayCheckout = (): Promise<boolean> => {
+  if (typeof window.Razorpay === 'function') return Promise.resolve(true);
+
+  return new Promise((resolve) => {
+    const staleScript = document.getElementById('razorpay-checkout-script');
+    staleScript?.remove();
+
+    const script = document.createElement('script');
+    script.id = 'razorpay-checkout-script';
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => resolve(typeof window.Razorpay === 'function');
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const { items, subtotal, clearCart } = useCart();
@@ -57,14 +74,7 @@ export const CheckoutPage: React.FC = () => {
 
   // Load Razorpay script dynamically
   useEffect(() => {
-    const existingScript = document.getElementById('razorpay-checkout-script');
-    if (!existingScript) {
-      const script = document.createElement('script');
-      script.id = 'razorpay-checkout-script';
-      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.async = true;
-      document.body.appendChild(script);
-    }
+    void loadRazorpayCheckout();
   }, []);
 
   if (items.length === 0) {
@@ -159,6 +169,10 @@ export const CheckoutPage: React.FC = () => {
     setIsProcessing(true);
 
     try {
+      if (paymentMethod === 'RAZORPAY' && !(await loadRazorpayCheckout())) {
+        throw new Error('Razorpay checkout could not load. Check your connection or disable the ad blocker and retry.');
+      }
+
       const shippingAddress = getCombinedShippingAddress();
 
       // 1. Create order in Backend database
@@ -225,21 +239,16 @@ export const CheckoutPage: React.FC = () => {
           };
 
           const rzpInstance = new window.Razorpay(options);
+          rzpInstance.on('payment.failed', (response: any) => {
+            const reason = response?.error?.description || 'Payment failed. Please retry.';
+            setErrorMsg(reason);
+            addToast({ type: 'error', message: reason });
+            setIsProcessing(false);
+          });
           rzpInstance.open();
           return;
         } else {
-          // Simulation / Direct Verification Fallback if script blocked by adblock
-          console.warn('Razorpay SDK not loaded in window, performing verified confirmation');
-          await paymentService.verifyPayment({
-            orderId: createdOrder.id,
-            razorpay_order_id: rzpData.razorpayOrderId,
-            razorpay_payment_id: `pay_sim_${Date.now()}`,
-            razorpay_signature: 'simulated_valid_signature',
-          });
-          clearCart();
-          addToast({ type: 'success', message: 'Payment successful! Order confirmed.' });
-          navigate(`/order-confirmation/${createdOrder.id}`);
-          return;
+          throw new Error('Razorpay checkout is unavailable. Please retry without an ad blocker.');
         }
       } else {
         // Cash on Delivery

@@ -1,0 +1,404 @@
+/* ==========================================================================
+   Product Page Hero Section Styles - Pixel Perfect Match to Design
+   ========================================================================== */
+
+.product-hero-banner {
+  width: 100%;
+  margin-bottom: 2rem;
+}
+
+.product-hero-container {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  align-items: center;
+  gap: 2rem;
+  background: linear-gradient(135deg, #f3f8f2 0%, #eaf4e9 50%, #e2efe2 100%);
+  border: 1px solid #d5e5d7;
+  border-radius: 24px;
+  padding: 3rem 3.5rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 12px 35px -15px rgba(22, 70, 39, 0.12);
+  transition: box-shadow 0.3s ease;
+}
+
+.product-hero-container:hover {
+  box-shadow: 0 16px 40px -15px rgba(22, 70, 39, 0.18);
+}
+
+/* Subtle background accent glow */
+.product-hero-container::before {
+  content: '';
+  position: absolute;
+  top: -20%;
+  right: 15%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(200, 235, 202, 0.5) 0%, rgba(243, 248, 242, 0) 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Left Content Column
+   -------------------------------------------------------------------------- */
+.product-hero-left {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  z-index: 1;
+  position: relative;
+}
+
+/* Brand Tagline Badge */
+.product-hero-brand-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.85rem;
+}
+
+.product-hero-brand-text {
+  font-family: var(--font-display, 'Outfit', sans-serif);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #1b6330;
+}
+
+.product-hero-leaf-icon {
+  font-size: 0.95rem;
+  line-height: 1;
+  display: inline-block;
+  transform: rotate(-10deg);
+}
+
+/* Main Headline */
+.product-hero-title {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-display, 'Outfit', -apple-system, sans-serif);
+  font-size: clamp(2.2rem, 3.4vw, 3.1rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.035em;
+  color: #12281a;
+  margin: 0 0 1rem 0;
+}
+
+.product-hero-title-highlight {
+  color: #12281a;
+}
+
+/* Subtitle Description */
+.product-hero-description {
+  font-size: 1rem;
+  line-height: 1.55;
+  color: #4b5e52;
+  margin: 0 0 1.75rem 0;
+  max-width: 440px;
+}
+
+/* Search Form Bar */
+.product-hero-search-form {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border: 1.5px solid #d3e2d6;
+  border-radius: 14px;
+  padding: 4px 4px 4px 16px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+  transition: all 0.25s ease;
+  margin-bottom: 1.75rem;
+}
+
+.product-hero-search-form:focus-within {
+  border-color: #185a2c;
+  box-shadow: 0 0 0 3.5px rgba(24, 90, 44, 0.15), 0 6px 20px rgba(0, 0, 0, 0.06);
+}
+
+.product-hero-input-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  position: relative;
+  min-width: 0;
+}
+
+.product-hero-input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-size: 0.95rem;
+  color: #12281a;
+  font-family: inherit;
+  padding: 0.65rem 0.5rem 0.65rem 0;
+}
+
+.product-hero-input::placeholder {
+  color: #7b8e81;
+  font-weight: 400;
+}
+
+.product-hero-clear-btn {
+  background: #f1f5f2;
+  border: none;
+  border-radius: 50%;
+  color: #6a7e72;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  margin-right: 0.5rem;
+  transition: all 0.15s ease;
+}
+
+.product-hero-clear-btn:hover {
+  background: #e2ece4;
+  color: #12281a;
+}
+
+.product-hero-submit-btn {
+  background-color: #144e26;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  padding: 0.72rem 1.45rem;
+  font-size: 0.925rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 6px rgba(20, 78, 38, 0.2);
+}
+
+.product-hero-submit-btn:hover {
+  background-color: #0e3c1d;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(20, 78, 38, 0.35);
+}
+
+.product-hero-submit-btn:active {
+  transform: translateY(0);
+}
+
+/* Trust Badges Row */
+.product-hero-badges-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+}
+
+.product-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  background-color: #ffffff;
+  border: 1px solid #dce8dd;
+  border-radius: 10px;
+  padding: 0.55rem 1.05rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.product-hero-badge:hover {
+  border-color: #185a2c;
+  transform: translateY(-2px);
+}
+
+.product-hero-badge-icon {
+  color: #1b6330;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-hero-badge-text {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #12281a;
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+
+/* --------------------------------------------------------------------------
+   Right Artwork Showcase
+   -------------------------------------------------------------------------- */
+.product-hero-right {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 1;
+}
+
+.product-hero-image-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
+}
+
+.product-hero-image {
+  width: 100%;
+  height: auto;
+  max-height: 380px;
+  object-fit: cover;
+  border-radius: 18px;
+  display: block;
+  transition: transform 0.4s ease;
+}
+
+.product-hero-container:hover .product-hero-image {
+  transform: scale(1.02);
+}
+
+.product-hero-image-gradient-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 18px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+/* --------------------------------------------------------------------------
+   Dark Mode Support
+   -------------------------------------------------------------------------- */
+[data-theme='dark'] .product-hero-container {
+  background: linear-gradient(135deg, #13241b 0%, #0f1c15 50%, #0a1510 100%);
+  border-color: #1e3a29;
+  box-shadow: 0 12px 35px -15px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme='dark'] .product-hero-title,
+[data-theme='dark'] .product-hero-title-highlight {
+  color: #f0fdf4;
+}
+
+[data-theme='dark'] .product-hero-brand-text {
+  color: #4ade80;
+}
+
+[data-theme='dark'] .product-hero-description {
+  color: #94a3b8;
+}
+
+[data-theme='dark'] .product-hero-search-form {
+  background-color: #1a2e22;
+  border-color: #2a4735;
+}
+
+[data-theme='dark'] .product-hero-input {
+  color: #f1f5f9;
+}
+
+[data-theme='dark'] .product-hero-input::placeholder {
+  color: #64748b;
+}
+
+[data-theme='dark'] .product-hero-badge {
+  background-color: #1a2e22;
+  border-color: #2a4735;
+}
+
+[data-theme='dark'] .product-hero-badge-text {
+  color: #f1f5f9;
+}
+
+[data-theme='dark'] .product-hero-badge-icon {
+  color: #4ade80;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive Media Queries
+   -------------------------------------------------------------------------- */
+@media (max-width: 1080px) {
+  .product-hero-container {
+    padding: 2.25rem 2.5rem;
+    gap: 1.5rem;
+  }
+  
+  .product-hero-title {
+    font-size: 2.3rem;
+  }
+}
+
+@media (max-width: 868px) {
+  .product-hero-container {
+    grid-template-columns: 1fr;
+    padding: 2rem 1.5rem;
+    gap: 2rem;
+    border-radius: 20px;
+  }
+
+  .product-hero-left {
+    align-items: flex-start;
+  }
+
+  .product-hero-search-form {
+    max-width: 100%;
+  }
+
+  .product-hero-image {
+    max-height: 280px;
+  }
+}
+
+@media (max-width: 520px) {
+  .product-hero-container {
+    padding: 1.5rem 1.15rem;
+    border-radius: 16px;
+  }
+
+  .product-hero-title {
+    font-size: 1.85rem;
+  }
+
+  .product-hero-description {
+    font-size: 0.9rem;
+  }
+
+  .product-hero-search-form {
+    flex-direction: column;
+    padding: 8px;
+    gap: 8px;
+    border-radius: 12px;
+  }
+
+  .product-hero-input-wrapper {
+    width: 100%;
+    padding-left: 8px;
+  }
+
+  .product-hero-submit-btn {
+    width: 100%;
+    padding: 0.65rem 1rem;
+    text-align: center;
+  }
+
+  .product-hero-badges-row {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .product-hero-badge {
+    justify-content: center;
+    width: 100%;
+  }
+}

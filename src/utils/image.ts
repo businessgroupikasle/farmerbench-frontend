@@ -19,14 +19,23 @@ export const getUploadUrl = (filenameOrPath?: string | null, fallbackUrl?: strin
   }
 
   // Get base URL from environment
-  const uploadsBaseUrl =
+  const rawUploadsBase =
     import.meta.env.VITE_UPLOADS_BASE_URL ||
     (import.meta.env.VITE_API_BASE_URL
       ? import.meta.env.VITE_API_BASE_URL.replace(/\/api\/?$/, '/uploads')
       : 'http://localhost:5000/uploads');
 
-  const cleanPath = filenameOrPath.startsWith('/') ? filenameOrPath.slice(1) : filenameOrPath;
-  return `${uploadsBaseUrl}/${cleanPath}`;
+  const base = rawUploadsBase.replace(/\/+$/, '');
+
+  // Normalize leading slashes
+  let relativePath = filenameOrPath.replace(/^\/+/, '');
+
+  // If the path starts with 'uploads/', strip it since base already includes '/uploads'
+  if (relativePath.startsWith('uploads/')) {
+    relativePath = relativePath.slice('uploads/'.length);
+  }
+
+  return `${base}/${relativePath}`;
 };
 
 /**

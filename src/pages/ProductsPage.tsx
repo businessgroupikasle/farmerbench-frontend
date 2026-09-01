@@ -5,142 +5,326 @@ import { useCategories } from '../hooks/useCategories';
 import { useFilterStore } from '../store/filterStore';
 import { ProductGrid } from '../components/product/ProductGrid';
 import { ProductFilters } from '../components/product/ProductFilters';
+import { ProductHero } from '../components/product/ProductHero';
+import { CompareDrawer } from '../components/product/CompareDrawer';
 import { Pagination } from '../components/common/Pagination';
-import { Search } from 'lucide-react';
+import { X, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
 import './ProductsPage.css';
 
 export const ProductsPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { filters, setCategory, setSearch, setPage, resetFilters } = useFilterStore();
-  const { data: apiCategories = [] } = useCategories();
-  const [searchInput, setSearchInput] = useState(filters.search || '');
+  const {
+    filters,
+    inStockOnly,
+    setCategory,
+    setSearch,
+    setPriceRange,
+    setMinRating,
+    setSortBy,
+    setLimit,
+    setPage,
+    setInStockOnly,
+    resetFilters,
+  } = useFilterStore();
 
+  const { data: apiCategories = [] } = useCategories();
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+  // Sync URL query parameters with filterStore on initial load and param change
   useEffect(() => {
     const urlCategory = searchParams.get('category');
     const urlSearch = searchParams.get('search');
     const urlFeatured = searchParams.get('featured') === 'true';
+    const urlSort = searchParams.get('sort');
+    const urlPage = searchParams.get('page');
 
     if (urlCategory) {
       setCategory(urlCategory);
     }
     if (urlSearch) {
       setSearch(urlSearch);
-      setSearchInput(urlSearch);
     }
     if (urlFeatured) {
       useFilterStore.setState((state) => ({
         filters: { ...state.filters, featured: true, page: 1 },
       }));
     }
+    if (urlSort && ['newest', 'price_asc', 'price_desc', 'rating', 'popular'].includes(urlSort)) {
+      setSortBy(urlSort as any);
+    }
+    if (urlPage && !isNaN(Number(urlPage))) {
+      setPage(Number(urlPage));
+    }
   }, [searchParams]);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSearch(searchInput.trim() || undefined);
-    if (searchInput.trim()) {
-      setSearchParams({ search: searchInput.trim() });
+  // Handle Hero search submit
+  const handleHeroSearch = (term: string) => {
+    setSearch(term || undefined);
+    const nextParams = new URLSearchParams(searchParams);
+    if (term) {
+      nextParams.set('search', term);
     } else {
-      setSearchParams({});
+      nextParams.delete('search');
     }
+    nextParams.set('page', '1');
+    setSearchParams(nextParams);
   };
 
+  // Category navigation pill click
   const handleCategoryClick = (catSlug: string) => {
     const nextCat = catSlug || undefined;
     setCategory(nextCat);
+    const nextParams = new URLSearchParams(searchParams);
     if (nextCat) {
-      setSearchParams({ category: nextCat });
+      nextParams.set('category', nextCat);
     } else {
-      setSearchParams({});
+      nextParams.delete('category');
     }
+    nextParams.set('page', '1');
+    setSearchParams(nextParams);
   };
 
-  const { data: response, isLoading } = useProducts(filters);
-  const products = response?.data || [];
+  // Query database-backed products using existing productService & React Query
+  const { data: response, isLoading, isError, refetch } = useProducts(filters);
+  const rawProducts = response?.data || [];
   const pagination = response?.pagination;
 
-  // Pure database-backed category pills
+  // Safe client-side in-stock filter when enabled
+  const products = inStockOnly
+    ? rawProducts.filter((p) => p.stock > 0)
+    : rawProducts;
+
+  // Category quick pills
   const categoryPills = [
     { id: '', name: 'All Products', slug: '' },
     ...apiCategories,
   ];
 
+  // Active filters list for chips
+  const activeChips: { id: string; label: string; onRemove: () => void }[] = [];
+
+  if (filters.search) {
+    activeChips.push({
+      id: 'search',
+      label: `Search: "${filters.search}"`,
+      onRemove: () => handleHeroSearch(''),
+    });
+  }
+
+  if (filters.category) {
+    const activeCategory = apiCategories.find(
+      (c) => c.slug === filters.category || c.id === filters.category
+    );
+    activeChips.push({
+      id: 'category',
+      label: `Category: ${activeCategory?.name || filters.category}`,
+      onRemove: () => handleCategoryClick(''),
+    });
+  }
+
+  if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
+    const priceText =
+      filters.minPrice !== undefined && filters.maxPrice !== undefined
+        ? `₹${filters.minPrice} - ₹${filters.maxPrice}`
+        : filters.minPrice !== undefined
+        ? `Min ₹${filters.minPrice}`
+        : `Max ₹${filters.maxPrice}`;
+    activeChips.push({
+      id: 'price',
+      label: `Price: ${priceText}`,
+      onRemove: () => setPriceRange(undefined, undefined),
+    });
+  }
+
+  if (filters.minRating !== undefined) {
+    activeChips.push({
+      id: 'rating',
+      label: `Rating: ${filters.minRating}★ & Up`,
+      onRemove: () => setMinRating(undefined),
+    });
+  }
+
+  if (inStockOnly) {
+    activeChips.push({
+      id: 'instock',
+      label: 'In Stock Only',
+      onRemove: () => setInStockOnly(false),
+    });
+  }
+
+  if (filters.featured) {
+    activeChips.push({
+      id: 'featured',
+      label: 'Featured Items',
+      onRemove: () => useFilterStore.setState((s) => ({ filters: { ...s.filters, featured: undefined } })),
+    });
+  }
+
   return (
-    <div className="products-page-layout">
-      {/* 1. Header & Live Search */}
-      <div className="products-page-header">
-        <div className="products-header-top">
-          <div className="products-title-group">
-            <h1>
+    <div className="fb-products-page">
+      {/* 1. Promotional Hero Banner matching reference design */}
+      <ProductHero
+        initialSearch={filters.search || ''}
+        onSearch={handleHeroSearch}
+        storeName="GREENLA AGRI STORE"
+      />
+
+      {/* 2. Catalog Navigation Bar & Quick Filters */}
+      <section className="fb-catalog-header" id="products-catalog-section" aria-label="Catalog Navigation">
+        {/* Category Pills Bar */}
+        <div className="fb-catalog-pills-bar">
+          <div className="fb-category-pills-scroll">
+            {categoryPills.map((cat: any) => {
+              const catSlug = cat.slug || cat.id || '';
+              const isActive = (!filters.category && !catSlug) || filters.category === catSlug;
+              return (
+                <button
+                  key={catSlug || 'all'}
+                  type="button"
+                  onClick={() => handleCategoryClick(catSlug)}
+                  className={`fb-category-pill ${isActive ? 'active' : ''}`}
+                >
+                  <span>{cat.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Catalog Control Bar (Title, Active Chips, Quick Sort, Mobile Toggle) */}
+        <div className="fb-catalog-controls-bar">
+          <div className="fb-catalog-summary">
+            <h2 className="fb-catalog-title">
               {filters.search
-                ? `Search: "${filters.search}"`
+                ? `Results for "${filters.search}"`
                 : filters.category
-                ? `${filters.category.replace(/-/g, ' ')} Products`
-                : 'Agricultural Products'}
-            </h1>
-            <p>
-              {pagination ? `Showing ${products.length} of ${pagination.total} quality products` : 'Loading catalog...'}
-            </p>
+                ? `${apiCategories.find((c) => c.slug === filters.category || c.id === filters.category)?.name || filters.category} Catalog`
+                : 'All Agricultural Catalog'}
+            </h2>
+            <span className="fb-catalog-count-text">
+              {pagination
+                ? `Showing ${products.length} of ${pagination.total} genuine products`
+                : 'Loading products...'}
+            </span>
           </div>
 
-          {/* Search Bar */}
-          <form onSubmit={handleSearchSubmit} className="products-search-box">
-            <Search size={18} style={{ color: '#5D7A68' }} />
-            <input
-              type="text"
-              placeholder="Search seeds, fertilizers, tools..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="products-search-input"
-            />
-          </form>
-        </div>
-
-        {/* 2. Quick Category Filter Pills */}
-        <div className="products-category-pills">
-          {categoryPills.map((cat: any) => {
-            const catSlug = cat.slug || cat.id || '';
-            const isActive = (!filters.category && !catSlug) || filters.category === catSlug;
-            return (
-              <button
-                key={catSlug || 'all'}
-                type="button"
-                onClick={() => handleCategoryClick(catSlug)}
-                className={`products-cat-pill ${isActive ? 'active' : ''}`}
+          <div className="fb-catalog-toolbar-actions">
+            {/* Quick Sort dropdown */}
+            <div className="fb-catalog-quick-sort">
+              <ArrowUpDown size={15} className="fb-sort-icon" />
+              <select
+                value={filters.sortBy || 'newest'}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="fb-quick-sort-select"
+                aria-label="Sort products by"
               >
-                {cat.name}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+                <option value="newest">Newest Arrivals</option>
+                <option value="popular">Most Popular</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="rating">Top Rated</option>
+              </select>
+            </div>
 
-      {/* 3. Main Grid Layout (Filters Sidebar + Products Grid) */}
-      <div className="products-main-grid">
-        {/* Left Sidebar: Detailed Filters */}
-        <aside className="products-sidebar">
-          <ProductFilters />
+            {/* Mobile Filter Toggle */}
+            <button
+              type="button"
+              onClick={() => setShowMobileFilters(!showMobileFilters)}
+              className="fb-mobile-filter-btn hide-desktop"
+              aria-label="Toggle filter sidebar"
+            >
+              <SlidersHorizontal size={16} />
+              <span>{showMobileFilters ? 'Hide Filters' : 'Filters'}</span>
+              {activeChips.length > 0 && (
+                <span className="fb-mobile-filter-badge">{activeChips.length}</span>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Active Filter Chips Row */}
+        {activeChips.length > 0 && (
+          <div className="fb-active-chips-row">
+            <span className="fb-chips-label">Active filters:</span>
+            {activeChips.map((chip) => (
+              <button
+                key={chip.id}
+                type="button"
+                onClick={chip.onRemove}
+                className="fb-filter-chip"
+                title={`Remove ${chip.label}`}
+              >
+                <span>{chip.label}</span>
+                <X size={13} />
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="fb-clear-all-chips-btn"
+            >
+              Clear All
+            </button>
+          </div>
+        )}
+      </section>
+
+      {/* 3. Main Catalog Grid (Sticky Sidebar + Product Grid) */}
+      <div className="fb-catalog-main-layout">
+        {/* Left Sidebar Filters */}
+        <aside
+          className={`fb-catalog-sidebar ${showMobileFilters ? 'mobile-open' : ''}`}
+          aria-label="Product Filters"
+        >
+          <div className="fb-sidebar-inner">
+            <ProductFilters />
+          </div>
         </aside>
 
-        {/* Right Area: Products Grid & Pagination */}
-        <main>
-          <ProductGrid
-            products={products}
-            isLoading={isLoading}
-            onResetFilters={resetFilters}
-          />
-
-          {pagination && pagination.totalPages > 1 && (
-            <Pagination
-              currentPage={pagination.page}
-              totalPages={pagination.totalPages}
-              onPageChange={(page) => {
-                setPage(page);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
+        {/* Right Product Grid & Pagination */}
+        <main className="fb-catalog-grid-section">
+          {isError ? (
+            <div className="fb-error-container">
+              <p>Unable to load products. Please check your internet connection.</p>
+              <button onClick={() => refetch()} className="btn btn-primary btn-sm">
+                Retry
+              </button>
+            </div>
+          ) : (
+            <ProductGrid
+              products={products}
+              isLoading={isLoading}
+              onResetFilters={resetFilters}
             />
+          )}
+
+          {/* Server-Side Pagination with Page Size Options */}
+          {pagination && pagination.totalPages > 1 && (
+            <div className="fb-pagination-wrapper">
+              <Pagination
+                currentPage={pagination.page}
+                totalPages={pagination.totalPages}
+                limit={filters.limit || 12}
+                onLimitChange={(newLimit) => setLimit(newLimit)}
+                totalItems={pagination.total}
+                onPageChange={(page) => {
+                  setPage(page);
+                  const nextParams = new URLSearchParams(searchParams);
+                  nextParams.set('page', String(page));
+                  setSearchParams(nextParams);
+                  const catalogEl = document.getElementById('products-catalog-section');
+                  if (catalogEl) {
+                    catalogEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+              />
+            </div>
           )}
         </main>
       </div>
+
+      {/* 4. Compare Drawer (Floating bottom bar & modal) */}
+      <CompareDrawer />
     </div>
   );
 };

@@ -2,17 +2,26 @@ import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Product } from '@formerbench/shared';
 import { RatingStars } from './RatingStars';
-import { Badge } from '../common/Badge';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, Heart, Check, Layers, Zap } from 'lucide-react';
 import { useCart } from '../../hooks/useCart';
+import { useWishlistStore } from '../../store/wishlistStore';
+import { useCompareStore } from '../../store/compareStore';
+import { useUIStore } from '../../store/uiStore';
+import { getUploadUrl } from '../../utils/image';
+import { formatPrice } from '../../utils/currency';
 
 interface ProductCardProps {
   product: Product;
 }
 
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600';
+
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart } = useCart();
   const navigate = useNavigate();
+  const { toggleWishlist, isInWishlist } = useWishlistStore();
+  const { toggleCompare, isInCompare } = useCompareStore();
+  const { addToast } = useUIStore();
 
   const isDiscounted = Boolean(product.discountPrice && product.discountPrice < product.price);
   const discountPercent = isDiscounted && product.discountPrice
@@ -21,166 +30,221 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   const isLowStock = product.stock > 0 && product.stock <= 5;
   const isOutOfStock = product.stock === 0;
+  const isWishlisted = isInWishlist(product.id);
+  const isCompared = isInCompare(product.id);
 
-  const handleAddAndGoToCart = (e: React.MouseEvent) => {
+  // Badge derivation based on real product properties
+  const isOrganic = Boolean(
+    product.attributes?.isOrganic ||
+    product.category?.name?.toLowerCase().includes('organic') ||
+    product.category?.name?.toLowerCase().includes('bio')
+  );
+  const isBestSeller = Boolean(product.rating >= 4.7 && product.numReviews >= 3);
+
+  const packSize = product.attributes?.packSize || product.attributes?.unit || product.attributes?.weight || null;
+
+  const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (!isOutOfStock) {
       addToCart(product, 1);
-      navigate('/cart');
     }
   };
 
+  const handleBuyNow = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isOutOfStock) {
+      addToCart(product, 1);
+      navigate('/checkout');
+    }
+  };
+
+  const handleWishlistClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const added = toggleWishlist(product);
+    addToast({
+      type: added ? 'success' : 'info',
+      message: added ? `${product.title} added to wishlist` : `${product.title} removed from wishlist`,
+    });
+  };
+
+  const handleCompareClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const result = toggleCompare(product);
+    if (result.limitReached) {
+      addToast({
+        type: 'warning',
+        message: 'You can compare a maximum of 4 products at a time.',
+      });
+    } else {
+      addToast({
+        type: result.added ? 'success' : 'info',
+        message: result.added ? `Added to comparison` : `Removed from comparison`,
+      });
+    }
+  };
+
+  const primaryImage = getUploadUrl(product.images?.[0], FALLBACK_IMAGE);
+
   return (
-    <div
-      className="card card-hover"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        padding: '1rem',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Image & Badges Container */}
-      <Link
-        to={`/product/${product.slug || product.id}`}
-        style={{
-          display: 'block',
-          position: 'relative',
-          width: '100%',
-          paddingTop: '90%',
-          borderRadius: 'var(--radius-md)',
-          overflow: 'hidden',
-          backgroundColor: 'var(--bg-subtle)',
-          marginBottom: '0.85rem',
-        }}
-      >
-        <img
-          src={product.images[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600'}
-          alt={product.title}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            transition: 'transform 0.4s ease',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.06)')}
-          onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-        />
-
-        {/* Top Badges */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '0.6rem',
-            left: '0.6rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.35rem',
-            zIndex: 2,
-          }}
-        >
-          {isDiscounted && <Badge variant="danger">-{discountPercent}% OFF</Badge>}
-          {product.featured && !isDiscounted && <Badge variant="primary">Featured</Badge>}
-          {isLowStock && <Badge variant="warning">Only {product.stock} left</Badge>}
-          {isOutOfStock && <Badge variant="neutral">Out of Stock</Badge>}
-        </div>
-      </Link>
-
-      {/* Category & Title */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-        {product.category && (
-          <span
-            style={{
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              color: 'var(--brand-primary)',
-              letterSpacing: '0.04em',
-              marginBottom: '0.25rem',
-            }}
-          >
-            {product.category.name}
-          </span>
-        )}
-
+    <div className="fb-product-card">
+      {/* Top Media Area */}
+      <div className="fb-card-media-wrapper">
         <Link
           to={`/product/${product.slug || product.id}`}
-          style={{
-            fontSize: '0.975rem',
-            fontWeight: 600,
-            lineHeight: 1.35,
-            color: 'var(--text-primary)',
-            marginBottom: '0.4rem',
-            display: '-webkit-box',
-            WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden',
-          }}
+          className="fb-card-image-link"
+          aria-label={`View details of ${product.title}`}
         >
-          {product.title}
+          <img
+            src={primaryImage}
+            alt={product.title}
+            className="fb-card-image"
+            loading="lazy"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).src = FALLBACK_IMAGE;
+            }}
+          />
         </Link>
 
-        {/* Rating */}
-        <div style={{ marginBottom: '0.75rem' }}>
-          <RatingStars rating={product.rating} numReviews={product.numReviews} />
+        {/* Top Badges Stack (Left) */}
+        <div className="fb-card-badges">
+          {isOutOfStock && <span className="fb-badge fb-badge-danger">Out of Stock</span>}
+          {!isOutOfStock && isDiscounted && (
+            <span className="fb-badge fb-badge-discount">-{discountPercent}% OFF</span>
+          )}
+          {!isOutOfStock && isBestSeller && (
+            <span className="fb-badge fb-badge-bestseller">Best Seller</span>
+          )}
+          {!isOutOfStock && product.featured && !isBestSeller && (
+            <span className="fb-badge fb-badge-featured">Featured</span>
+          )}
+          {!isOutOfStock && isOrganic && (
+            <span className="fb-badge fb-badge-organic">Organic</span>
+          )}
+          {!isOutOfStock && isLowStock && (
+            <span className="fb-badge fb-badge-warning">Only {product.stock} left</span>
+          )}
         </div>
 
-        {/* Price & Action */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginTop: 'auto',
-            paddingTop: '0.75rem',
-            borderTop: '1px solid var(--border-color)',
-          }}
-        >
-          <div>
-            {isDiscounted ? (
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.4rem' }}>
-                <span style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                  ₹{product.discountPrice?.toFixed(2)}
-                </span>
-                <span
-                  style={{
-                    fontSize: '0.85rem',
-                    color: 'var(--text-muted)',
-                    textDecoration: 'line-through',
-                  }}
-                >
-                  ₹{product.price.toFixed(2)}
-                </span>
-              </div>
+        {/* Top Action Buttons (Right: Wishlist + Compare) */}
+        <div className="fb-card-top-actions">
+          {/* Wishlist Button */}
+          <button
+            type="button"
+            onClick={handleWishlistClick}
+            className={`fb-card-action-btn fb-wishlist-btn ${isWishlisted ? 'active' : ''}`}
+            title={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+            aria-label="Wishlist"
+          >
+            <Heart
+              size={17}
+              fill={isWishlisted ? '#ef4444' : 'none'}
+              color={isWishlisted ? '#ef4444' : '#52695c'}
+              strokeWidth={2.2}
+            />
+          </button>
+
+          {/* Quick Compare Button */}
+          <button
+            type="button"
+            onClick={handleCompareClick}
+            className={`fb-card-action-btn fb-compare-btn ${isCompared ? 'active' : ''}`}
+            title={isCompared ? 'Remove from compare' : 'Compare product'}
+            aria-label="Compare"
+          >
+            {isCompared ? (
+              <Check size={16} color="#166534" strokeWidth={2.5} />
             ) : (
-              <span style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                ₹{product.price.toFixed(2)}
+              <Layers size={16} color="#52695c" strokeWidth={2} />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* Card Content Area */}
+      <div className="fb-card-content">
+        {/* Category Name & Pack Size */}
+        <div className="fb-card-meta-row">
+          {product.category && (
+            <span className="fb-card-category">{product.category.name}</span>
+          )}
+          {packSize && (
+            <span className="fb-card-pack-size">{packSize}</span>
+          )}
+        </div>
+
+        {/* Product Title */}
+        <h3 className="fb-card-title">
+          <Link to={`/product/${product.slug || product.id}`}>
+            {product.title}
+          </Link>
+        </h3>
+
+        {/* Description snippet if present */}
+        {product.description && (
+          <p className="fb-card-description">
+            {product.description.replace(/<[^>]*>?/gm, '').slice(0, 75)}
+            {product.description.length > 75 ? '...' : ''}
+          </p>
+        )}
+
+        {/* Rating Row */}
+        {product.rating > 0 && (
+          <div className="fb-card-rating-row">
+            <RatingStars rating={product.rating} numReviews={product.numReviews} />
+            <span className="fb-card-reviews-count">({product.numReviews || 0})</span>
+          </div>
+        )}
+
+        {/* Bottom Pricing & CTA Area */}
+        <div className="fb-card-footer">
+          <div className="fb-card-price-group">
+            {isDiscounted ? (
+              <>
+                <span className="fb-card-current-price">
+                  {formatPrice(product.discountPrice)}
+                </span>
+                <span className="fb-card-original-price">
+                  {formatPrice(product.price)}
+                </span>
+              </>
+            ) : (
+              <span className="fb-card-current-price">
+                {formatPrice(product.price)}
               </span>
             )}
           </div>
 
-          <button
-            type="button"
-            className="btn btn-secondary btn-icon"
-            disabled={isOutOfStock}
-            onClick={handleAddAndGoToCart}
-            style={{
-              borderRadius: 'var(--radius-full)',
-              width: '38px',
-              height: '38px',
-              padding: 0,
-            }}
-            title={isOutOfStock ? 'Out of stock' : 'Add to cart and view basket'}
-            aria-label="Add to cart"
-          >
-            <ShoppingBag size={17} style={{ color: 'var(--brand-primary)' }} />
-          </button>
+          {/* Dual Action Buttons: Add to Cart + Buy Now */}
+          <div className="fb-card-cta-group">
+            <button
+              type="button"
+              className="fb-add-to-cart-btn"
+              disabled={isOutOfStock}
+              onClick={handleAddToCart}
+              title={isOutOfStock ? 'Out of stock' : 'Add to cart'}
+              aria-label={`Add ${product.title} to cart`}
+            >
+              <ShoppingBag size={15} strokeWidth={2.2} />
+              <span>{isOutOfStock ? 'Out of Stock' : 'Add to Cart'}</span>
+            </button>
+
+            {!isOutOfStock && (
+              <button
+                type="button"
+                className="fb-buy-now-btn"
+                onClick={handleBuyNow}
+                title="Instant Checkout"
+                aria-label={`Buy ${product.title} now`}
+              >
+                <Zap size={14} strokeWidth={2.4} />
+                <span>Buy Now</span>
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

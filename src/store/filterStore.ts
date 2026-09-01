@@ -3,12 +3,16 @@ import { ProductQueryInput } from '@formerbench/shared';
 
 interface FilterState {
   filters: ProductQueryInput;
+  inStockOnly: boolean;
   setSearch: (search: string | undefined) => void;
   setCategory: (category: string | undefined) => void;
   setPriceRange: (minPrice?: number, maxPrice?: number) => void;
   setMinRating: (minRating?: number) => void;
   setSortBy: (sortBy: ProductQueryInput['sortBy']) => void;
+  setFeatured: (featured?: boolean) => void;
+  setLimit: (limit: number) => void;
   setPage: (page: number) => void;
+  setInStockOnly: (inStock: boolean) => void;
   resetFilters: () => void;
 }
 
@@ -21,10 +25,12 @@ const defaultFilters: ProductQueryInput = {
   maxPrice: undefined,
   minRating: undefined,
   sortBy: 'newest',
+  featured: undefined,
 };
 
 export const useFilterStore = create<FilterState>((set) => ({
   filters: defaultFilters,
+  inStockOnly: false,
 
   setSearch: (search) =>
     set((state) => ({
@@ -51,13 +57,27 @@ export const useFilterStore = create<FilterState>((set) => ({
       filters: { ...state.filters, sortBy, page: 1 },
     })),
 
+  setFeatured: (featured) =>
+    set((state) => ({
+      filters: { ...state.filters, featured, page: 1 },
+    })),
+
+  setLimit: (limit) =>
+    set((state) => ({
+      filters: { ...state.filters, limit, page: 1 },
+    })),
+
   setPage: (page) =>
     set((state) => ({
       filters: { ...state.filters, page },
     })),
 
+  setInStockOnly: (inStockOnly) =>
+    set({ inStockOnly }),
+
   resetFilters: () =>
     set({
       filters: defaultFilters,
+      inStockOnly: false,
     }),
 }));

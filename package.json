@@ -10,7 +10,7 @@
     "clean": "rimraf dist"
   },
   "dependencies": {
-    "@formerbench/shared": "file:../shared",
+    "@formerbench/shared": "file:../farmer_backend/shared",
     "@tanstack/react-query": "^5.66.9",
     "axios": "^1.7.9",
     "clsx": "^2.1.1",
