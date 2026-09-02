@@ -478,7 +478,8 @@ export const AdminPage: React.FC = () => {
   const [reviews, setReviews] = useState<any[]>([]);
 
   // 9. Blogs (Live Database-Driven CMS via useBlogs)
-  const { data: adminBlogsData } = useBlogs({ status: 'ALL' });
+  const ADMIN_BLOGS_PARAM = { status: 'ALL' as const };
+  const { data: adminBlogsData } = useBlogs(ADMIN_BLOGS_PARAM);
   const { createBlog, updateBlog, deleteBlog, toggleStatus: toggleBlogStatus } = useBlogMutations();
   const blogs: BlogPost[] = adminBlogsData?.blogs || [];
 
@@ -2645,7 +2646,7 @@ export const AdminPage: React.FC = () => {
                       .map((b) => {
                         const imgUrl = getUploadUrl(
                           b.featuredImage,
-                          'https://images.unsplash.com/photo-1592417817098-8f3d6910985c?w=120'
+                          'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800&auto=format&fit=crop&q=80'
                         );
                         const isPub = b.status === 'PUBLISHED';
                         const pubDate = b.publishedAt
@@ -2672,7 +2673,7 @@ export const AdminPage: React.FC = () => {
                                   }}
                                   onError={(e) => {
                                     (e.currentTarget as HTMLImageElement).src =
-                                      'https://images.unsplash.com/photo-1592417817098-8f3d6910985c?w=120';
+                                      'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800&auto=format&fit=crop&q=80';
                                   }}
                                 />
                                 <div>

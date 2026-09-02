@@ -196,6 +196,9 @@ export const BlogDetailPage: React.FC = () => {
                   alt={blog.author}
                   className="blog-author-avatar-img"
                   onError={(e) => {
+                  const target = e.currentTarget as HTMLImageElement;
+                  target.onerror = null;
+
                     (e.currentTarget as HTMLImageElement).src =
                       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80';
                   }}
@@ -214,6 +217,9 @@ export const BlogDetailPage: React.FC = () => {
                 alt={blog.title}
                 className="blog-article-cover-img"
                 onError={(e) => {
+                  const target = e.currentTarget as HTMLImageElement;
+                  target.onerror = null;
+
                   (e.currentTarget as HTMLImageElement).src = wheatImg;
                 }}
               />
@@ -357,6 +363,9 @@ export const BlogDetailPage: React.FC = () => {
                           alt={art.title}
                           className="blog-popular-img"
                           onError={(e) => {
+                  const target = e.currentTarget as HTMLImageElement;
+                  target.onerror = null;
+
                             (e.currentTarget as HTMLImageElement).src = wheatImg;
                           }}
                         />
@@ -413,6 +422,9 @@ export const BlogDetailPage: React.FC = () => {
                       alt={rel.title}
                       className="blog-related-img"
                       onError={(e) => {
+                  const target = e.currentTarget as HTMLImageElement;
+                  target.onerror = null;
+
                         (e.currentTarget as HTMLImageElement).src = wheatImg;
                       }}
                     />

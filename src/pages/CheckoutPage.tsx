@@ -6,6 +6,7 @@ import { useUIStore } from '../store/uiStore';
 import { orderService } from '../services/order.service';
 import { paymentService } from '../services/payment.service';
 import { ShippingAddress, PaymentMethod } from '@formerbench/shared';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Truck,
   CreditCard,
@@ -17,8 +18,11 @@ import {
   MapPin,
   ChevronLeft,
   AlertCircle,
+  Smartphone,
+  Building2,
 } from 'lucide-react';
 import './CartPage.css';
+import './CheckoutPage.css';
 
 declare global {
   interface Window {
@@ -45,6 +49,7 @@ const loadRazorpayCheckout = (): Promise<boolean> => {
 
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { items, subtotal, clearCart } = useCart();
   const { isAuthenticated, user } = useAuth();
   const { addToast } = useUIStore();
@@ -53,7 +58,7 @@ export const CheckoutPage: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Address State (Matching reference form exactly)
+  // Address State
   const [fullName, setFullName] = useState(user?.name || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [addressLine1, setAddressLine1] = useState('');
@@ -63,8 +68,19 @@ export const CheckoutPage: React.FC = () => {
   const [pincode, setPincode] = useState('613001');
   const [orderNotes, setOrderNotes] = useState('');
 
-  // Payment Method: Razorpay is primary & pre-selected by default
+  // Payment Method
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('RAZORPAY');
+
+  // Simulation Modal State
+  const [simModalOpen, setSimModalOpen] = useState(false);
+  const [simOrderData, setSimOrderData] = useState<{
+    orderId: string;
+    razorpayOrderId: string;
+    amount: number;
+  } | null>(null);
+  const [simMethodTab, setSimMethodTab] = useState<'upi' | 'card' | 'netbanking'>('upi');
+  const [simUpiId, setSimUpiId] = useState('farmer@okaxis');
+  const [simCardNumber, setSimCardNumber] = useState('4111 2222 3333 4444');
 
   // Calculations
   const freeDeliveryThreshold = 999;
@@ -116,7 +132,8 @@ export const CheckoutPage: React.FC = () => {
       setErrorMsg('Please enter your full name');
       return;
     }
-    if (!phone.trim() || phone.replace(/[^0-9]/g, '').length < 10) {
+    const cleanPhone = phone.replace(/[^0-9]/g, '');
+    if (!phone.trim() || cleanPhone.length < 10) {
       setErrorMsg('Please enter a valid 10-digit mobile number');
       return;
     }
@@ -158,6 +175,34 @@ export const CheckoutPage: React.FC = () => {
     };
   };
 
+  const completeSuccessfulPayment = async (orderId: string, paymentId: string, rzpOrderId: string, signature: string) => {
+    try {
+      setIsProcessing(true);
+      await paymentService.verifyPayment({
+        orderId,
+        razorpay_order_id: rzpOrderId,
+        razorpay_payment_id: paymentId,
+        razorpay_signature: signature,
+      });
+
+      // Clear local and server cart & invalidate queries for instant sync
+      clearCart();
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['cart'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+
+      addToast({ type: 'success', message: 'Payment successful! Order confirmed.' });
+      setSimModalOpen(false);
+      navigate(`/order-confirmation/${orderId}`);
+    } catch (err: any) {
+      console.error('Verification error:', err);
+      addToast({ type: 'error', message: err.message || 'Payment verification failed' });
+      setErrorMsg(err.message || 'Payment verification failed');
+      setIsProcessing(false);
+    }
+  };
+
   const handlePaymentAndPlaceOrder = async () => {
     setErrorMsg(null);
 
@@ -169,10 +214,6 @@ export const CheckoutPage: React.FC = () => {
     setIsProcessing(true);
 
     try {
-      if (paymentMethod === 'RAZORPAY' && !(await loadRazorpayCheckout())) {
-        throw new Error('Razorpay checkout could not load. Check your connection or disable the ad blocker and retry.');
-      }
-
       const shippingAddress = getCombinedShippingAddress();
 
       // 1. Create order in Backend database
@@ -187,25 +228,30 @@ export const CheckoutPage: React.FC = () => {
 
       const createdOrder = orderRes.data;
 
-      // 2. If Razorpay is chosen, launch Razorpay Gateway
+      // 2. If Razorpay is chosen, initiate transaction
       if (paymentMethod === 'RAZORPAY') {
         const rzpRes = await paymentService.createRazorpayOrder(createdOrder.id);
-        
+
         if (!rzpRes.success || !rzpRes.data) {
           throw new Error(rzpRes.message || 'Failed to initiate Razorpay transaction');
         }
 
         const rzpData = rzpRes.data;
+        const isSim =
+          (rzpData as any).isSimulation ||
+          rzpData.razorpayOrderId.startsWith('order_sim_') ||
+          !rzpData.keyId ||
+          rzpData.keyId === 'rzp_test_demo_key';
 
-        // Check if Razorpay modal SDK is available
-        if (typeof window.Razorpay === 'function') {
+        // A. If live Razorpay keys are configured and valid, open official Razorpay Checkout SDK
+        if (!isSim && typeof window.Razorpay === 'function') {
           const options = {
             key: rzpData.keyId,
             amount: rzpData.amount,
             currency: rzpData.currency || 'INR',
             name: 'FarmerBench Agri Commerce',
             description: `Payment for Order #${createdOrder.id.slice(0, 8)}`,
-            order_id: rzpData.razorpayOrderId.startsWith('order_sim_') ? undefined : rzpData.razorpayOrderId,
+            order_id: rzpData.razorpayOrderId,
             prefill: {
               name: fullName,
               email: user?.email || '',
@@ -215,20 +261,12 @@ export const CheckoutPage: React.FC = () => {
               color: '#15803D',
             },
             handler: async (response: any) => {
-              try {
-                await paymentService.verifyPayment({
-                  orderId: createdOrder.id,
-                  razorpay_order_id: response.razorpay_order_id || rzpData.razorpayOrderId,
-                  razorpay_payment_id: response.razorpay_payment_id || `pay_sim_${Date.now()}`,
-                  razorpay_signature: response.razorpay_signature || 'simulated_valid_signature',
-                });
-                clearCart();
-                addToast({ type: 'success', message: 'Payment successful! Order confirmed.' });
-                navigate(`/order-confirmation/${createdOrder.id}`);
-              } catch (err: any) {
-                addToast({ type: 'error', message: err.message || 'Payment verification error' });
-                setIsProcessing(false);
-              }
+              await completeSuccessfulPayment(
+                createdOrder.id,
+                response.razorpay_payment_id || `pay_${Date.now()}`,
+                response.razorpay_order_id || rzpData.razorpayOrderId,
+                response.razorpay_signature || ''
+              );
             },
             modal: {
               ondismiss: () => {
@@ -247,12 +285,22 @@ export const CheckoutPage: React.FC = () => {
           });
           rzpInstance.open();
           return;
-        } else {
-          throw new Error('Razorpay checkout is unavailable. Please retry without an ad blocker.');
         }
+
+        // B. If running in smart test sandbox simulation mode, open Interactive Sandbox Gateway
+        setIsProcessing(false);
+        setSimOrderData({
+          orderId: createdOrder.id,
+          razorpayOrderId: rzpData.razorpayOrderId,
+          amount: rzpData.amount,
+        });
+        setSimModalOpen(true);
       } else {
         // Cash on Delivery
         clearCart();
+        queryClient.invalidateQueries({ queryKey: ['orders'] });
+        queryClient.invalidateQueries({ queryKey: ['cart'] });
+        queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
         addToast({ type: 'success', message: 'Order placed successfully with Cash on Delivery!' });
         navigate(`/order-confirmation/${createdOrder.id}`);
       }
@@ -264,408 +312,221 @@ export const CheckoutPage: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '1080px', margin: '0 auto', padding: '1.5rem 1rem', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <div className="checkout-page-container">
       {/* 1. Breadcrumb */}
-      <nav className="cart-breadcrumb" aria-label="Breadcrumb">
-        <Link to="/" className="cart-breadcrumb-link">
+      <nav className="checkout-breadcrumb" aria-label="Breadcrumb">
+        <Link to="/" className="checkout-breadcrumb-link">
           Home
         </Link>
-        <span className="cart-breadcrumb-separator">/</span>
-        <Link to="/cart" className="cart-breadcrumb-link">
+        <span className="checkout-breadcrumb-separator">/</span>
+        <Link to="/cart" className="checkout-breadcrumb-link">
           Shopping Cart
         </Link>
-        <span className="cart-breadcrumb-separator">/</span>
-        <span className="cart-breadcrumb-current">Checkout & Payment</span>
+        <span className="checkout-breadcrumb-separator">/</span>
+        <span className="checkout-breadcrumb-current">Checkout & Payment</span>
       </nav>
 
-      {/* 2. Continuous 3-Step Progress Bar matching Cart -> Delivery -> Payment */}
-      <div className="cart-progress-wrap" style={{ margin: '0 auto 1.5rem', width: '100%', maxWidth: '540px' }}>
-        {/* Step 1: Cart */}
-        <div
-          className="cart-step-node"
-          onClick={() => navigate('/cart')}
-          style={{ cursor: 'pointer' }}
-          title="Back to Shopping Cart"
-        >
-          <div className="cart-step-circle active" style={{ backgroundColor: '#165B2E', color: '#ffffff' }}>
-            <Check size={18} strokeWidth={3} />
+      {/* 2. Stepper Progress Bar */}
+      <div className="checkout-stepper-wrapper">
+        <div className="checkout-stepper">
+          {/* Step 1: Cart */}
+          <div className="checkout-step done">
+            <div className="checkout-step-circle">
+              <Check size={16} strokeWidth={3} />
+            </div>
+            <span className="checkout-step-label">Cart</span>
           </div>
-          <span className="cart-step-label active">Cart</span>
-        </div>
 
-        <div
-          className="cart-step-line"
-          style={{ backgroundColor: '#165B2E', transition: 'all 0.3s ease' }}
-        />
+          <div className="checkout-step-line done" />
 
-        {/* Step 2: Delivery */}
-        <div
-          className="cart-step-node"
-          onClick={() => setStep(1)}
-          style={{ cursor: 'pointer' }}
-          title="Delivery Address"
-        >
-          <div
-            className={`cart-step-circle ${step >= 1 ? 'active' : 'inactive'}`}
-            style={{ backgroundColor: step >= 1 ? '#165B2E' : undefined, color: step >= 1 ? '#ffffff' : undefined }}
-          >
-            {step === 2 ? <Check size={18} strokeWidth={3} /> : '2'}
+          {/* Step 2: Delivery */}
+          <div className={`checkout-step ${step >= 1 ? (step > 1 ? 'done' : 'active') : ''}`}>
+            <div className="checkout-step-circle">
+              {step > 1 ? <Check size={16} strokeWidth={3} /> : '2'}
+            </div>
+            <span className="checkout-step-label">Delivery</span>
           </div>
-          <span className={`cart-step-label ${step >= 1 ? 'active' : ''}`}>Delivery</span>
-        </div>
 
-        <div
-          className="cart-step-line"
-          style={{ backgroundColor: step === 2 ? '#165B2E' : '#E5E7EB', transition: 'all 0.3s ease' }}
-        />
+          <div className={`checkout-step-line ${step > 1 ? 'done' : ''}`} />
 
-        {/* Step 3: Payment */}
-        <div
-          className="cart-step-node"
-          onClick={() => {
-            if (step === 1 && fullName.trim() && phone.trim() && addressLine1.trim() && city.trim() && pincode.trim()) {
-              setStep(2);
-            }
-          }}
-          style={{ cursor: step === 2 ? 'default' : 'pointer' }}
-          title="Payment Option (Razorpay)"
-        >
-          <div
-            className={`cart-step-circle ${step === 2 ? 'active' : 'inactive'}`}
-            style={{ backgroundColor: step === 2 ? '#165B2E' : undefined, color: step === 2 ? '#ffffff' : undefined }}
-          >
-            3
+          {/* Step 3: Payment */}
+          <div className={`checkout-step ${step === 2 ? 'active' : ''}`}>
+            <div className="checkout-step-circle">3</div>
+            <span className="checkout-step-label">Payment</span>
           </div>
-          <span className={`cart-step-label ${step === 2 ? 'active' : ''}`}>Payment</span>
         </div>
       </div>
 
-      {/* Auth Banner if Guest */}
-      {!isAuthenticated && (
-        <div
-          style={{
-            padding: '1rem 1.25rem',
-            backgroundColor: '#F0FDF4',
-            border: '1px solid #BBF7D0',
-            borderRadius: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '1rem',
-            flexWrap: 'wrap',
-          }}
-        >
-          <div>
-            <p style={{ fontWeight: 700, color: '#15803D', fontSize: '0.95rem' }}>
-              Have a FarmerBench account?
-            </p>
-            <p style={{ fontSize: '0.85rem', color: '#4B5563' }}>
-              Sign in to save your farm address and track direct dispatch.
-            </p>
-          </div>
-          <Link
-            to="/login"
-            className="btn btn-primary btn-sm"
-            style={{ textDecoration: 'none', backgroundColor: '#15803D', color: '#ffffff', borderRadius: '8px', padding: '0.5rem 1rem' }}
-          >
-            Sign In / Register
-          </Link>
-        </div>
-      )}
-
-      {/* Error Banner */}
+      {/* Error Alert Banner */}
       {errorMsg && (
         <div
           style={{
-            padding: '0.85rem 1.25rem',
-            backgroundColor: '#FEF2F2',
-            border: '1px solid #FCA5A5',
-            borderRadius: '10px',
             display: 'flex',
             alignItems: 'center',
-            gap: '0.6rem',
+            gap: '0.75rem',
+            padding: '1rem 1.25rem',
+            backgroundColor: '#FEF2F2',
+            border: '1px solid #F87171',
+            borderRadius: '12px',
             color: '#B91C1C',
             fontSize: '0.9rem',
           }}
         >
-          <AlertCircle size={18} />
+          <AlertCircle size={20} style={{ flexShrink: 0 }} />
           <span>{errorMsg}</span>
         </div>
       )}
 
-      {/* 3. Main Two-Column Layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '2rem', alignItems: 'flex-start' }}>
-        {/* Left Column: Forms */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {/* ========================================================================= */}
-          {/* STEP 1: SHIPPING / DELIVERY ADDRESS */}
-          {/* ========================================================================= */}
-          {step === 1 && (
-            <div
-              style={{
-                backgroundColor: '#ffffff',
-                borderRadius: '16px',
-                border: '1px solid #E2E8F0',
-                padding: '2rem',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.5rem' }}>
-                <div
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '50%',
-                    backgroundColor: '#F0FDF4',
-                    color: '#15803D',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <MapPin size={20} />
+      {/* Main Grid: Left Form, Right Summary */}
+      <div className="checkout-grid">
+        {/* Left Column: Multi-Step Forms */}
+        <div>
+          {step === 1 ? (
+            /* ================= STEP 1: DELIVERY ADDRESS ================= */
+            <div className="checkout-card">
+              <div className="checkout-card-header">
+                <div className="checkout-card-icon-wrap">
+                  <MapPin size={22} />
                 </div>
                 <div>
-                  <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0F4726', margin: 0 }}>
-                    Shipping Address
-                  </h2>
-                  <p style={{ fontSize: '0.825rem', color: '#64748B', margin: 0 }}>
-                    Where should we deliver your agricultural inputs?
+                  <h2 className="checkout-card-title">Delivery Address</h2>
+                  <p className="checkout-card-subtitle">
+                    Enter farm gate / residential address for verified dispatch
                   </p>
                 </div>
               </div>
 
-              <form onSubmit={handleAddressSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
-                {/* Row 1: Full Name & Mobile Number */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#1E293B', marginBottom: '0.35rem' }}>
-                      Full Name *
-                    </label>
+              <form onSubmit={handleAddressSubmit} className="checkout-form">
+                {/* Full Name & Phone */}
+                <div className="checkout-form-row-2">
+                  <div className="checkout-field">
+                    <label className="checkout-label">Full Name *</label>
                     <input
                       type="text"
-                      placeholder="Your name"
+                      required
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
-                      required
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem 1rem',
-                        borderRadius: '10px',
-                        border: '1px solid #CBD5E1',
-                        fontSize: '0.925rem',
-                        outline: 'none',
-                        transition: 'border-color 0.2s',
-                      }}
+                      placeholder="e.g. Ponraj Krishnan"
+                      className="checkout-input"
                     />
                   </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#1E293B', marginBottom: '0.35rem' }}>
-                      Mobile Number *
-                    </label>
+                  <div className="checkout-field">
+                    <label className="checkout-label">Mobile Number *</label>
                     <input
                       type="tel"
-                      placeholder="10-digit number"
-                      maxLength={10}
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ''))}
                       required
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem 1rem',
-                        borderRadius: '10px',
-                        border: '1px solid #CBD5E1',
-                        fontSize: '0.925rem',
-                        outline: 'none',
-                      }}
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="10-digit mobile number"
+                      className="checkout-input"
                     />
                   </div>
                 </div>
 
-                {/* Row 2: Address Line 1 */}
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#1E293B', marginBottom: '0.35rem' }}>
-                    Address Line 1 *
-                  </label>
+                {/* Address Line 1 */}
+                <div className="checkout-field">
+                  <label className="checkout-label">Address Line 1 (House/Farm No, Street, Landmark) *</label>
                   <input
                     type="text"
-                    placeholder="House / Flat No., Building, Street"
+                    required
                     value={addressLine1}
                     onChange={(e) => setAddressLine1(e.target.value)}
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 1rem',
-                      borderRadius: '10px',
-                      border: '1px solid #CBD5E1',
-                      fontSize: '0.925rem',
-                      outline: 'none',
-                    }}
+                    placeholder="e.g. No. 42, Green Valley Farms, Trichy Main Road"
+                    className="checkout-input"
                   />
                 </div>
 
-                {/* Row 3: Address Line 2 */}
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#1E293B', marginBottom: '0.35rem' }}>
-                    Address Line 2 (optional)
-                  </label>
+                {/* Address Line 2 */}
+                <div className="checkout-field">
+                  <label className="checkout-label">Address Line 2 (Area, Village, Post - Optional)</label>
                   <input
                     type="text"
-                    placeholder="Area, Landmark (optional)"
                     value={addressLine2}
                     onChange={(e) => setAddressLine2(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 1rem',
-                      borderRadius: '10px',
-                      border: '1px solid #CBD5E1',
-                      fontSize: '0.925rem',
-                      outline: 'none',
-                    }}
+                    placeholder="e.g. Near Panchayat Union Office"
+                    className="checkout-input"
                   />
                 </div>
 
-                {/* Row 4: City, State, Pincode */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '1rem' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#1E293B', marginBottom: '0.35rem' }}>
-                      City *
-                    </label>
+                {/* City, State, Pincode */}
+                <div className="checkout-form-row-3">
+                  <div className="checkout-field">
+                    <label className="checkout-label">City / Town *</label>
                     <input
                       type="text"
-                      placeholder="City/Town"
+                      required
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      required
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem 1rem',
-                        borderRadius: '10px',
-                        border: '1px solid #CBD5E1',
-                        fontSize: '0.925rem',
-                        outline: 'none',
-                      }}
+                      placeholder="e.g. Thanjavur"
+                      className="checkout-input"
                     />
                   </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#1E293B', marginBottom: '0.35rem' }}>
-                      State *
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="State"
+                  <div className="checkout-field">
+                    <label className="checkout-label">State *</label>
+                    <select
                       value={state}
                       onChange={(e) => setState(e.target.value)}
-                      required
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem 1rem',
-                        borderRadius: '10px',
-                        border: '1px solid #CBD5E1',
-                        fontSize: '0.925rem',
-                        outline: 'none',
-                      }}
-                    />
+                      className="checkout-select"
+                    >
+                      <option value="Tamil Nadu">Tamil Nadu</option>
+                      <option value="Kerala">Kerala</option>
+                      <option value="Karnataka">Karnataka</option>
+                      <option value="Andhra Pradesh">Andhra Pradesh</option>
+                      <option value="Telangana">Telangana</option>
+                      <option value="Maharashtra">Maharashtra</option>
+                    </select>
                   </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#1E293B', marginBottom: '0.35rem' }}>
-                      Pincode *
-                    </label>
+                  <div className="checkout-field">
+                    <label className="checkout-label">Pincode *</label>
                     <input
                       type="text"
-                      placeholder="6-digit Pincode"
+                      required
                       maxLength={6}
                       value={pincode}
                       onChange={(e) => setPincode(e.target.value.replace(/[^0-9]/g, ''))}
-                      required
-                      style={{
-                        width: '100%',
-                        padding: '0.75rem 1rem',
-                        borderRadius: '10px',
-                        border: '1px solid #CBD5E1',
-                        fontSize: '0.925rem',
-                        outline: 'none',
-                      }}
+                      placeholder="613001"
+                      className="checkout-input"
                     />
                   </div>
                 </div>
 
-                {/* Row 5: Order Notes */}
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#1E293B', marginBottom: '0.35rem' }}>
-                    Order Notes (optional)
-                  </label>
+                {/* Notes */}
+                <div className="checkout-field">
+                  <label className="checkout-label">Special Delivery / Farm Gate Instructions (Optional)</label>
                   <textarea
                     rows={2}
-                    placeholder="Any special instructions for delivery at farm gate..."
                     value={orderNotes}
                     onChange={(e) => setOrderNotes(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 1rem',
-                      borderRadius: '10px',
-                      border: '1px solid #CBD5E1',
-                      fontSize: '0.925rem',
-                      outline: 'none',
-                      resize: 'vertical',
-                    }}
+                    placeholder="e.g. Call before arrival, deliver near main drip borewell gate"
+                    className="checkout-textarea"
+                    style={{ resize: 'vertical' }}
                   />
                 </div>
 
-                {/* Submit Action */}
-                <button
-                  type="submit"
-                  className="cart-checkout-btn"
-                  style={{ marginTop: '0.5rem', width: '100%' }}
-                >
-                  <span>Proceed to Payment Option (Razorpay)</span>
-                  <CheckCircle2 size={18} />
-                </button>
+                {/* Submit CTA */}
+                <div className="checkout-actions-row">
+                  <Link to="/cart" className="checkout-back-btn">
+                    <ChevronLeft size={18} /> Return to Cart
+                  </Link>
+
+                  <button type="submit" className="checkout-submit-btn">
+                    <span>Proceed to Payment</span>
+                    <ArrowLeft size={16} style={{ transform: 'rotate(180deg)' }} />
+                  </button>
+                </div>
               </form>
             </div>
-          )}
-
-          {/* ========================================================================= */}
-          {/* STEP 2: PAYMENT OPTION ON RAZORPAY */}
-          {/* ========================================================================= */}
-          {step === 2 && (
-            <div
-              style={{
-                backgroundColor: '#ffffff',
-                borderRadius: '16px',
-                border: '1px solid #E2E8F0',
-                padding: '2rem',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '1.5rem',
-              }}
-            >
-              {/* Top Header with Back to Address */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                  <div
-                    style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '50%',
-                      backgroundColor: '#F0FDF4',
-                      color: '#15803D',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <CreditCard size={20} />
+          ) : (
+            /* ================= STEP 2: PAYMENT METHOD ================= */
+            <div className="checkout-card">
+              <div className="checkout-card-header" style={{ justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                  <div className="checkout-card-icon-wrap">
+                    <CreditCard size={22} />
                   </div>
                   <div>
-                    <h2 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0F4726', margin: 0 }}>
-                      Payment Option
-                    </h2>
-                    <p style={{ fontSize: '0.825rem', color: '#64748B', margin: 0 }}>
+                    <h2 className="checkout-card-title">Payment Option</h2>
+                    <p className="checkout-card-subtitle">
                       Choose your preferred payment method
                     </p>
                   </div>
@@ -674,78 +535,37 @@ export const CheckoutPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    color: '#15803D',
-                    fontWeight: 700,
-                    fontSize: '0.85rem',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.3rem',
-                  }}
+                  className="checkout-edit-btn"
                 >
-                  <ChevronLeft size={16} /> Edit Address
+                  <ChevronLeft size={14} /> Edit Address
                 </button>
               </div>
 
-              {/* Delivery Address Summary Box */}
-              <div
-                style={{
-                  padding: '1rem 1.25rem',
-                  backgroundColor: '#F8FAFC',
-                  borderRadius: '12px',
-                  border: '1px solid #E2E8F0',
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  justifyContent: 'space-between',
-                  gap: '1rem',
-                }}
-              >
+              {/* Delivery Summary Badge */}
+              <div className="checkout-deliver-summary">
                 <div>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', color: '#64748B', letterSpacing: '0.04em' }}>
-                    Deliver to:
-                  </span>
-                  <p style={{ fontSize: '0.95rem', fontWeight: 700, color: '#1E293B', margin: '0.15rem 0' }}>
-                    {fullName} ({phone})
+                  <span className="checkout-deliver-label">DELIVER TO:</span>
+                  <p className="checkout-deliver-name">
+                    {fullName} (+91{phone.replace(/^(\+91|91|0)/, '')})
                   </p>
-                  <p style={{ fontSize: '0.85rem', color: '#64748B', margin: 0 }}>
-                    {addressLine1}{addressLine2 ? `, ${addressLine2}` : ''}, {city}, {state} - {pincode}
+                  <p className="checkout-deliver-address">
+                    {addressLine1}, {city}, {state} - {pincode}
                   </p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setStep(1)}
-                  style={{
-                    background: 'transparent',
-                    border: '1px solid #CBD5E1',
-                    borderRadius: '6px',
-                    padding: '0.3rem 0.6rem',
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    color: '#15803D',
-                    cursor: 'pointer',
-                  }}
+                  className="checkout-edit-btn"
                 >
                   Change
                 </button>
               </div>
 
-              {/* Payment Methods Selection */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {/* 1. RAZORPAY (PRIMARY RECOMMENDED) */}
+              {/* Payment Methods */}
+              <div className="checkout-payment-options">
+                {/* 1. RAZORPAY */}
                 <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '1rem',
-                    padding: '1.25rem',
-                    borderRadius: '14px',
-                    border: paymentMethod === 'RAZORPAY' ? '2px solid #15803D' : '1px solid #E2E8F0',
-                    backgroundColor: paymentMethod === 'RAZORPAY' ? '#F0FDF4' : '#ffffff',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
+                  className={`checkout-payment-card ${paymentMethod === 'RAZORPAY' ? 'active' : ''}`}
                 >
                   <input
                     type="radio"
@@ -753,47 +573,27 @@ export const CheckoutPage: React.FC = () => {
                     value="RAZORPAY"
                     checked={paymentMethod === 'RAZORPAY'}
                     onChange={() => setPaymentMethod('RAZORPAY')}
-                    style={{ accentColor: '#15803D', marginTop: '0.25rem', width: '18px', height: '18px' }}
+                    className="checkout-radio"
                   />
                   <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span style={{ fontWeight: 800, fontSize: '1rem', color: '#0F4726' }}>
+                        <span style={{ fontWeight: 800, fontSize: '1.05rem', color: '#1E293B' }}>
                           Razorpay Secure Payment
                         </span>
-                        <span
-                          style={{
-                            fontSize: '0.7rem',
-                            fontWeight: 700,
-                            backgroundColor: '#DCFCE7',
-                            color: '#15803D',
-                            padding: '0.2rem 0.5rem',
-                            borderRadius: '999px',
-                          }}
-                        >
+                        <span className="checkout-badge-pill">
                           Recommended
                         </span>
                       </div>
                     </div>
-                    <p style={{ fontSize: '0.85rem', color: '#4B5563', margin: '0 0 0.75rem' }}>
+                    <p style={{ fontSize: '0.85rem', color: '#4B5563', margin: '0 0 0.75rem', lineHeight: 1.4 }}>
                       Instant confirmation via UPI (Google Pay, PhonePe, Paytm), Net Banking (SBI, HDFC, ICICI), Cards & Wallets.
                     </p>
 
                     {/* Indian Payment Logos / Badges */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                       {['UPI / QR', 'Google Pay', 'PhonePe', 'Paytm', 'RuPay', 'Visa / MC', 'NetBanking'].map((b) => (
-                        <span
-                          key={b}
-                          style={{
-                            fontSize: '0.725rem',
-                            fontWeight: 600,
-                            padding: '0.25rem 0.55rem',
-                            backgroundColor: '#ffffff',
-                            border: '1px solid #CBD5E1',
-                            borderRadius: '6px',
-                            color: '#334155',
-                          }}
-                        >
+                        <span key={b} className="checkout-method-tag">
                           {b}
                         </span>
                       ))}
@@ -803,17 +603,7 @@ export const CheckoutPage: React.FC = () => {
 
                 {/* 2. CASH ON DELIVERY */}
                 <label
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '1rem',
-                    padding: '1.25rem',
-                    borderRadius: '14px',
-                    border: paymentMethod === 'CASH_ON_DELIVERY' ? '2px solid #15803D' : '1px solid #E2E8F0',
-                    backgroundColor: paymentMethod === 'CASH_ON_DELIVERY' ? '#F0FDF4' : '#ffffff',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                  }}
+                  className={`checkout-payment-card ${paymentMethod === 'CASH_ON_DELIVERY' ? 'active' : ''}`}
                 >
                   <input
                     type="radio"
@@ -821,13 +611,13 @@ export const CheckoutPage: React.FC = () => {
                     value="CASH_ON_DELIVERY"
                     checked={paymentMethod === 'CASH_ON_DELIVERY'}
                     onChange={() => setPaymentMethod('CASH_ON_DELIVERY')}
-                    style={{ accentColor: '#15803D', marginTop: '0.25rem', width: '18px', height: '18px' }}
+                    className="checkout-radio"
                   />
                   <div>
-                    <span style={{ fontWeight: 800, fontSize: '1rem', color: '#1E293B' }}>
+                    <span style={{ fontWeight: 800, fontSize: '1.05rem', color: '#1E293B' }}>
                       Cash on Delivery (COD)
                     </span>
-                    <p style={{ fontSize: '0.85rem', color: '#64748B', margin: '0.2rem 0 0' }}>
+                    <p style={{ fontSize: '0.85rem', color: '#64748B', margin: '0.3rem 0 0', lineHeight: 1.4 }}>
                       Pay in cash directly to delivery associate upon arrival at your farm gate or address.
                     </p>
                   </div>
@@ -835,22 +625,11 @@ export const CheckoutPage: React.FC = () => {
               </div>
 
               {/* Place Order CTA Button */}
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+              <div className="checkout-actions-row">
                 <button
                   type="button"
                   onClick={() => setStep(1)}
-                  style={{
-                    padding: '0.85rem 1.25rem',
-                    borderRadius: '12px',
-                    border: '1px solid #CBD5E1',
-                    backgroundColor: '#ffffff',
-                    color: '#475569',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                  }}
+                  className="checkout-back-btn"
                 >
                   <ArrowLeft size={16} /> Back
                 </button>
@@ -859,8 +638,8 @@ export const CheckoutPage: React.FC = () => {
                   type="button"
                   disabled={isProcessing}
                   onClick={handlePaymentAndPlaceOrder}
-                  className="cart-checkout-btn"
-                  style={{ flex: 1, margin: 0 }}
+                  className="checkout-submit-btn"
+                  style={{ flex: 1 }}
                 >
                   {isProcessing ? (
                     <span>Processing Payment...</span>
@@ -950,6 +729,288 @@ export const CheckoutPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* ================= RAZORPAY TEST SANDBOX SIMULATION MODAL ================= */}
+      {simModalOpen && simOrderData && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '1rem',
+          }}
+        >
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '20px',
+              maxWidth: '480px',
+              width: '100%',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                backgroundColor: '#0F4726',
+                color: '#ffffff',
+                padding: '1.5rem',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+              }}
+            >
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.05em', backgroundColor: 'rgba(255,255,255,0.2)', padding: '0.2rem 0.6rem', borderRadius: '999px' }}>
+                    RAZORPAY TEST GATEWAY
+                  </span>
+                </div>
+                <h3 style={{ fontSize: '1.35rem', fontWeight: 800, margin: '0.25rem 0' }}>
+                  FarmerBench Agri Commerce
+                </h3>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#BBF7D0' }}>
+                  Order ID: #{simOrderData.orderId.slice(0, 8)}
+                </p>
+              </div>
+
+              <div style={{ textAlign: 'right' }}>
+                <span style={{ fontSize: '0.75rem', color: '#BBF7D0' }}>Amount to Pay</span>
+                <p style={{ margin: '0.1rem 0 0', fontSize: '1.4rem', fontWeight: 800 }}>
+                  ₹{(simOrderData.amount / 100).toFixed(2)}
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Tabs */}
+            <div style={{ display: 'flex', borderBottom: '1px solid #E2E8F0', backgroundColor: '#F8FAFC' }}>
+              <button
+                type="button"
+                onClick={() => setSimMethodTab('upi')}
+                style={{
+                  flex: 1,
+                  padding: '0.85rem 0.5rem',
+                  border: 'none',
+                  background: simMethodTab === 'upi' ? '#ffffff' : 'transparent',
+                  fontWeight: simMethodTab === 'upi' ? 700 : 500,
+                  color: simMethodTab === 'upi' ? '#15803D' : '#64748B',
+                  borderBottom: simMethodTab === 'upi' ? '2px solid #15803D' : 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.4rem',
+                }}
+              >
+                <Smartphone size={16} /> UPI / QR
+              </button>
+              <button
+                type="button"
+                onClick={() => setSimMethodTab('card')}
+                style={{
+                  flex: 1,
+                  padding: '0.85rem 0.5rem',
+                  border: 'none',
+                  background: simMethodTab === 'card' ? '#ffffff' : 'transparent',
+                  fontWeight: simMethodTab === 'card' ? 700 : 500,
+                  color: simMethodTab === 'card' ? '#15803D' : '#64748B',
+                  borderBottom: simMethodTab === 'card' ? '2px solid #15803D' : 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.4rem',
+                }}
+              >
+                <CreditCard size={16} /> Card
+              </button>
+              <button
+                type="button"
+                onClick={() => setSimMethodTab('netbanking')}
+                style={{
+                  flex: 1,
+                  padding: '0.85rem 0.5rem',
+                  border: 'none',
+                  background: simMethodTab === 'netbanking' ? '#ffffff' : 'transparent',
+                  fontWeight: simMethodTab === 'netbanking' ? 700 : 500,
+                  color: simMethodTab === 'netbanking' ? '#15803D' : '#64748B',
+                  borderBottom: simMethodTab === 'netbanking' ? '2px solid #15803D' : 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.85rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.4rem',
+                }}
+              >
+                <Building2 size={16} /> NetBanking
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+              {simMethodTab === 'upi' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                    {['Google Pay', 'PhonePe', 'Paytm', 'BHIM UPI'].map((app) => (
+                      <span
+                        key={app}
+                        style={{
+                          padding: '0.35rem 0.75rem',
+                          borderRadius: '8px',
+                          border: '1px solid #CBD5E1',
+                          backgroundColor: '#F8FAFC',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          color: '#334155',
+                        }}
+                      >
+                        {app}
+                      </span>
+                    ))}
+                  </div>
+
+                  <div>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.3rem' }}>
+                      UPI ID / VPA
+                    </label>
+                    <input
+                      type="text"
+                      value={simUpiId}
+                      onChange={(e) => setSimUpiId(e.target.value)}
+                      className="checkout-input"
+                      placeholder="e.g. mobile@upi"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {simMethodTab === 'card' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <div>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.3rem' }}>
+                      Card Number (Test Simulation)
+                    </label>
+                    <input
+                      type="text"
+                      value={simCardNumber}
+                      onChange={(e) => setSimCardNumber(e.target.value)}
+                      className="checkout-input"
+                    />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.3rem' }}>
+                        Expiry (MM/YY)
+                      </label>
+                      <input type="text" defaultValue="12/28" className="checkout-input" />
+                    </div>
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.3rem' }}>
+                        CVV
+                      </label>
+                      <input type="password" defaultValue="123" maxLength={3} className="checkout-input" />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {simMethodTab === 'netbanking' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569' }}>
+                    Select Popular Bank
+                  </label>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                    {['State Bank of India', 'HDFC Bank', 'ICICI Bank', 'Axis Bank', 'Kotak Mahindra', 'Punjab National'].map((bank) => (
+                      <div
+                        key={bank}
+                        style={{
+                          padding: '0.5rem 0.75rem',
+                          borderRadius: '8px',
+                          border: '1px solid #E2E8F0',
+                          backgroundColor: '#F8FAFC',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          color: '#1E293B',
+                        }}
+                      >
+                        {bank}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', marginTop: '0.5rem' }}>
+                <button
+                  type="button"
+                  disabled={isProcessing}
+                  onClick={() => {
+                    const payId = `pay_sim_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+                    void completeSuccessfulPayment(
+                      simOrderData.orderId,
+                      payId,
+                      simOrderData.razorpayOrderId,
+                      'simulated_valid_signature'
+                    );
+                  }}
+                  style={{
+                    backgroundColor: '#15803D',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '12px',
+                    padding: '0.9rem',
+                    fontWeight: 800,
+                    fontSize: '1rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    boxShadow: '0 4px 14px rgba(21, 128, 61, 0.35)',
+                  }}
+                >
+                  <CheckCircle2 size={18} />
+                  <span>{isProcessing ? 'Verifying Payment...' : `Simulate Successful Payment (₹${(simOrderData.amount / 100).toFixed(2)})`}</span>
+                </button>
+
+                <button
+                  type="button"
+                  disabled={isProcessing}
+                  onClick={() => {
+                    setSimModalOpen(false);
+                    setErrorMsg('Payment was cancelled. You can retry anytime.');
+                    addToast({ type: 'info', message: 'Payment cancelled.' });
+                  }}
+                  style={{
+                    backgroundColor: '#F1F5F9',
+                    color: '#64748B',
+                    border: '1px solid #CBD5E1',
+                    borderRadius: '12px',
+                    padding: '0.65rem',
+                    fontWeight: 600,
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Cancel / Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

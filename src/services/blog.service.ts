@@ -48,7 +48,7 @@ const SEED_BLOGS: BlogPost[] = [
 
 <h2 class="blog-section-heading">6. Final Recommendations</h2>
 <p>Adhering to split application schedules tailored to soil texture ensures steady nutrient availability without risking root burn. Monitor leaf color variations weekly and adjust irrigation schedules in tandem with fertigation cycles.</p>`,
-    featuredImage: 'https://images.unsplash.com/photo-1592417817098-8f3d6910985c?w=1200&auto=format&fit=crop&q=80',
+    featuredImage: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800&auto=format&fit=crop&q=80',
     author: 'FarmerBench Agri Expert',
     authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80',
     authorBio: 'Senior agronomist with 12+ years of on-field experience in crop nutrition, precision fertigation, and sustainable soil stewardship across diverse agricultural zones.',
@@ -116,7 +116,7 @@ const SEED_BLOGS: BlogPost[] = [
 
 <h2 class="blog-section-heading">3. Biological Parasitoids and Predators</h2>
 <p>Introducing beneficial insects like Trichogramma wasps and Chrysoperla lacewings naturally eliminates stem borer eggs and soft-bodied pest nymphs.</p>`,
-    featuredImage: 'https://images.unsplash.com/photo-1592417817098-8f3d6910985c?w=1200&auto=format&fit=crop&q=80',
+    featuredImage: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800&auto=format&fit=crop&q=80',
     author: 'Kavitha Nathan',
     authorAvatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=120&auto=format&fit=crop&q=80',
     authorBio: 'Plant pathologist focusing on eco-friendly botanical formulations and Integrated Pest Management.',
@@ -398,7 +398,7 @@ export const blogService = {
       slug,
       excerpt: data.excerpt || data.content.replace(/<[^>]*>?/gm, '').slice(0, 150) + '...',
       content: data.content,
-      featuredImage: data.featuredImage || 'https://images.unsplash.com/photo-1592417817098-8f3d6910985c?w=1200',
+      featuredImage: data.featuredImage || 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800&auto=format&fit=crop&q=80',
       author: data.author || 'FarmerBench Agri Expert',
       authorAvatar: data.authorAvatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120',
       authorBio: data.authorBio || 'Agricultural specialist at FarmerBench.',

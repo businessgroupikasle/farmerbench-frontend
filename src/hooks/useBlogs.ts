@@ -4,13 +4,22 @@ import { BlogQueryParams, CreateBlogInput, UpdateBlogInput, BlogStatus } from '.
 import { useUIStore } from '../store/uiStore';
 
 export const useBlogs = (params?: BlogQueryParams) => {
+  const statusKey = params?.status || 'DEFAULT';
+  const categoryKey = params?.category || 'ALL';
+  const searchKey = params?.search || '';
+  const tagKey = params?.tag || '';
+  const pageKey = params?.page || 1;
+  const sortKey = params?.sortBy || 'newest';
+
   return useQuery({
-    queryKey: ['blogs', params],
+    queryKey: ['blogs', statusKey, categoryKey, searchKey, tagKey, pageKey, sortKey],
     queryFn: async () => {
       const res = await blogService.getBlogs(params);
       return res.data || { blogs: [], total: 0, page: 1, totalPages: 1 };
     },
-    staleTime: 1000 * 60 * 3, // 3 minutes
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+    retry: false,
   });
 };
 
@@ -23,7 +32,9 @@ export const useBlog = (idOrSlug: string | undefined) => {
       return res.data || null;
     },
     enabled: Boolean(idOrSlug),
-    staleTime: 1000 * 60 * 3,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    retry: false,
   });
 };
 
@@ -37,6 +48,8 @@ export const useRelatedBlogs = (idOrSlug: string | undefined, category?: string,
     },
     enabled: Boolean(idOrSlug),
     staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+    retry: false,
   });
 };
 
@@ -47,7 +60,9 @@ export const useBlogCategories = () => {
       const res = await blogService.getCategories();
       return res.data || [];
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
+    retry: false,
   });
 };
 

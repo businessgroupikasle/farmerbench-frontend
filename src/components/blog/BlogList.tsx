@@ -160,6 +160,9 @@ export const BlogList: React.FC = () => {
                       alt={post.title}
                       loading="lazy"
                       onError={(e) => {
+                  const target = e.currentTarget as HTMLImageElement;
+                  target.onerror = null;
+
                         (e.currentTarget as HTMLImageElement).src = wheatImg;
                       }}
                     />
