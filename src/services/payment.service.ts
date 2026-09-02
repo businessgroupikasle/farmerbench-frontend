@@ -12,8 +12,8 @@ export interface RazorpayOrderData {
 }
 
 export const paymentService = {
-  async createRazorpayOrder(orderId: string): Promise<ApiResponse<RazorpayOrderData>> {
-    return apiClient.post('/payments/create-order', { orderId });
+  async createRazorpayOrder(orderId: string, amount?: number): Promise<ApiResponse<RazorpayOrderData>> {
+    return apiClient.post('/payments/create-order', { orderId, amount });
   },
 
   async verifyPayment(data: {

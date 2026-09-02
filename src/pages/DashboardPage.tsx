@@ -17,31 +17,23 @@ import { DefaultAddressCard } from '../components/dashboard/DefaultAddressCard';
 import { RecentOrdersCard } from '../components/dashboard/RecentOrdersCard';
 import { NeedHelpCard } from '../components/dashboard/NeedHelpCard';
 import { WishlistCarousel } from '../components/dashboard/WishlistCarousel';
-import { ConsultationCard } from '../components/dashboard/ConsultationCard';
-import { CropDoctorCard } from '../components/dashboard/CropDoctorCard';
 import { ReviewsFeedbackCard } from '../components/dashboard/ReviewsFeedbackCard';
 import { CropRecommendationsCard } from '../components/dashboard/CropRecommendationsCard';
 import { ProfileCompletionCard } from '../components/dashboard/ProfileCompletionCard';
-import { SecurityAndNotificationsCard } from '../components/dashboard/SecurityAndNotificationsCard';
 import { TrustBadgesFooter } from '../components/dashboard/TrustBadgesFooter';
 
 // Modals
 import {
   OrderTrackingModal,
   WriteReviewModal,
-  ConsultationVideoModal,
-  CropDoctorReportModal,
   CompleteProfileModal,
   InvoiceModal,
 } from '../components/dashboard/DashboardModals';
 
 // Styling
 import './DashboardPage.css';
-import {
-  Package,
-  Key,
-  Plus,
-} from 'lucide-react';
+import { Key, Package, Plus } from 'lucide-react';
+import { LogoutModal } from '../components/common/LogoutModal';
 
 export const DashboardPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -49,7 +41,12 @@ export const DashboardPage: React.FC = () => {
 
   // Auth & Profile
   const { user, isAuthenticated, updateProfile, changePassword, logout } = useAuth();
-  const { data: orders = [], isLoading: isOrdersLoading } = useOrders();
+  const { data: rawOrders = [], isLoading: isOrdersLoading } = useOrders();
+  const orders = (rawOrders || []).filter((o: any) => {
+    if (o.paymentMethod === 'RAZORPAY' && o.paymentStatus !== 'PAID') return false;
+    if (o.orderStatus === 'CANCELLED') return false;
+    return true;
+  });
   const { data: productsData } = useProducts({ limit: 12 });
   const { addReview } = useProductMutations();
   const { addToCart } = useCart();
@@ -63,10 +60,9 @@ export const DashboardPage: React.FC = () => {
   const [isTrackingModalOpen, setIsTrackingModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
   const [selectedReviewProduct, setSelectedReviewProduct] = useState<string>('');
-  const [isConsultationModalOpen, setIsConsultationModalOpen] = useState(false);
-  const [isDoctorReportModalOpen, setIsDoctorReportModalOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   // Profile Form States (for Profile & Security Tab)
@@ -106,7 +102,6 @@ export const DashboardPage: React.FC = () => {
     setSearchParams(tabId === 'dashboard' ? {} : { tab: tabId });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
-
   // Active Orders
   const activeOrdersList = orders.filter(
     (o) => o.orderStatus !== 'DELIVERED' && o.orderStatus !== 'CANCELLED'
@@ -221,7 +216,7 @@ export const DashboardPage: React.FC = () => {
       <DashboardStats
         activeOrdersCount={activeOrdersList.length}
         wishlistCount={wishlistItems.length}
-        bookingsCount={0}
+        reviewsCount={orders.length > 0 ? 1 : 0}
         rewardPoints={calculatedRewardPoints}
         onNavigateTab={handleSelectTab}
       />
@@ -239,14 +234,12 @@ export const DashboardPage: React.FC = () => {
           }}
           ordersCount={orders.length}
           wishlistCount={wishlistItems.length}
-          bookingsCount={0}
-          doctorRequestsCount={0}
         />
 
         {/* Right Main Dashboard Area */}
         <main className="fb-main-content">
           {/* =================================================================
-              1. MAIN DASHBOARD OVERVIEW VIEW (Matches Exact Reference Mockup)
+              1. MAIN DASHBOARD OVERVIEW VIEW
               ================================================================= */}
           {activeTab === 'dashboard' && (
             <>
@@ -297,8 +290,8 @@ export const DashboardPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Row 2: Wishlist Carousel + Upcoming Consultation + Crop Doctor Card */}
-              <div className="fb-row-2-grid">
+              {/* Row 2: Wishlist Carousel & Reviews */}
+              <div className="fb-row-1-grid">
                 <WishlistCarousel
                   wishlistItems={wishlistItems}
                   onViewAllWishlist={() => handleSelectTab('wishlist')}
@@ -306,33 +299,16 @@ export const DashboardPage: React.FC = () => {
                   onRemoveFromWishlist={removeFromWishlist}
                 />
 
-                <ConsultationCard
-                  onJoinConsultation={() => setIsConsultationModalOpen(true)}
-                  onReschedule={() => {
-                    addToast({ type: 'info', message: 'Reschedule request sent to Dr. Arun Kumar.' });
-                  }}
-                />
-
-                <CropDoctorCard
-                  onViewAdvice={() => setIsDoctorReportModalOpen(true)}
-                  onAskFollowUp={() => {
-                    addToast({
-                      type: 'success',
-                      message: 'Follow-up query submitted to Dr. Arun Kumar.',
-                    });
-                  }}
-                />
-              </div>
-
-              {/* Row 3: Reviews & Feedback + Recommended Crops + Profile Completion + Security */}
-              <div className="fb-row-3-grid">
                 <ReviewsFeedbackCard
                   orders={orders}
                   onViewAllReviews={() => handleSelectTab('reviews')}
                   onEditReview={() => handleOpenReviewModal()}
                   onWriteReview={(item) => handleOpenReviewModal(item?.title)}
                 />
+              </div>
 
+              {/* Row 3: Recommended Crops & Profile Completion */}
+              <div className="fb-row-1-grid">
                 <CropRecommendationsCard
                   cropName={user?.crops ? user.crops.split(',')[0].split(' ')[0] : 'Paddy'}
                   products={productsData?.data || []}
@@ -340,17 +316,10 @@ export const DashboardPage: React.FC = () => {
                   onSelectProduct={(p) => navigate(`/product/${p.slug || p.id}`)}
                 />
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-                  <ProfileCompletionCard
-                    user={user}
-                    onCompleteProfile={() => setIsProfileModalOpen(true)}
-                  />
-
-                  <SecurityAndNotificationsCard
-                    onManageSecurity={() => handleSelectTab('profile')}
-                    onViewAllNotifications={() => handleSelectTab('notifications')}
-                  />
-                </div>
+                <ProfileCompletionCard
+                  user={user}
+                  onCompleteProfile={() => setIsProfileModalOpen(true)}
+                />
               </div>
 
               {/* Footer Trust Elements */}
@@ -575,47 +544,7 @@ export const DashboardPage: React.FC = () => {
           )}
 
           {/* =================================================================
-              6. SERVICE BOOKINGS SUB-VIEW
-              ================================================================= */}
-          {activeTab === 'bookings' && (
-            <div className="fb-card">
-              <div className="fb-card-header">
-                <h2 className="fb-card-title">Agronomy & Farm Consultations</h2>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
-                <ConsultationCard
-                  onJoinConsultation={() => setIsConsultationModalOpen(true)}
-                  onReschedule={() => {
-                    addToast({ type: 'info', message: 'Reschedule request sent.' });
-                  }}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* =================================================================
-              7. CROP DOCTOR SUB-VIEW
-              ================================================================= */}
-          {activeTab === 'crop-doctor' && (
-            <div className="fb-card">
-              <div className="fb-card-header">
-                <h2 className="fb-card-title">Crop Doctor Consultations & Reports</h2>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
-                <CropDoctorCard
-                  onViewAdvice={() => setIsDoctorReportModalOpen(true)}
-                  onAskFollowUp={() => {
-                    addToast({ type: 'success', message: 'Follow-up query sent to doctor.' });
-                  }}
-                />
-              </div>
-            </div>
-          )}
-
-          {/* =================================================================
-              8. ADDRESSES SUB-VIEW
+              6. ADDRESSES SUB-VIEW
               ================================================================= */}
           {activeTab === 'addresses' && (
             <div className="fb-card">
@@ -640,7 +569,7 @@ export const DashboardPage: React.FC = () => {
           )}
 
           {/* =================================================================
-              9. PROFILE & SECURITY SUB-VIEW (Direct Backend API Integration)
+              7. PROFILE & SECURITY SUB-VIEW (Direct Backend API Integration)
               ================================================================= */}
           {activeTab === 'profile' && (
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
@@ -698,11 +627,12 @@ export const DashboardPage: React.FC = () => {
                   </div>
 
                   <div className="fb-form-group">
-                    <label className="fb-form-label">Primary Crops</label>
+                    <label className="fb-form-label">Major Cultivated Crops</label>
                     <input
                       className="fb-form-input"
                       value={profileCrops}
                       onChange={(e) => setProfileCrops(e.target.value)}
+                      placeholder="e.g. Paddy, Sugarcane, Cotton, Banana"
                     />
                   </div>
 
@@ -712,7 +642,7 @@ export const DashboardPage: React.FC = () => {
                     disabled={isSavingProfile}
                     style={{ alignSelf: 'flex-start', marginTop: '0.5rem' }}
                   >
-                    {isSavingProfile ? 'Saving Changes...' : 'Save Profile Details'}
+                    {isSavingProfile ? 'Saving...' : 'Save Profile Changes'}
                   </button>
                 </form>
               </div>
@@ -720,7 +650,7 @@ export const DashboardPage: React.FC = () => {
               {/* Password & Security */}
               <div className="fb-card">
                 <h2 className="fb-card-title" style={{ marginBottom: '1.25rem' }}>
-                  <Key size={20} color="#0F4726" /> Password & Security
+                  <Key size={18} color="#0F4726" /> Security & Password
                 </h2>
 
                 <form
@@ -761,22 +691,6 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
           )}
-
-          {/* =================================================================
-              10. NOTIFICATIONS SUB-VIEW
-              ================================================================= */}
-          {activeTab === 'notifications' && (
-            <div className="fb-card">
-              <div className="fb-card-header">
-                <h2 className="fb-card-title">All Notifications & Alerts</h2>
-              </div>
-
-              <SecurityAndNotificationsCard
-                onManageSecurity={() => handleSelectTab('profile')}
-                onViewAllNotifications={() => {}}
-              />
-            </div>
-          )}
         </main>
       </div>
 
@@ -796,16 +710,6 @@ export const DashboardPage: React.FC = () => {
         onSubmitReview={handleSubmitReview}
       />
 
-      <ConsultationVideoModal
-        isOpen={isConsultationModalOpen}
-        onClose={() => setIsConsultationModalOpen(false)}
-      />
-
-      <CropDoctorReportModal
-        isOpen={isDoctorReportModalOpen}
-        onClose={() => setIsDoctorReportModalOpen(false)}
-      />
-
       <CompleteProfileModal
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
@@ -817,6 +721,17 @@ export const DashboardPage: React.FC = () => {
         isOpen={isInvoiceModalOpen}
         onClose={() => setIsInvoiceModalOpen(false)}
         order={selectedOrder || primaryActiveOrder}
+      />
+          {/* Logout Confirmation Modal */}
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={() => {
+          logout();
+          setIsLogoutModalOpen(false);
+          navigate('/');
+        }}
+        userName={user?.name}
       />
     </div>
   );

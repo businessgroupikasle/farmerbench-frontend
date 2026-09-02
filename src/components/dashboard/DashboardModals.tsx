@@ -641,7 +641,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({
 interface InvoiceModalProps {
   isOpen: boolean;
   onClose: () => void;
-  order?: Order | null;
+  order?: any | null;
 }
 
 export const InvoiceModal: React.FC<InvoiceModalProps> = ({
@@ -651,10 +651,66 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  const orderId = order ? `#GL-${order.id.slice(0, 5).toUpperCase()}` : '#GL-10482';
-  const total = order?.totalPrice ?? 1480;
-  const gst = Math.round(total * 0.05);
-  const net = total - gst;
+  const orderId = order?.id
+    ? (order.id.length > 8 ? `#GL-${order.id.slice(0, 5).toUpperCase()}` : `#GL-${order.id}`)
+    : '#GL-INV01';
+
+  const total = Number(order?.totalPrice || order?.amount?.toString().replace(/[^0-9.]/g, '') || order?.itemsPrice || 0);
+  const deliveryCharges = total >= 500 ? 0 : 80;
+  const netSubtotal = total - deliveryCharges > 0 ? total - deliveryCharges : total;
+  // 5% GST calculation
+  const gst = Number(((netSubtotal * 5) / 105).toFixed(2));
+  const net = Number((netSubtotal - gst).toFixed(2));
+  const cgst = Number((gst / 2).toFixed(2));
+  const sgst = Number((gst / 2).toFixed(2));
+
+  const orderDate = order?.createdAt
+    ? new Date(order.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    : order?.date || new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+
+  const customerName =
+    order?.user?.name ||
+    order?.shippingAddress?.fullName ||
+    order?.customer ||
+    'Valued Farmer';
+
+  const customerPhone =
+    order?.user?.phone ||
+    order?.shippingAddress?.phone ||
+    order?.phone ||
+    '';
+
+  const shippingAddr =
+    order?.shippingAddress
+      ? (typeof order.shippingAddress === 'string'
+          ? order.shippingAddress
+          : `${order.shippingAddress.street || ''}, ${order.shippingAddress.city || ''}, ${order.shippingAddress.state || ''} - ${order.shippingAddress.postalCode || ''}`)
+      : 'Standard Farm Gate Delivery Address';
+
+  // Dynamic Item lines from PostgreSQL / Order Items
+  const items: Array<{ title: string; qty: number; price: number; total: number }> =
+    Array.isArray(order?.items) && order.items.length > 0
+      ? order.items.map((it: any) => {
+          const title = it.title || it.product?.title || it.name || 'Agricultural Input';
+          const packSize = it.selectedAttributes?.packSize || it.packSize || '';
+          const qty = Number(it.quantity || it.qty || 1);
+          const price = Number(String(it.price || it.unitPrice || 0).replace(/[^0-9.]/g, '')) || (total > 0 && qty > 0 ? Number((total / qty).toFixed(2)) : total);
+          const lineTotal = Number((price * qty).toFixed(2));
+          return {
+            title: packSize ? `${title} (${packSize})` : title,
+            qty,
+            price,
+            total: lineTotal,
+          };
+        })
+      : [
+          {
+            title: 'Certified Farm Bio-Inputs & Nutrients',
+            qty: 1,
+            price: total,
+            total: total,
+          },
+        ];
 
   const handlePrint = () => {
     window.print();
@@ -668,13 +724,14 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
             <FileText size={22} color="#0F4726" />
             <h3 className="fb-modal-title">Tax Invoice {orderId}</h3>
           </div>
-          <button className="fb-modal-close-btn" onClick={onClose}>
+          <button className="fb-modal-close-btn" onClick={onClose} aria-label="Close modal">
             <X size={20} />
           </button>
         </div>
 
         <div className="fb-modal-body" id="printable-invoice">
-          <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #0F4726', paddingBottom: '0.75rem' }}>
+          {/* Company & Invoice Header */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #0F4726', paddingBottom: '0.75rem', gap: '1rem' }}>
             <div>
               <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0F4726' }}>
                 FarmerBench Agro Pvt Ltd
@@ -682,51 +739,84 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
               <div style={{ fontSize: '0.75rem', color: 'var(--fb-text-muted)' }}>
                 GSTIN: 33AAACF4921L1Z9 • CIN: U01111TN2026PTC104928
               </div>
+              <div style={{ fontSize: '0.72rem', color: '#64748B', marginTop: '2px' }}>
+                Authorized Agricultural Bio-Nutrient Distributor
+              </div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontWeight: 800 }}>Invoice {orderId}</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--fb-text-muted)' }}>
-                Date: 28 Aug 2026
+              <div style={{ fontWeight: 800, fontSize: '1.05rem', color: '#0F291B' }}>Invoice {orderId}</div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--fb-text-muted)', marginTop: '2px' }}>
+                Date: {orderDate}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#16A34A', fontWeight: 700, marginTop: '2px' }}>
+                Status: {order?.paymentStatus === 'PAID' ? 'PAID' : (order?.paymentMethod === 'CASH_ON_DELIVERY' ? 'COD - CONFIRMED' : 'PAID')}
               </div>
             </div>
           </div>
 
+          {/* Customer & Delivery Details */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', backgroundColor: '#F8FAFC', padding: '0.75rem 1rem', borderRadius: '8px', margin: '0.85rem 0', fontSize: '0.8rem', gap: '1rem' }}>
+            <div style={{ flex: 1 }}>
+              <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>Billed & Shipped To:</span>
+              <div style={{ fontWeight: 800, color: '#0F291B', fontSize: '0.9rem', marginTop: '2px' }}>{customerName}</div>
+              {customerPhone && <div style={{ color: '#475569' }}>Phone: {customerPhone}</div>}
+              <div style={{ color: '#475569', marginTop: '2px', lineHeight: 1.3 }}>{shippingAddr}</div>
+            </div>
+            <div style={{ textAlign: 'right', minWidth: '150px' }}>
+              <span style={{ fontSize: '0.7rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase' }}>Payment Mode:</span>
+              <div style={{ fontWeight: 700, color: '#0F4726', marginTop: '2px' }}>
+                {order?.paymentMethod === 'CASH_ON_DELIVERY' ? 'Cash on Delivery' : 'Online / UPI (Razorpay)'}
+              </div>
+            </div>
+          </div>
+
+          {/* Dynamic Order Items Table */}
           <div style={{ marginTop: '0.75rem' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <thead>
-                <tr style={{ background: '#f1f5f9' }}>
-                  <th style={{ padding: '0.5rem', textAlign: 'left' }}>Item Description</th>
-                  <th style={{ padding: '0.5rem', textAlign: 'center' }}>Qty</th>
-                  <th style={{ padding: '0.5rem', textAlign: 'right' }}>Amount (₹)</th>
+                <tr style={{ background: '#F1F5F9', borderBottom: '1px solid #CBD5E1' }}>
+                  <th style={{ padding: '0.6rem', textAlign: 'left', fontWeight: 700, color: '#334155' }}>Item Description</th>
+                  <th style={{ padding: '0.6rem', textAlign: 'center', fontWeight: 700, color: '#334155' }}>Qty</th>
+                  <th style={{ padding: '0.6rem', textAlign: 'right', fontWeight: 700, color: '#334155' }}>Unit Price (₹)</th>
+                  <th style={{ padding: '0.6rem', textAlign: 'right', fontWeight: 700, color: '#334155' }}>Amount (₹)</th>
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td style={{ padding: '0.5rem', borderBottom: '1px solid #e2e8f0' }}>Growth Booster for All Crops</td>
-                  <td style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>2</td>
-                  <td style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '1px solid #e2e8f0' }}>900.00</td>
-                </tr>
-                <tr>
-                  <td style={{ padding: '0.5rem', borderBottom: '1px solid #e2e8f0' }}>Neem Oil 100% Cold Pressed</td>
-                  <td style={{ padding: '0.5rem', textAlign: 'center', borderBottom: '1px solid #e2e8f0' }}>1</td>
-                  <td style={{ padding: '0.5rem', textAlign: 'right', borderBottom: '1px solid #e2e8f0' }}>580.00</td>
-                </tr>
+                {items.map((it, idx) => (
+                  <tr key={idx} style={{ borderBottom: '1px solid #E2E8F0' }}>
+                    <td style={{ padding: '0.6rem', color: '#0F291B', fontWeight: 600 }}>{it.title}</td>
+                    <td style={{ padding: '0.6rem', textAlign: 'center', color: '#475569' }}>{it.qty}</td>
+                    <td style={{ padding: '0.6rem', textAlign: 'right', color: '#475569' }}>₹{it.price.toFixed(2)}</td>
+                    <td style={{ padding: '0.6rem', textAlign: 'right', fontWeight: 700, color: '#0F291B' }}>₹{it.total.toFixed(2)}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
 
+          {/* Tax Breakdown & Grand Total */}
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-            <div style={{ width: '220px', fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Subtotal (Net):</span>
+            <div style={{ width: '260px', fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
+                <span>Subtotal (Taxable):</span>
                 <span>₹{net.toFixed(2)}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>GST (5%):</span>
-                <span>₹{gst.toFixed(2)}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
+                <span>CGST (2.5%):</span>
+                <span>₹{cgst.toFixed(2)}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, fontSize: '1rem', borderTop: '1px solid #e2e8f0', paddingTop: '0.35rem' }}>
-                <span>Total Paid:</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
+                <span>SGST (2.5%):</span>
+                <span>₹{sgst.toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
+                <span>Delivery:</span>
+                <span style={{ color: deliveryCharges === 0 ? '#16A34A' : '#475569', fontWeight: deliveryCharges === 0 ? 700 : 400 }}>
+                  {deliveryCharges === 0 ? 'FREE' : `₹${deliveryCharges.toFixed(2)}`}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 900, fontSize: '1.05rem', borderTop: '2px solid #0F4726', paddingTop: '0.45rem', marginTop: '0.25rem' }}>
+                <span>Total Payable:</span>
                 <span style={{ color: '#0F4726' }}>₹{total.toFixed(2)}</span>
               </div>
             </div>

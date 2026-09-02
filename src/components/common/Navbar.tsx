@@ -23,6 +23,7 @@ import {
   CalendarDays,
 } from 'lucide-react';
 import farmerLogo from '../../assets/farmerbench-logo.png';
+import { LogoutModal } from './LogoutModal';
 import './Navbar.css';
 
 export const Navbar: React.FC = () => {
@@ -36,6 +37,7 @@ export const Navbar: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [contactSubmitted, setContactSubmitted] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -345,7 +347,7 @@ export const Navbar: React.FC = () => {
                 <Link to="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="btn btn-secondary" style={{ flex: 1, textAlign: 'center' }}>
                   Dashboard
                 </Link>
-                <button onClick={() => { setIsMobileMenuOpen(false); logout(); }} className="btn btn-danger" style={{ padding: '0.65rem 1rem' }}>
+                <button onClick={() => { setIsMobileMenuOpen(false); setIsLogoutModalOpen(true); }} className="btn btn-danger" style={{ padding: '0.65rem 1rem' }}>
                   Sign Out
                 </button>
               </div>
@@ -353,6 +355,17 @@ export const Navbar: React.FC = () => {
           </div>
         )}
       </header>
+
+      {/* Logout Confirmation Modal */}
+      <LogoutModal
+        isOpen={isLogoutModalOpen}
+        onClose={() => setIsLogoutModalOpen(false)}
+        onConfirm={() => {
+          logout();
+          setIsLogoutModalOpen(false);
+        }}
+        userName={user?.name}
+      />
 
       {/* Interactive Contact Modal */}
       {isContactModalOpen && (

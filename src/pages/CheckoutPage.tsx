@@ -175,10 +175,14 @@ export const CheckoutPage: React.FC = () => {
     try {
       const shippingAddress = getCombinedShippingAddress();
 
-      // 1. Create order in Backend database (Initial status: PENDING)
+      // 1. Create order in Backend database with the exact items and quantities on the checkout screen
       const orderRes = await orderService.createOrder({
         shippingAddress,
         paymentMethod,
+        items: items.map((it) => ({
+          productId: it.productId,
+          quantity: it.quantity,
+        })),
       });
 
       if (!orderRes.success || !orderRes.data) {
@@ -194,20 +198,20 @@ export const CheckoutPage: React.FC = () => {
           throw new Error('Razorpay payment gateway failed to load. Please check your internet connection.');
         }
 
-        const rzpRes = await paymentService.createRazorpayOrder(createdOrder.id);
+        const rzpRes = await paymentService.createRazorpayOrder(createdOrder.id, grandTotal);
         if (!rzpRes.success || !rzpRes.data) {
           throw new Error(rzpRes.message || 'Failed to create Razorpay payment order');
         }
 
         const rzpData = rzpRes.data;
+        const targetAmountPaise = Math.round(grandTotal * 100);
 
-        const options = {
+        const options: any = {
           key: rzpData.keyId,
-          amount: rzpData.amount,
+          amount: targetAmountPaise,
           currency: rzpData.currency || 'INR',
           name: 'FarmerBench Agri Commerce',
           description: `Payment for Order #${createdOrder.id.slice(0, 8)}`,
-          order_id: rzpData.razorpayOrderId,
           prefill: {
             name: fullName.trim(),
             email: user?.email || '',
@@ -218,16 +222,16 @@ export const CheckoutPage: React.FC = () => {
           },
           handler: async (response: {
             razorpay_payment_id: string;
-            razorpay_order_id: string;
-            razorpay_signature: string;
+            razorpay_order_id?: string;
+            razorpay_signature?: string;
           }) => {
             try {
               setIsProcessing(true);
               await paymentService.verifyPayment({
                 orderId: createdOrder.id,
-                razorpay_order_id: response.razorpay_order_id,
+                razorpay_order_id: response.razorpay_order_id || rzpData.razorpayOrderId || '',
                 razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
+                razorpay_signature: response.razorpay_signature || '',
               });
 
               clearCart();
@@ -246,15 +250,25 @@ export const CheckoutPage: React.FC = () => {
             }
           },
           modal: {
-            ondismiss: () => {
+            ondismiss: async () => {
               setIsProcessing(false);
-              addToast({ type: 'info', message: 'Payment window closed. You can retry payment.' });
+              try {
+                await orderService.updateOrderStatus(createdOrder.id, {
+                  orderStatus: 'CANCELLED',
+                  paymentStatus: 'FAILED',
+                });
+                queryClient.invalidateQueries({ queryKey: ['orders'] });
+                queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
+              } catch {
+                // Ignore background cancellation
+              }
+              addToast({ type: 'info', message: 'Payment window closed. Your cart items are preserved.' });
             },
           },
         };
 
         const rzp = new window.Razorpay(options);
-        rzp.on('payment.failed', (failResponse: any) => {
+        rzp.on('payment.failed', async (failResponse: any) => {
           const errorDescription =
             failResponse?.error?.description ||
             failResponse?.error?.reason ||
@@ -262,6 +276,16 @@ export const CheckoutPage: React.FC = () => {
           setErrorMsg(errorDescription);
           addToast({ type: 'error', message: errorDescription });
           setIsProcessing(false);
+          try {
+            await orderService.updateOrderStatus(createdOrder.id, {
+              orderStatus: 'CANCELLED',
+              paymentStatus: 'FAILED',
+            });
+            queryClient.invalidateQueries({ queryKey: ['orders'] });
+            queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
+          } catch {
+            // Ignore background cancellation
+          }
         });
         rzp.open();
         return;
@@ -653,7 +677,7 @@ export const CheckoutPage: React.FC = () => {
                         {p.title || 'Product'}
                       </p>
                       <span style={{ fontSize: '0.75rem', color: '#64748B' }}>
-                        Qty: {item.quantity} × ₹{price.toFixed(2)}
+                        {item.selectedAttributes?.packSize ? `${item.selectedAttributes.packSize} • ` : ''}Qty: {item.quantity} × ₹{price.toFixed(2)}
                       </span>
                     </div>
                     <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1E293B' }}>

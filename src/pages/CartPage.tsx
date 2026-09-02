@@ -17,6 +17,7 @@ import {
   Sparkles,
   ShoppingBag,
   Package,
+  X,
 } from 'lucide-react';
 import { useCart } from '../hooks/useCart';
 import { useProducts } from '../hooks/useProducts';
@@ -38,6 +39,9 @@ export const CartPage: React.FC = () => {
   const { addToast } = useUIStore();
   const { items, subtotal, totalItems, updateQuantity, removeItem, clearCart, addToCart } = useCart();
   const { toggleWishlist, isInWishlist } = useWishlistStore();
+
+  // Clear Cart Modal State
+  const [isClearModalOpen, setIsClearModalOpen] = useState(false);
 
   // Fetch real products from Product Catalog API
   const { data: productsData } = useProducts({ limit: 12 });
@@ -128,11 +132,10 @@ export const CartPage: React.FC = () => {
     addToast({ type: 'success', message: `${item.title} moved back to cart` });
   };
 
-  const handleClearCart = () => {
-    if (window.confirm('Are you sure you want to clear all items in your cart?')) {
-      clearCart();
-      addToast({ type: 'info', message: 'Cart has been cleared' });
-    }
+  const handleConfirmClearCart = () => {
+    clearCart();
+    setIsClearModalOpen(false);
+    addToast({ type: 'info', message: 'Cart has been cleared' });
   };
 
   const handleApplyCoupon = (e: React.FormEvent) => {
@@ -349,23 +352,21 @@ export const CartPage: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Pack Size Selector */}
-                    <div style={{ display: 'flex', justifyContent: 'center' }}>
-                      <span className="cart-pack-select">
-                        {packSize}
-                      </span>
+                    {/* Pack Size Cell */}
+                    <div className="cart-pack-cell">
+                      <span className="cart-pack-badge">{packSize}</span>
                     </div>
 
-                    {/* Quantity Selector */}
-                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    {/* Quantity Cell */}
+                    <div className="cart-qty-cell">
                       <div className="cart-qty-control">
                         <button
-                          onClick={() => updateQuantity(item.id, item.productId, item.quantity - 1)}
+                          onClick={() => updateQuantity(item.id, item.productId, Math.max(1, item.quantity - 1))}
+                          disabled={item.quantity <= 1}
                           className="cart-qty-btn"
                           aria-label="Decrease quantity"
-                          disabled={item.quantity <= 1}
                         >
-                          <Minus size={13} strokeWidth={2.5} />
+                          <Minus size={14} />
                         </button>
                         <span className="cart-qty-val">{item.quantity}</span>
                         <button
@@ -373,37 +374,37 @@ export const CartPage: React.FC = () => {
                           className="cart-qty-btn"
                           aria-label="Increase quantity"
                         >
-                          <Plus size={13} strokeWidth={2.5} />
+                          <Plus size={14} />
                         </button>
                       </div>
                     </div>
 
                     {/* Price Cell */}
                     <div className="cart-price-cell">
-                      <span className="cart-price-main">₹{price.toFixed(2)}</span>
-                      {prod.discountPrice && prod.discountPrice < originalPrice && (
-                        <span className="cart-price-orig">₹{originalPrice.toFixed(2)}</span>
+                      <span className="cart-current-price">₹{Number(price).toFixed(2)}</span>
+                      {prod.discountPrice && (
+                        <span className="cart-original-price">₹{Number(originalPrice).toFixed(2)}</span>
                       )}
                     </div>
 
                     {/* Total Cell */}
                     <div className="cart-total-cell">
-                      <span className="cart-total-val">₹{itemTotal.toFixed(2)}</span>
+                      <span className="cart-row-total">₹{Number(itemTotal).toFixed(2)}</span>
                     </div>
                   </div>
                 );
               })
             )}
 
-            {/* Bottom Actions Bar inside Card */}
+            {/* Cart Table Footer */}
             {items.length > 0 && (
               <div className="cart-table-footer">
                 <Link to="/products" className="cart-footer-continue-btn">
-                  <ChevronLeft size={16} strokeWidth={2.4} />
+                  <ChevronLeft size={16} />
                   <span>Continue Shopping</span>
                 </Link>
 
-                <button onClick={handleClearCart} className="cart-footer-clear-btn">
+                <button onClick={() => setIsClearModalOpen(true)} className="cart-footer-clear-btn">
                   <Trash2 size={15} />
                   <span>Clear Shopping Cart</span>
                 </button>
@@ -411,55 +412,51 @@ export const CartPage: React.FC = () => {
             )}
           </div>
 
-          {/* 5. Free Delivery Progress Box */}
-          <div className="cart-free-delivery-card">
-            <div className="cart-delivery-header">
-              <div className="cart-delivery-icon-box">
-                <Truck size={20} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <p className="cart-delivery-title">
+          {/* Free Shipping Progress Indicator */}
+          {items.length > 0 && (
+            <div className="cart-shipping-card">
+              <div className="cart-shipping-head">
+                <div className="cart-shipping-icon-wrap">
+                  <Truck size={18} />
+                </div>
+                <div className="cart-shipping-text">
                   {isFreeDelivery ? (
-                    <span style={{ color: '#15803D', fontWeight: 800 }}>
-                      🎉 Congratulations! You have unlocked FREE Express Delivery.
-                    </span>
+                    <p className="cart-shipping-msg unlocked">
+                      🌾 <strong>Congratulations!</strong> You have unlocked <strong>FREE Express Delivery</strong>.
+                    </p>
                   ) : (
-                    <>
-                      Add <strong style={{ color: '#0F4726' }}>₹{(freeDeliveryThreshold - subtotal).toFixed(2)}</strong>{' '}
-                      more of farm inputs to get <strong>FREE Delivery</strong>!
-                    </>
+                    <p className="cart-shipping-msg">
+                      Add <strong>₹{(freeDeliveryThreshold - subtotal).toFixed(2)}</strong> more of farm inputs for <strong>FREE Delivery</strong>!
+                    </p>
                   )}
-                </p>
-                <div className="cart-progress-bar-bg">
-                  <div
-                    className="cart-progress-bar-fill"
-                    style={{ width: `${freeDeliveryProgress}%` }}
-                  />
                 </div>
               </div>
+              <div className="cart-progress-bar-bg">
+                <div
+                  className={`cart-progress-bar-fill ${isFreeDelivery ? 'complete' : ''}`}
+                  style={{ width: `${freeDeliveryProgress}%` }}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* 6. Saved for Later Section */}
+          {/* Saved for Later Section */}
           {savedItems.length > 0 && (
             <div className="cart-saved-section">
-              <div className="cart-saved-header">
-                <h2 className="cart-saved-title">Saved for Later ({savedItems.length})</h2>
-                <span style={{ fontSize: '0.82rem', color: '#64748B' }}>Items saved from previous visits</span>
-              </div>
-
+              <h3 className="cart-section-title">Saved for Later ({savedItems.length})</h3>
               <div className="cart-saved-grid">
-                {savedItems.map((item) => (
-                  <div key={item.id} className="cart-saved-card">
-                    <img src={item.image} alt={item.title} className="cart-saved-img" />
+                {savedItems.map((sItem) => (
+                  <div key={sItem.id} className="cart-saved-card">
+                    <img src={sItem.image} alt={sItem.title} className="cart-saved-img" />
                     <div className="cart-saved-info">
-                      <h4 className="cart-saved-name">{item.title}</h4>
-                      <p className="cart-saved-price">₹{item.price.toFixed(2)}</p>
+                      <h4 className="cart-saved-title">{sItem.title}</h4>
+                      <span className="cart-saved-price">₹{Number(sItem.price).toFixed(2)}</span>
                       <button
-                        onClick={() => handleMoveToCart(item)}
-                        className="cart-move-btn"
+                        onClick={() => handleMoveToCart(sItem)}
+                        className="cart-move-to-cart-btn"
                       >
-                        Move to Cart
+                        <ShoppingBag size={14} />
+                        <span>Move to Cart</span>
                       </button>
                     </div>
                   </div>
@@ -468,30 +465,21 @@ export const CartPage: React.FC = () => {
             </div>
           )}
 
-          {/* 7. Recommended Products Carousel ("You May Also Like") - 100% Dynamic from Catalog API */}
+          {/* Cross-Sell Recommendations: You May Also Like */}
           {recommendedProducts.length > 0 && (
-            <div className="cart-recommended-section">
+            <div className="cart-rec-section">
               <div className="cart-rec-header">
                 <div>
-                  <h2 className="cart-rec-title">You May Also Like</h2>
-                  <p className="cart-rec-subtitle">Top-rated bio-inputs recommended for your crops</p>
+                  <h3 className="cart-section-title">You May Also Like</h3>
+                  <p className="cart-section-sub">Top-rated bio-inputs recommended for your crops</p>
                 </div>
-
                 {recommendedProducts.length > 3 && (
                   <div className="cart-rec-nav">
-                    <button
-                      onClick={handlePrevRec}
-                      className="cart-rec-nav-btn"
-                      aria-label="Previous recommended products"
-                    >
-                      <ChevronLeft size={18} />
+                    <button onClick={handlePrevRec} className="cart-rec-nav-btn" aria-label="Previous recommendations">
+                      <ChevronLeft size={16} />
                     </button>
-                    <button
-                      onClick={handleNextRec}
-                      className="cart-rec-nav-btn"
-                      aria-label="Next recommended products"
-                    >
-                      <ChevronRight size={18} />
+                    <button onClick={handleNextRec} className="cart-rec-nav-btn" aria-label="Next recommendations">
+                      <ChevronRight size={16} />
                     </button>
                   </div>
                 )}
@@ -692,6 +680,132 @@ export const CartPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* ================= CUSTOM CONFIRMATION MODAL FOR CLEAR CART ================= */}
+      {isClearModalOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999,
+            padding: '1rem',
+          }}
+          onClick={() => setIsClearModalOpen(false)}
+        >
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '20px',
+              maxWidth: '440px',
+              width: '100%',
+              padding: '2rem',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              textAlign: 'center',
+              gap: '1rem',
+              position: 'relative',
+              animation: 'modalSlideUp 0.2s ease-out',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button Top Right */}
+            <button
+              type="button"
+              onClick={() => setIsClearModalOpen(false)}
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                background: 'transparent',
+                border: 'none',
+                color: '#94A3B8',
+                cursor: 'pointer',
+                padding: '4px',
+                borderRadius: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              aria-label="Close modal"
+            >
+              <X size={18} />
+            </button>
+
+            {/* Trash / Warning Icon Circle */}
+            <div
+              style={{
+                width: '58px',
+                height: '58px',
+                borderRadius: '50%',
+                backgroundColor: '#FEE2E2',
+                color: '#DC2626',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '0.25rem',
+              }}
+            >
+              <Trash2 size={28} />
+            </div>
+
+            <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#1E293B', margin: 0 }}>
+              Clear Shopping Cart?
+            </h3>
+
+            <p style={{ fontSize: '0.925rem', color: '#64748B', margin: 0, lineHeight: 1.5 }}>
+              Are you sure you want to remove all <strong>{totalItems} item{totalItems > 1 ? 's' : ''}</strong> from your shopping cart? This action cannot be undone.
+            </p>
+
+            <div style={{ display: 'flex', gap: '0.85rem', width: '100%', marginTop: '0.5rem' }}>
+              <button
+                type="button"
+                onClick={() => setIsClearModalOpen(false)}
+                style={{
+                  flex: 1,
+                  padding: '0.85rem 1.25rem',
+                  borderRadius: '12px',
+                  border: '1.5px solid #CBD5E1',
+                  backgroundColor: '#ffffff',
+                  color: '#475569',
+                  fontWeight: 700,
+                  fontSize: '0.95rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                }}
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmClearCart}
+                style={{
+                  flex: 1,
+                  padding: '0.85rem 1.25rem',
+                  borderRadius: '12px',
+                  border: 'none',
+                  backgroundColor: '#DC2626',
+                  color: '#ffffff',
+                  fontWeight: 800,
+                  fontSize: '0.95rem',
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 14px rgba(220, 38, 38, 0.35)',
+                  transition: 'all 0.2s',
+                }}
+              >
+                Yes, Clear Cart
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

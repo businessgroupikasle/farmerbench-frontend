@@ -2,15 +2,10 @@ import React from 'react';
 import {
   LayoutDashboard,
   Package,
-  Truck,
   Heart,
-  Bookmark,
   Star,
-  CalendarCheck,
-  Stethoscope,
   MapPin,
   Shield,
-  Bell,
   LogOut,
   CheckCircle2,
 } from 'lucide-react';
@@ -23,8 +18,6 @@ interface DashboardSidebarProps {
   onLogout: () => void;
   ordersCount: number;
   wishlistCount: number;
-  bookingsCount?: number;
-  doctorRequestsCount?: number;
 }
 
 export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
@@ -34,8 +27,6 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   onLogout,
   ordersCount = 0,
   wishlistCount = 0,
-  bookingsCount = 0,
-  doctorRequestsCount = 0,
 }) => {
   const displayName = user?.name || 'Farmer Member';
   const displayPhone = user?.phone || user?.email || 'Contact Info';
@@ -44,15 +35,15 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
     { id: 'orders', label: 'My Orders', icon: <Package size={18} />, badge: ordersCount },
-    { id: 'tracking', label: 'Track Orders', icon: <Truck size={18} /> },
+    // { id: 'tracking', label: 'Track Orders', icon: <Truck size={18} /> },
     { id: 'wishlist', label: 'Wishlist', icon: <Heart size={18} />, badge: wishlistCount },
-    { id: 'saved', label: 'Saved for Later', icon: <Bookmark size={18} /> },
+    // { id: 'saved', label: 'Saved for Later', icon: <Bookmark size={18} /> },
     { id: 'reviews', label: 'My Reviews', icon: <Star size={18} /> },
-    { id: 'bookings', label: 'Service Bookings', icon: <CalendarCheck size={18} />, badge: bookingsCount },
-    { id: 'crop-doctor', label: 'Crop Doctor Requests', icon: <Stethoscope size={18} />, badge: doctorRequestsCount },
+    // { id: 'bookings', label: 'Service Bookings', icon: <CalendarCheck size={18} />, badge: bookingsCount },
+    // { id: 'crop-doctor', label: 'Crop Doctor Requests', icon: <Stethoscope size={18} />, badge: doctorRequestsCount },
     { id: 'addresses', label: 'Addresses', icon: <MapPin size={18} /> },
     { id: 'profile', label: 'Profile & Security', icon: <Shield size={18} /> },
-    { id: 'notifications', label: 'Notifications', icon: <Bell size={18} /> },
+    // { id: 'notifications', label: 'Notifications', icon: <Bell size={18} /> },
   ];
 
   return (

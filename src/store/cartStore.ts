@@ -1,9 +1,10 @@
 import { create } from 'zustand';
 
 export interface GuestCartItem {
+  id?: string;
   productId: string;
   quantity: number;
-  selectedAttributes?: Record<string, string> | null;
+  selectedAttributes?: Record<string, any> | null;
   productSnapshot: {
     title: string;
     price: number;
@@ -19,8 +20,8 @@ interface CartUIState {
   toggleDrawer: () => void;
   guestItems: GuestCartItem[];
   addGuestItem: (item: GuestCartItem) => void;
-  updateGuestItemQuantity: (productId: string, quantity: number) => void;
-  removeGuestItem: (productId: string) => void;
+  updateGuestItemQuantity: (itemKey: string, quantity: number) => void;
+  removeGuestItem: (itemKey: string) => void;
   clearGuestCart: () => void;
 }
 
@@ -50,12 +51,21 @@ export const useCartStore = create<CartUIState>((set, get) => ({
 
   addGuestItem: (newItem) => {
     const current = get().guestItems;
-    const existingIndex = current.findIndex((i) => i.productId === newItem.productId);
+    const newPackSize = newItem.selectedAttributes?.packSize || '';
+    const existingIndex = current.findIndex(
+      (i) => i.productId === newItem.productId && (i.selectedAttributes?.packSize || '') === newPackSize
+    );
     let updated: GuestCartItem[];
 
     if (existingIndex > -1) {
       updated = current.map((item, idx) =>
-        idx === existingIndex ? { ...item, quantity: item.quantity + newItem.quantity } : item
+        idx === existingIndex
+          ? {
+              ...item,
+              quantity: item.quantity + newItem.quantity,
+              productSnapshot: newItem.productSnapshot,
+            }
+          : item
       );
     } else {
       updated = [...current, newItem];
@@ -65,22 +75,31 @@ export const useCartStore = create<CartUIState>((set, get) => ({
     set({ guestItems: updated });
   },
 
-  updateGuestItemQuantity: (productId, quantity) => {
+  updateGuestItemQuantity: (itemKey, quantity) => {
     const current = get().guestItems;
     let updated: GuestCartItem[];
 
     if (quantity <= 0) {
-      updated = current.filter((i) => i.productId !== productId);
+      updated = current.filter((i) => {
+        const key = `${i.productId}-${i.selectedAttributes?.packSize || 'default'}`;
+        return key !== itemKey && i.productId !== itemKey;
+      });
     } else {
-      updated = current.map((i) => (i.productId === productId ? { ...i, quantity } : i));
+      updated = current.map((i) => {
+        const key = `${i.productId}-${i.selectedAttributes?.packSize || 'default'}`;
+        return key === itemKey || i.productId === itemKey ? { ...i, quantity } : i;
+      });
     }
 
     saveGuestCart(updated);
     set({ guestItems: updated });
   },
 
-  removeGuestItem: (productId) => {
-    const updated = get().guestItems.filter((i) => i.productId !== productId);
+  removeGuestItem: (itemKey) => {
+    const updated = get().guestItems.filter((i) => {
+      const key = `${i.productId}-${i.selectedAttributes?.packSize || 'default'}`;
+      return key !== itemKey && i.productId !== itemKey;
+    });
     saveGuestCart(updated);
     set({ guestItems: updated });
   },

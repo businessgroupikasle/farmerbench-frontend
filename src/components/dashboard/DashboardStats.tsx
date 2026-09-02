@@ -1,10 +1,10 @@
 import React from 'react';
-import { Truck, Heart, CalendarCheck, Sprout, ArrowRight } from 'lucide-react';
+import { Truck, Heart, Star, Sprout, ArrowRight } from 'lucide-react';
 
 interface DashboardStatsProps {
   activeOrdersCount: number;
   wishlistCount: number;
-  bookingsCount: number;
+  reviewsCount?: number;
   rewardPoints?: number;
   onNavigateTab: (tab: string) => void;
 }
@@ -12,7 +12,7 @@ interface DashboardStatsProps {
 export const DashboardStats: React.FC<DashboardStatsProps> = ({
   activeOrdersCount = 0,
   wishlistCount = 0,
-  bookingsCount = 0,
+  reviewsCount = 0,
   rewardPoints = 0,
   onNavigateTab,
 }) => {
@@ -60,22 +60,22 @@ export const DashboardStats: React.FC<DashboardStatsProps> = ({
         </div>
       </div>
 
-      {/* 3. Service Bookings */}
+      {/* 3. My Reviews */}
       <div className="fb-metric-card">
         <div className="fb-metric-icon-box">
-          <CalendarCheck size={24} />
+          <Star size={24} />
         </div>
         <div className="fb-metric-info">
-          <span className="fb-metric-title">Service Bookings</span>
-          <span className="fb-metric-value">{bookingsCount}</span>
+          <span className="fb-metric-title">My Reviews</span>
+          <span className="fb-metric-value">{reviewsCount}</span>
           <a
             className="fb-metric-link"
             onClick={(e) => {
               e.preventDefault();
-              onNavigateTab('bookings');
+              onNavigateTab('reviews');
             }}
           >
-            View Bookings <ArrowRight size={14} />
+            View Reviews <ArrowRight size={14} />
           </a>
         </div>
       </div>

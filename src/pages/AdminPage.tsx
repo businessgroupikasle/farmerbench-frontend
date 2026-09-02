@@ -244,13 +244,18 @@ export const AdminPage: React.FC = () => {
     title: '',
     slug: '',
     categoryId: '',
-    price: 500,
-    discountPrice: 450,
-    stock: 50,
+    price: 520,
+    discountPrice: 475,
+    stock: 27,
     featured: false,
     description: '',
     images: ['https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800'],
     features: ['Promotes faster and healthier growth', 'Improves flowering and crop yield'],
+    variants: [
+      { label: '500 g', mrp: 520, sellingPrice: 475, stock: 27, sku: 'BIO-500G' },
+      { label: '1 kg', mrp: 950, sellingPrice: 850, stock: 15, sku: 'BIO-1KG' },
+      { label: '5 kg', mrp: 4200, sellingPrice: 3800, stock: 8, sku: 'BIO-5KG' },
+    ],
     packSizes: ['500 g', '1 kg', '5 kg'],
     benefits: ['Accelerates vegetative branching and root formation.', 'Increases tillering and fruit set.'],
     usageSteps: [
@@ -289,13 +294,18 @@ export const AdminPage: React.FC = () => {
       title: '',
       slug: '',
       categoryId: dbCategories[0]?.id || '',
-      price: 500,
-      discountPrice: 450,
-      stock: 50,
+      price: 520,
+      discountPrice: 475,
+      stock: 27,
       featured: false,
       description: 'High-potency bio-formulation crafted for superior crop yield, enhanced root growth, and soil health.',
       images: ['https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800'],
       features: ['Promotes faster and healthier growth', 'Improves flowering and crop yield'],
+      variants: [
+        { label: '500 g', mrp: 520, sellingPrice: 475, stock: 27, sku: 'BIO-500G' },
+        { label: '1 kg', mrp: 950, sellingPrice: 850, stock: 15, sku: 'BIO-1KG' },
+        { label: '5 kg', mrp: 4200, sellingPrice: 3800, stock: 8, sku: 'BIO-5KG' },
+      ],
       packSizes: ['500 g', '1 kg', '5 kg'],
       benefits: ['Accelerates vegetative branching and root formation.', 'Increases tillering and fruit set.'],
       usageSteps: [
@@ -334,6 +344,22 @@ export const AdminPage: React.FC = () => {
     setSelectedProduct(prod);
     setCmsTab('basic');
     const attrs = prod.attributes || {};
+    const existingVariants = Array.isArray(attrs.variants) && attrs.variants.length > 0
+      ? attrs.variants
+      : Array.isArray(attrs.packSizes) && attrs.packSizes.length > 0
+      ? attrs.packSizes.map((s: string) => ({
+          label: s,
+          mrp: prod.price || 520,
+          sellingPrice: prod.discountPrice || prod.price || 475,
+          stock: prod.stock || 27,
+          sku: `${prod.slug || 'BIO'}-${s.replace(/\s+/g, '').toUpperCase()}`,
+        }))
+      : [
+          { label: '500 g', mrp: prod.price || 520, sellingPrice: prod.discountPrice || 475, stock: prod.stock || 27, sku: `${prod.slug || 'BIO'}-500G` },
+          { label: '1 kg', mrp: Math.round((prod.price || 520) * 1.8), sellingPrice: Math.round((prod.discountPrice || 475) * 1.8), stock: 15, sku: `${prod.slug || 'BIO'}-1KG` },
+          { label: '5 kg', mrp: Math.round((prod.price || 520) * 8), sellingPrice: Math.round((prod.discountPrice || 475) * 8), stock: 8, sku: `${prod.slug || 'BIO'}-5KG` },
+        ];
+
     setCmsForm({
       id: prod.id,
       title: prod.title || prod.name,
@@ -345,8 +371,9 @@ export const AdminPage: React.FC = () => {
       featured: Boolean(prod.featured),
       description: prod.description || '',
       images: prod.images && prod.images.length > 0 ? prod.images : [prod.image],
+      variants: existingVariants,
       features: Array.isArray(attrs.features) && attrs.features.length > 0 ? attrs.features : ['Promotes faster and healthier growth'],
-      packSizes: Array.isArray(attrs.packSizes) && attrs.packSizes.length > 0 ? attrs.packSizes : ['500 g', '1 kg', '5 kg'],
+      packSizes: Array.isArray(attrs.packSizes) && attrs.packSizes.length > 0 ? attrs.packSizes : existingVariants.map((v: any) => v.label),
       benefits: Array.isArray(attrs.benefits) && attrs.benefits.length > 0 ? attrs.benefits : ['Accelerates vegetative branching and root formation.'],
       usageSteps: Array.isArray(attrs.usageSteps) && attrs.usageSteps.length > 0 ? attrs.usageSteps : [
         { stepNumber: 1, title: 'Measure', description: 'Take the recommended amount as per dosage.' },
@@ -402,22 +429,33 @@ export const AdminPage: React.FC = () => {
   const { data: adminOrdersData, refetch: refetchOrders } = useAdminOrders({ limit: 100 });
   const { updateOrderStatus } = useOrderMutations();
 
-  const orders = (adminOrdersData?.orders || []).map((o: any) => ({
-    id: o.id.length > 8 ? '#GL-' + o.id.slice(0, 5).toUpperCase() : o.id,
-    realId: o.id,
-    customer: o.user?.name || o.shippingAddress?.fullName || 'Customer',
-    phone: o.user?.phone || o.shippingAddress?.phone || 'N/A',
-    email: o.user?.email || 'N/A',
-    products: (o.items?.length || 1) + ' items (' + (o.items?.map((it: any) => it.title).join(', ') || 'Agricultural inputs') + ')',
-    amount: '₹' + (o.totalPrice || o.itemsPrice || 0).toLocaleString('en-IN'),
-    payment: o.paymentStatus === 'PAID' ? 'Paid' : o.paymentStatus === 'FAILED' ? 'Failed' : 'Pending',
-    paymentClass: (o.paymentStatus || 'pending').toLowerCase(),
-    status: o.orderStatus ? (o.orderStatus.charAt(0) + o.orderStatus.slice(1).toLowerCase()) : 'Pending',
-    statusClass: (o.orderStatus || 'pending').toLowerCase(),
-    date: new Date(o.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-    items: o.items?.map((it: any) => ({ name: it.title, qty: it.quantity, price: '₹' + it.price })) || [],
-    shippingAddress: o.shippingAddress ? (o.shippingAddress.street + ', ' + o.shippingAddress.city + ', ' + o.shippingAddress.state + ' - ' + o.shippingAddress.postalCode) : 'Standard Shipping Address',
-  }));
+  const orders = (adminOrdersData?.orders || [])
+    .filter((o: any) => {
+      // Exclude incomplete or cancelled Razorpay attempts
+      if (o.paymentMethod === 'RAZORPAY' && o.paymentStatus !== 'PAID') {
+        return false;
+      }
+      if (o.orderStatus === 'CANCELLED') {
+        return false;
+      }
+      return true;
+    })
+    .map((o: any) => ({
+      id: o.id.length > 8 ? '#GL-' + o.id.slice(0, 5).toUpperCase() : o.id,
+      realId: o.id,
+      customer: o.user?.name || o.shippingAddress?.fullName || 'Customer',
+      phone: o.user?.phone || o.shippingAddress?.phone || 'N/A',
+      email: o.user?.email || 'N/A',
+      products: (o.items?.length || 1) + ' items (' + (o.items?.map((it: any) => it.title).join(', ') || 'Agricultural inputs') + ')',
+      amount: '₹' + (o.totalPrice || o.itemsPrice || 0).toLocaleString('en-IN'),
+      payment: o.paymentStatus === 'PAID' ? 'Paid' : o.paymentStatus === 'FAILED' ? 'Failed' : o.paymentMethod === 'CASH_ON_DELIVERY' ? 'COD' : 'Pending',
+      paymentClass: (o.paymentStatus || 'pending').toLowerCase(),
+      status: o.orderStatus ? (o.orderStatus.charAt(0) + o.orderStatus.slice(1).toLowerCase()) : 'Pending',
+      statusClass: (o.orderStatus || 'pending').toLowerCase(),
+      date: new Date(o.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+      items: o.items?.map((it: any) => ({ name: it.title, qty: it.quantity, price: '₹' + it.price })) || [],
+      shippingAddress: o.shippingAddress ? (o.shippingAddress.street + ', ' + o.shippingAddress.city + ', ' + o.shippingAddress.state + ' - ' + o.shippingAddress.postalCode) : 'Standard Shipping Address',
+    }));
 
   const totalRevenue = orders.reduce((sum: number, o: any) => {
     const cleanAmount = parseFloat(String(o.amount).replace(/[^0-9.]/g, '')) || 0;
@@ -3101,16 +3139,32 @@ export const AdminPage: React.FC = () => {
                 e.preventDefault();
                 const title = cmsForm.title.trim();
                 const slug = cmsForm.slug.trim() || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') + '-' + Date.now().toString().slice(-4);
-                const price = Number(cmsForm.price);
-                const discountPrice = Number(cmsForm.discountPrice) || price;
-                const stock = Number(cmsForm.stock);
+                
+                const variants = Array.isArray(cmsForm.variants) && cmsForm.variants.length > 0
+                  ? cmsForm.variants.map((v: any) => ({
+                      label: v.label?.trim() || '500 g',
+                      mrp: Number(v.mrp) || 0,
+                      sellingPrice: Number(v.sellingPrice) || Number(v.mrp) || 0,
+                      stock: Number(v.stock) || 0,
+                      sku: v.sku?.trim() || `${slug}-${(v.label || 'VAR').toUpperCase().replace(/[^A-Z0-9]/g, '')}`,
+                    }))
+                  : [];
+
+                const primaryVariant = variants[0];
+                const price = primaryVariant ? primaryVariant.mrp : (Number(cmsForm.price) || 520);
+                const discountPrice = primaryVariant ? primaryVariant.sellingPrice : (Number(cmsForm.discountPrice) || price);
+                const stock = primaryVariant ? primaryVariant.stock : (Number(cmsForm.stock) || 27);
                 const categoryId = cmsForm.categoryId || dbCategories[0]?.id;
                 const description = cmsForm.description.trim() || 'Premium certified organic agricultural input.';
                 const images = cmsForm.images.filter((img: string) => Boolean(img.trim()));
+                const packSizes = variants.length > 0
+                  ? variants.map((v: any) => v.label)
+                  : (Array.isArray(cmsForm.packSizes) ? cmsForm.packSizes.filter((p: string) => Boolean(p.trim())) : ['500 g', '1 kg', '5 kg']);
 
                 const attributes = {
+                  variants,
+                  packSizes,
                   features: cmsForm.features.filter((f: string) => Boolean(f.trim())),
-                  packSizes: cmsForm.packSizes.filter((p: string) => Boolean(p.trim())),
                   benefits: cmsForm.benefits.filter((b: string) => Boolean(b.trim())),
                   usageSteps: cmsForm.usageSteps,
                   dosageTable: cmsForm.dosageTable,
@@ -3135,7 +3189,7 @@ export const AdminPage: React.FC = () => {
                       attributes,
                     });
                     setIsAddProductOpen(false);
-                    showToast(`Product "${title}" created and published to PostgreSQL!`);
+                    showToast(`Product "${title}" with multi pack sizes created in PostgreSQL!`);
                   } else {
                     await updateProduct({
                       id: selectedProduct.id,
@@ -3153,7 +3207,7 @@ export const AdminPage: React.FC = () => {
                       },
                     });
                     setIsEditProductOpen(false);
-                    showToast(`Product "${title}" CMS details updated in PostgreSQL!`);
+                    showToast(`Product "${title}" multi pack size variants updated in PostgreSQL!`);
                   }
                 } catch (err: any) {
                   showToast(err.message || 'Failed to save product content');
@@ -3203,41 +3257,141 @@ export const AdminPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
-                      <div className="admin-form-group">
-                        <label className="admin-form-label">MRP / Base Price (₹) *</label>
-                        <input
-                          type="number"
-                          required
-                          value={cmsForm.price}
-                          onChange={(e) => setCmsForm({ ...cmsForm, price: Number(e.target.value) })}
-                          className="admin-form-input"
-                        />
+                    {/* Pack Size Variants & Independent Pricing (g / kg) Section */}
+                    <div style={{ marginTop: '0.75rem', padding: '1rem', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                        <div>
+                          <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#0F4726' }}>
+                            Pack Size Variants & Independent Pricing (Gram & Kilogram)
+                          </div>
+                          <div style={{ fontSize: '0.76rem', color: '#64748B' }}>
+                            Configure independent MRP, Selling Price, and Stock for each pack size (e.g. 500 g, 1 kg, 5 kg).
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const currentVariants = Array.isArray(cmsForm.variants) ? cmsForm.variants : [];
+                            setCmsForm({
+                              ...cmsForm,
+                              variants: [
+                                ...currentVariants,
+                                { label: `${currentVariants.length + 1} kg`, mrp: 1200, sellingPrice: 1050, stock: 10, sku: '' },
+                              ],
+                            });
+                          }}
+                          className="admin-btn-add-row"
+                          style={{ padding: '0.35rem 0.75rem', fontSize: '0.78rem' }}
+                        >
+                          <Plus size={14} /> Add Pack Size
+                        </button>
                       </div>
 
-                      <div className="admin-form-group">
-                        <label className="admin-form-label">Discount Price (₹)</label>
-                        <input
-                          type="number"
-                          value={cmsForm.discountPrice}
-                          onChange={(e) => setCmsForm({ ...cmsForm, discountPrice: Number(e.target.value) })}
-                          className="admin-form-input"
-                        />
-                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        {/* Header row */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '130px 110px 120px 95px 1fr 34px', gap: '0.5rem', fontSize: '0.75rem', fontWeight: 700, color: '#475569', padding: '0 0.25rem' }}>
+                          <span>Pack Size *</span>
+                          <span>MRP (₹) *</span>
+                          <span>Sell Price (₹) *</span>
+                          <span>Stock *</span>
+                          <span>SKU Code</span>
+                          <span></span>
+                        </div>
 
-                      <div className="admin-form-group">
-                        <label className="admin-form-label">Warehouse Stock Units *</label>
-                        <input
-                          type="number"
-                          required
-                          value={cmsForm.stock}
-                          onChange={(e) => setCmsForm({ ...cmsForm, stock: Number(e.target.value) })}
-                          className="admin-form-input"
-                        />
+                        {(Array.isArray(cmsForm.variants) && cmsForm.variants.length > 0 ? cmsForm.variants : [
+                          { label: '500 g', mrp: cmsForm.price || 520, sellingPrice: cmsForm.discountPrice || 475, stock: cmsForm.stock || 27, sku: 'BIO-500G' }
+                        ]).map((v: any, idx: number) => {
+                          const disc = v.mrp > v.sellingPrice ? Math.round(((v.mrp - v.sellingPrice) / v.mrp) * 100) : 0;
+                          return (
+                            <div key={idx} style={{ display: 'grid', gridTemplateColumns: '130px 110px 120px 95px 1fr 34px', gap: '0.5rem', alignItems: 'center' }}>
+                              <input
+                                required
+                                value={v.label}
+                                onChange={(e) => {
+                                  const updated = [...(cmsForm.variants || [])];
+                                  updated[idx] = { ...updated[idx], label: e.target.value };
+                                  setCmsForm({ ...cmsForm, variants: updated });
+                                }}
+                                placeholder="e.g. 500 g or 1 kg"
+                                className="admin-form-input"
+                                style={{ fontSize: '0.82rem', padding: '0.45rem 0.6rem' }}
+                              />
+                              <input
+                                type="number"
+                                required
+                                value={v.mrp}
+                                onChange={(e) => {
+                                  const updated = [...(cmsForm.variants || [])];
+                                  updated[idx] = { ...updated[idx], mrp: Number(e.target.value) };
+                                  setCmsForm({ ...cmsForm, variants: updated });
+                                }}
+                                placeholder="520"
+                                className="admin-form-input"
+                                style={{ fontSize: '0.82rem', padding: '0.45rem 0.6rem' }}
+                              />
+                              <div style={{ position: 'relative' }}>
+                                <input
+                                  type="number"
+                                  required
+                                  value={v.sellingPrice}
+                                  onChange={(e) => {
+                                    const updated = [...(cmsForm.variants || [])];
+                                    updated[idx] = { ...updated[idx], sellingPrice: Number(e.target.value) };
+                                    setCmsForm({ ...cmsForm, variants: updated });
+                                  }}
+                                  placeholder="475"
+                                  className="admin-form-input"
+                                  style={{ fontSize: '0.82rem', padding: '0.45rem 0.6rem' }}
+                                />
+                                {disc > 0 && (
+                                  <span style={{ position: 'absolute', right: '4px', top: '-7px', fontSize: '0.65rem', background: '#DC2626', color: '#FFF', padding: '1px 4px', borderRadius: '4px', fontWeight: 700 }}>
+                                    {disc}%
+                                  </span>
+                                )}
+                              </div>
+                              <input
+                                type="number"
+                                required
+                                value={v.stock}
+                                onChange={(e) => {
+                                  const updated = [...(cmsForm.variants || [])];
+                                  updated[idx] = { ...updated[idx], stock: Number(e.target.value) };
+                                  setCmsForm({ ...cmsForm, variants: updated });
+                                }}
+                                placeholder="27"
+                                className="admin-form-input"
+                                style={{ fontSize: '0.82rem', padding: '0.45rem 0.6rem' }}
+                              />
+                              <input
+                                value={v.sku || ''}
+                                onChange={(e) => {
+                                  const updated = [...(cmsForm.variants || [])];
+                                  updated[idx] = { ...updated[idx], sku: e.target.value };
+                                  setCmsForm({ ...cmsForm, variants: updated });
+                                }}
+                                placeholder="e.g. BIO-500G"
+                                className="admin-form-input"
+                                style={{ fontSize: '0.82rem', padding: '0.45rem 0.6rem' }}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updated = (cmsForm.variants || []).filter((_: any, i: number) => i !== idx);
+                                  setCmsForm({ ...cmsForm, variants: updated });
+                                }}
+                                className="admin-btn-remove-row"
+                                title="Remove pack size"
+                                disabled={(cmsForm.variants || []).length <= 1}
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginTop: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginTop: '0.75rem' }}>
                       <input
                         type="checkbox"
                         id="prodFeatured"
