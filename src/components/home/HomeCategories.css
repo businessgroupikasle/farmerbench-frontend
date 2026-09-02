@@ -1,0 +1,178 @@
+.home-categories-section {
+  padding: 0.25rem 0 0.5rem;
+  font-family: var(--font-primary, "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+}
+
+.categories-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  margin-bottom: 0.85rem;
+}
+
+.categories-title {
+  font-size: clamp(1.4rem, 2.5vw, 1.85rem);
+  font-weight: 900;
+  color: #123C22;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.decor-dash {
+  width: 28px;
+  height: 2.5px;
+  background-color: #EAB308;
+  border-radius: 2px;
+}
+
+.categories-grid-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.categories-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 1rem;
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0.25rem 0.25rem 0.75rem;
+}
+
+.categories-grid::-webkit-scrollbar {
+  display: none;
+}
+
+@media (max-width: 1400px) {
+  .categories-grid {
+    display: flex;
+    min-width: 100%;
+    gap: 1rem;
+  }
+}
+
+/* ==========================================================================
+   Natural Professional E-commerce Category Card
+   ========================================================================== */
+.category-card-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-decoration: none;
+  border-radius: 20px;
+  padding: 0.85rem 0.7rem 0.85rem;
+  min-height: 220px;
+  min-width: 145px;
+  transition: transform 0.26s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.26s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  position: relative;
+  overflow: hidden;
+}
+
+.category-card-pill:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.08);
+}
+
+/* Image Showcase */
+.category-image-showcase {
+  width: 100%;
+  height: 115px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+
+.cat-photo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+}
+
+.category-card-pill:hover .cat-photo-img {
+  transform: scale(1.05);
+}
+
+/* Bottom Text Area */
+.category-bottom-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  text-align: center;
+}
+
+.category-title-text {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #17251E;
+  margin: 0;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.category-shop-now-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #15803D;
+  transition: all 0.2s ease;
+}
+
+.shop-arrow-icon {
+  transition: transform 0.2s ease;
+}
+
+.category-card-pill:hover .category-shop-now-link {
+  color: #0F5128;
+}
+
+.category-card-pill:hover .shop-arrow-icon {
+  transform: translateX(3px);
+}
+
+/* Floating White Next Button */
+.categories-floating-next-btn {
+  position: absolute;
+  right: -16px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  z-index: 10;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.categories-floating-next-btn:hover {
+  background-color: #F8FAFC;
+  transform: scale(1.1);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+}
+
+
+
+
+
+

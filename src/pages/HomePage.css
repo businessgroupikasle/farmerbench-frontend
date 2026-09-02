@@ -12,9 +12,11 @@
 .homepage-sections-container {
   display: flex;
   flex-direction: column;
-  gap: 4.5rem;
-  padding-bottom: 5.5rem;
+  gap: 1.25rem;
+  padding-bottom: 3.5rem;
 }
+
+
 
 /* --------------------------------------------------------------------------
    1. HomeHero Section

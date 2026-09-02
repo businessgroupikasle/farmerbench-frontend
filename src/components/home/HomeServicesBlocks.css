@@ -1,0 +1,412 @@
+.home-solutions-section {
+  padding: 1rem 0 2rem;
+  font-family: var(--font-primary, "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif);
+}
+
+.solutions-container {
+  background: linear-gradient(170deg, #071E10 0%, #0B2917 50%, #06180C 100%);
+  border-radius: 28px;
+  padding: 2.25rem 2.25rem;
+  box-shadow: 0 16px 45px rgba(5, 25, 12, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ==========================================================================
+   ROW 1: SOLUTIONS TOP ROW
+   ========================================================================== */
+.solutions-top-row {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+/* Left Intro Block */
+.solutions-intro-block {
+  flex: 0 0 260px;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.solutions-gold-tag {
+  color: #FACC15;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 0.4rem;
+}
+
+.solutions-main-title {
+  color: #ffffff;
+  font-size: clamp(1.85rem, 2.5vw, 2.25rem);
+  font-weight: 800;
+  line-height: 1.15;
+  margin: 0 0 0.75rem 0;
+  letter-spacing: -0.02em;
+}
+
+.solutions-desc-text {
+  color: #94A3B8;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  margin: 0 0 1.35rem 0;
+}
+
+.solutions-view-all-btn {
+  background-color: #4C6F19;
+  color: #ffffff;
+  padding: 0.7rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  text-decoration: none;
+  width: fit-content;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(76, 111, 25, 0.4);
+}
+
+.solutions-view-all-btn:hover {
+  background-color: #5D8620;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(76, 111, 25, 0.55);
+}
+
+/* Right 4 White Service Cards */
+.solutions-cards-grid {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.15rem;
+}
+
+
+.service-white-card {
+  background-color: #ffffff;
+  border-radius: 18px;
+  padding: 1.1rem 0.85rem 0.95rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
+  transition: transform 0.26s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.26s ease;
+  min-height: 195px;
+}
+
+.service-white-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.22);
+}
+
+.service-card-img-wrap {
+  width: 100%;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 0.4rem;
+}
+
+.service-card-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: transform 0.3s ease;
+}
+
+.service-white-card:hover .service-card-photo {
+  transform: scale(1.05);
+}
+
+
+.service-card-heading {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #17251E;
+  margin: 0 0 0.35rem 0;
+  line-height: 1.25;
+}
+
+.service-book-now-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #15803D;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.book-arrow {
+  transition: transform 0.2s ease;
+}
+
+.service-white-card:hover .service-book-now-link {
+  color: #0F5128;
+}
+
+.service-white-card:hover .book-arrow {
+  transform: translateX(3px);
+}
+
+/* ==========================================================================
+   ROW 2: BENTO BOTTOM ROW
+   ========================================================================== */
+.solutions-bento-bottom-row {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr 1fr;
+  gap: 1.25rem;
+}
+
+.bento-feature-card {
+  border-radius: 20px;
+  padding: 1.5rem 1.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  position: relative;
+  overflow: hidden;
+  min-height: 220px;
+  transition: transform 0.26s ease, box-shadow 0.26s ease;
+}
+
+.bento-feature-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Card 1: Bulk Order */
+.card-bulk-order {
+  background: linear-gradient(145deg, #12361D 0%, #0C2614 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.bento-bulk-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 1;
+}
+
+.bento-gold-pill {
+  color: #FACC15;
+  font-size: 1rem;
+  font-weight: 800;
+  margin-bottom: 0.2rem;
+}
+
+.bento-card-title {
+  color: #ffffff;
+  font-size: 1.28rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin: 0 0 0.45rem 0;
+}
+
+.bento-card-desc {
+  color: #94A3B8;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  margin: 0 0 1rem 0;
+}
+
+.bento-green-btn {
+  background-color: #527A1A;
+  color: #ffffff;
+  padding: 0.55rem 1.35rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(82, 122, 26, 0.4);
+}
+
+.bento-green-btn:hover {
+  background-color: #639221;
+  transform: translateY(-2px);
+}
+
+.bento-bulk-image-box {
+  width: 140px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.bento-products-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 16px rgba(0,0,0,0.3));
+}
+
+/* Card 2: Why Choose Us */
+.card-why-choose {
+  background: linear-gradient(145deg, #163E21 0%, #0E2916 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.bento-why-content {
+  flex: 1;
+}
+
+.bento-checklist {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.bento-checklist li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.bento-check-icon {
+  color: #78B833;
+  flex-shrink: 0;
+}
+
+.bento-farmer-image-box {
+  width: 140px;
+  height: 180px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.bento-farmer-img {
+  max-height: 100%;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.25));
+}
+
+/* Card 3: Download Our App */
+.card-download-app {
+  background: linear-gradient(135deg, #FDE6CE 0%, #F5C6A0 40%, #CDE3CB 100%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.bento-app-content {
+  flex: 1;
+}
+
+.bento-app-title {
+  color: #1A202C;
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin: 0 0 0.25rem 0;
+}
+
+.bento-app-desc {
+  color: #4A5568;
+  font-size: 0.85rem;
+  margin: 0 0 1rem 0;
+  font-weight: 500;
+}
+
+.app-download-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.app-store-btn {
+  background-color: #000000;
+  color: #ffffff;
+  border-radius: 8px;
+  padding: 0.45rem 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  width: fit-content;
+  transition: transform 0.2s ease;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+.app-store-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+
+.app-btn-text {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.app-btn-sub {
+  font-size: 0.56rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #94A3B8;
+  line-height: 1;
+}
+
+.app-btn-main {
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.bento-app-image-box {
+  width: 125px;
+  height: 165px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.bento-phone-img {
+  max-height: 100%;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 18px rgba(0,0,0,0.2));
+}
+
+/* ==========================================================================
+   Responsive Breakpoints
+   ========================================================================== */
+@media (max-width: 1200px) {
+  .solutions-top-row {
+    flex-direction: column;
+  }
+  .solutions-intro-block {
+    max-width: 100%;
+  }
+  .solutions-bento-bottom-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .solutions-container {
+    padding: 1.5rem 1.25rem;
+  }
+  .solutions-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

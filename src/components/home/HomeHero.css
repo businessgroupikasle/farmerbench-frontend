@@ -1,0 +1,190 @@
+.farmer-hero-section {
+  position: relative;
+  width: 100%;
+  min-height: 500px;
+  background-color: #F8F9FA;
+  overflow: visible; /* To allow trust badges to overlap */
+}
+
+.farmer-hero-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-size: cover;
+  background-position: center;
+  z-index: 1;
+}
+
+.farmer-hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.85) 40%, rgba(255,255,255,0.3) 100%);
+}
+
+.farmer-hero-container {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4rem 1.5rem 6rem;
+  min-height: 500px;
+}
+
+.farmer-hero-content {
+  max-width: 500px;
+}
+
+.farmer-hero-title {
+  font-size: clamp(2.5rem, 4vw, 3.5rem);
+  font-weight: 800;
+  color: #17251E;
+  line-height: 1.1;
+  margin-bottom: 1rem;
+}
+
+.text-green {
+  color: #123C22;
+}
+
+.farmer-hero-subtitle {
+  font-size: 1.1rem;
+  color: #4A5B52;
+  line-height: 1.5;
+  margin-bottom: 2rem;
+  max-width: 90%;
+}
+
+.farmer-hero-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-shop-products {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #123C22;
+  color: #ffffff;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btn-shop-products:hover {
+  background-color: #1A5330;
+}
+
+.btn-explore-services {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #ffffff;
+  color: #123C22;
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  border: 1px solid #123C22;
+  transition: all 0.2s;
+}
+
+.btn-explore-services:hover {
+  background-color: #F8F9FA;
+}
+
+.farmer-hero-banner-wrapper {
+  background-color: #FFFDE7;
+  border: 2px solid #FFF59D;
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  max-width: 300px;
+  position: relative;
+}
+
+.sale-tag {
+  background-color: #FBC02D;
+  color: #000;
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  display: inline-block;
+  margin-bottom: 0.5rem;
+}
+
+.sale-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 0.5rem;
+}
+
+.sale-discount {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  color: #123C22;
+  margin-bottom: 0.25rem;
+}
+
+.discount-number {
+  font-size: 3.5rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.discount-text {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.sale-desc {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #17251E;
+  margin-bottom: 1rem;
+}
+
+.sale-extra {
+  background-color: #D32F2F;
+  color: #ffffff;
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.sale-code {
+  background-color: #123C22;
+  color: #ffffff;
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 900px) {
+  .farmer-hero-container {
+    flex-direction: column;
+    text-align: center;
+    gap: 2rem;
+  }
+  .farmer-hero-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .farmer-hero-actions {
+    justify-content: center;
+  }
+}
