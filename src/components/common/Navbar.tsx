@@ -62,6 +62,34 @@ export const Navbar: React.FC = () => {
   return (
     <>
       <header className="agriflow-header">
+        {/* Top Bar */}
+        <div className="agriflow-topbar hide-mobile">
+          <div className="container agriflow-topbar-container">
+            <div className="topbar-left">
+              <Sparkles size={14} className="topbar-icon" />
+              <span>Supporting Farmers, Growing Together</span>
+            </div>
+            <div className="topbar-center">
+              <span className="topbar-item">
+                <Tractor size={14} className="topbar-icon" /> Free Delivery on Orders Above ₹999
+              </span>
+              <span className="topbar-item">
+                <UserIcon size={14} className="topbar-icon" /> 24/7 Farmer Support
+              </span>
+            </div>
+            <div className="topbar-right">
+              <span className="topbar-item">
+                <Stethoscope size={14} className="topbar-icon" /> +91 98765-43210
+              </span>
+              <div className="topbar-socials">
+                <span className="social-icon">f</span>
+                <span className="social-icon">i</span>
+                <span className="social-icon">y</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="container agriflow-nav-container">
           {/* Brand Logo - FarmerBench */}
           <Link to="/" className="agriflow-brand" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', textDecoration: 'none' }}>
@@ -179,87 +207,26 @@ export const Navbar: React.FC = () => {
               Contact Us
             </Link>
 
-            {/* Right Action Group: My Account & Cart matching reference image */}
+            {/* Right Action Group: Search, Cart, Enquire Now */}
             <div className="agriflow-header-actions">
-              {/* Account Widget */}
-              <div ref={userMenuRef} style={{ position: 'relative' }}>
-                <button
-                  onClick={() => {
-                    if (isAuthenticated && user) {
-                      setIsUserMenuOpen(!isUserMenuOpen);
-                    } else {
-                      navigate('/login');
-                    }
-                  }}
-                  className="agriflow-account-btn"
-                  title="My Account"
-                >
-                  <div className="agriflow-icon-box">
-                    {isAuthenticated && user?.avatarUrl ? (
-                      <img
-                        src={user.avatarUrl}
-                        alt={user.name}
-                        style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }}
-                      />
-                    ) : (
-                      <UserIcon size={18} strokeWidth={2.2} />
-                    )}
-                  </div>
-                  <div className="agriflow-account-text">
-                    <span className="agriflow-account-subtext">
-                      {isAuthenticated && user ? `Hi, ${user.name.split(' ')[0]}` : 'Login / Register'}
-                    </span>
-                    <span className="agriflow-account-title">
-                      My Account <ChevronDown size={13} strokeWidth={2.6} />
-                    </span>
-                  </div>
-                </button>
-
-                {/* Dropdown menu when logged in */}
-                {isAuthenticated && user && isUserMenuOpen && (
-                  <div className="agriflow-user-menu animate-fade-in">
-                    <div style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                      <p style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ffffff' }}>{user.name}</p>
-                      <p style={{ fontSize: '0.75rem', color: '#94A3B8', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {user.email}
-                      </p>
-                    </div>
-
-                    <Link to="/dashboard" onClick={() => setIsUserMenuOpen(false)} className="agriflow-user-menu-item">
-                      <LayoutDashboard size={15} /> Dashboard
-                    </Link>
-                    <Link to="/dashboard?tab=orders" onClick={() => setIsUserMenuOpen(false)} className="agriflow-user-menu-item">
-                      <PackageCheck size={15} /> My Orders
-                    </Link>
-                    {isAdmin && (
-                      <Link to="/admin" onClick={() => setIsUserMenuOpen(false)} className="agriflow-user-menu-item" style={{ color: '#F6B748', fontWeight: 600 }}>
-                        <ShieldCheck size={15} /> Admin Portal
-                      </Link>
-                    )}
-                    <button
-                      onClick={() => {
-                        setIsUserMenuOpen(false);
-                        logout();
-                      }}
-                      className="agriflow-user-menu-item"
-                      style={{ background: 'transparent', border: 'none', color: '#f87171', borderTop: '1px solid rgba(255,255,255,0.08)', width: '100%', cursor: 'pointer' }}
-                    >
-                      <LogOut size={15} /> Sign Out
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Vertical Divider */}
-              <div className="agriflow-actions-divider" />
+              {/* Search Icon */}
+              <button className="agriflow-account-btn" title="Search">
+                <div className="agriflow-icon-box">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </div>
+              </button>
 
               {/* Cart Widget */}
               <Link to="/cart" className="agriflow-cart-widget-btn" aria-label="View shopping cart" style={{ textDecoration: 'none' }}>
                 <div className="agriflow-cart-icon-box">
-                  <ShoppingCart size={18} strokeWidth={2.2} />
-                  <span className="agriflow-cart-green-badge">{totalItems > 0 ? totalItems : 3}</span>
+                  <ShoppingCart size={20} strokeWidth={2.2} />
+                  <span className="agriflow-cart-green-badge" style={{ backgroundColor: '#F6B748', color: '#17251E', border: '1px solid #fff' }}>{totalItems > 0 ? totalItems : 3}</span>
                 </div>
-                <span className="agriflow-cart-widget-title">Cart</span>
+              </Link>
+
+              {/* Enquire Now Button */}
+              <Link to="/contact" className="agriflow-btn-contact" style={{ textDecoration: 'none', backgroundColor: '#123C22', color: '#ffffff', borderRadius: '20px', padding: '0.6rem 1.25rem', fontSize: '0.85rem' }}>
+                Enquire Now
               </Link>
             </div>
           </div>
