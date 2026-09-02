@@ -43,6 +43,19 @@ export const useProduct = (idOrSlug: string | undefined) => {
   });
 };
 
+export const useProductReviews = (idOrSlug: string | undefined) => {
+  return useQuery({
+    queryKey: ['product-reviews', idOrSlug],
+    queryFn: async () => {
+      if (!idOrSlug) return null;
+      const res = await productService.getProductReviews(idOrSlug);
+      return res.data || null;
+    },
+    enabled: !!idOrSlug,
+    staleTime: 1000 * 60 * 2,
+  });
+};
+
 export const useProductMutations = () => {
   const queryClient = useQueryClient();
   const { addToast } = useUIStore();
@@ -89,8 +102,49 @@ export const useProductMutations = () => {
     mutationFn: (data: CreateReviewInput) => productService.addReview(data),
     onSuccess: (_res, variables) => {
       queryClient.invalidateQueries({ queryKey: ['product', variables.productId] });
+      queryClient.invalidateQueries({ queryKey: ['product-reviews', variables.productId] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
-      addToast({ type: 'success', message: 'Review submitted successfully!' });
+      queryClient.invalidateQueries({ queryKey: ['product'] });
+    },
+    onError: (error: Error) => {
+      addToast({ type: 'error', message: error.message });
+    },
+  });
+
+  const updateReview = useMutation({
+    mutationFn: ({
+      reviewId,
+      data,
+    }: {
+      reviewId: string;
+      productId: string;
+      data: { rating?: number; comment?: string };
+    }) => productService.updateReview(reviewId, data),
+    onSuccess: (_res, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['product', variables.productId] });
+      queryClient.invalidateQueries({ queryKey: ['product-reviews', variables.productId] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['product'] });
+      addToast({ type: 'success', message: 'Review updated successfully!' });
+    },
+    onError: (error: Error) => {
+      addToast({ type: 'error', message: error.message });
+    },
+  });
+
+  const deleteReview = useMutation({
+    mutationFn: ({
+      reviewId,
+    }: {
+      reviewId: string;
+      productId: string;
+    }) => productService.deleteReview(reviewId),
+    onSuccess: (_res, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['product', variables.productId] });
+      queryClient.invalidateQueries({ queryKey: ['product-reviews', variables.productId] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['product'] });
+      addToast({ type: 'success', message: 'Review deleted successfully' });
     },
     onError: (error: Error) => {
       addToast({ type: 'error', message: error.message });
@@ -106,5 +160,9 @@ export const useProductMutations = () => {
     isDeleting: deleteProduct.isPending,
     addReview: addReview.mutateAsync,
     isSubmittingReview: addReview.isPending,
+    updateReview: updateReview.mutateAsync,
+    isUpdatingReview: updateReview.isPending,
+    deleteReview: deleteReview.mutateAsync,
+    isDeletingReview: deleteReview.isPending,
   };
 };

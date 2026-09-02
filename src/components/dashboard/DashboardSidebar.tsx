@@ -15,7 +15,6 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { User } from '@formerbench/shared';
-import farmerAvatar from '../../assets/about-garden-man.jpg';
 
 interface DashboardSidebarProps {
   user: User | null;
@@ -33,21 +32,21 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   activeTab,
   onSelectTab,
   onLogout,
-  ordersCount,
-  wishlistCount,
-  bookingsCount = 2,
-  doctorRequestsCount = 1,
+  ordersCount = 0,
+  wishlistCount = 0,
+  bookingsCount = 0,
+  doctorRequestsCount = 0,
 }) => {
   const displayName = user?.name || 'Farmer Member';
-  const displayPhone = user?.phone || '+91 98765 43210';
-  const avatarSrc = user?.avatarUrl || farmerAvatar;
+  const displayPhone = user?.phone || user?.email || 'Contact Info';
+  const avatarSrc = user?.avatarUrl;
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
     { id: 'orders', label: 'My Orders', icon: <Package size={18} />, badge: ordersCount },
     { id: 'tracking', label: 'Track Orders', icon: <Truck size={18} /> },
     { id: 'wishlist', label: 'Wishlist', icon: <Heart size={18} />, badge: wishlistCount },
-    { id: 'saved', label: 'Saved for Later', icon: <Bookmark size={18} />, badge: 2 },
+    { id: 'saved', label: 'Saved for Later', icon: <Bookmark size={18} /> },
     { id: 'reviews', label: 'My Reviews', icon: <Star size={18} /> },
     { id: 'bookings', label: 'Service Bookings', icon: <CalendarCheck size={18} />, badge: bookingsCount },
     { id: 'crop-doctor', label: 'Crop Doctor Requests', icon: <Stethoscope size={18} />, badge: doctorRequestsCount },
@@ -74,7 +73,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           <span className="fb-user-phone">{displayPhone}</span>
           <div className="fb-verified-badge">
             <CheckCircle2 size={12} color="#16a34a" />
-            <span>Verified Account</span>
+            <span>{user?.emailVerified ? 'Verified Account' : 'Active Member'}</span>
           </div>
         </div>
       </div>

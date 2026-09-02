@@ -111,7 +111,12 @@ export const DashboardPage: React.FC = () => {
   const activeOrdersList = orders.filter(
     (o) => o.orderStatus !== 'DELIVERED' && o.orderStatus !== 'CANCELLED'
   );
-  const primaryActiveOrder = activeOrdersList[0] || (orders.length > 0 ? orders[0] : null);
+  const primaryActiveOrder = activeOrdersList[0] || null;
+
+  // Reward points calculated dynamically from real total spent (10% back in points)
+  const calculatedRewardPoints = Math.round(
+    orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0) * 0.1
+  );
 
   // Handle Actions
   const handleAddToCartFromWishlist = (product: Product | any) => {
@@ -162,7 +167,7 @@ export const DashboardPage: React.FC = () => {
   };
 
   const handleOpenReviewModal = (productTitle?: string) => {
-    setSelectedReviewProduct(productTitle || 'Neem Oil 100% Cold Pressed');
+    setSelectedReviewProduct(productTitle || 'Purchased Product');
     setIsReviewModalOpen(true);
   };
 
@@ -214,10 +219,10 @@ export const DashboardPage: React.FC = () => {
     <div className="fb-dashboard-container">
       {/* Top 4 KPI Metric Summary Cards */}
       <DashboardStats
-        activeOrdersCount={activeOrdersList.length || 2}
-        wishlistCount={wishlistItems.length || 6}
-        bookingsCount={2}
-        rewardPoints={1240}
+        activeOrdersCount={activeOrdersList.length}
+        wishlistCount={wishlistItems.length}
+        bookingsCount={0}
+        rewardPoints={calculatedRewardPoints}
         onNavigateTab={handleSelectTab}
       />
 
@@ -232,10 +237,10 @@ export const DashboardPage: React.FC = () => {
             logout();
             navigate('/');
           }}
-          ordersCount={orders.length || 3}
-          wishlistCount={wishlistItems.length || 6}
-          bookingsCount={2}
-          doctorRequestsCount={1}
+          ordersCount={orders.length}
+          wishlistCount={wishlistItems.length}
+          bookingsCount={0}
+          doctorRequestsCount={0}
         />
 
         {/* Right Main Dashboard Area */}
@@ -322,15 +327,17 @@ export const DashboardPage: React.FC = () => {
               {/* Row 3: Reviews & Feedback + Recommended Crops + Profile Completion + Security */}
               <div className="fb-row-3-grid">
                 <ReviewsFeedbackCard
+                  orders={orders}
                   onViewAllReviews={() => handleSelectTab('reviews')}
-                  onEditReview={() => handleOpenReviewModal('Growth Booster for All Crops')}
-                  onWriteReview={(title) => handleOpenReviewModal(title)}
+                  onEditReview={() => handleOpenReviewModal()}
+                  onWriteReview={(item) => handleOpenReviewModal(item?.title)}
                 />
 
                 <CropRecommendationsCard
                   cropName={user?.crops ? user.crops.split(',')[0].split(' ')[0] : 'Paddy'}
+                  products={productsData?.data || []}
                   onViewRecommendations={() => navigate('/products?category=bio-fertilizers')}
-                  onSelectProduct={() => navigate('/products')}
+                  onSelectProduct={(p) => navigate(`/product/${p.slug || p.id}`)}
                 />
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
@@ -559,9 +566,10 @@ export const DashboardPage: React.FC = () => {
               </div>
 
               <ReviewsFeedbackCard
+                orders={orders}
                 onViewAllReviews={() => {}}
-                onEditReview={() => handleOpenReviewModal('Growth Booster for All Crops')}
-                onWriteReview={(title) => handleOpenReviewModal(title)}
+                onEditReview={() => handleOpenReviewModal()}
+                onWriteReview={(item) => handleOpenReviewModal(item?.title)}
               />
             </div>
           )}

@@ -18,8 +18,6 @@ import {
   MapPin,
   ChevronLeft,
   AlertCircle,
-  Smartphone,
-  Building2,
 } from 'lucide-react';
 import './CartPage.css';
 import './CheckoutPage.css';
@@ -70,17 +68,6 @@ export const CheckoutPage: React.FC = () => {
 
   // Payment Method
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('RAZORPAY');
-
-  // Simulation Modal State
-  const [simModalOpen, setSimModalOpen] = useState(false);
-  const [simOrderData, setSimOrderData] = useState<{
-    orderId: string;
-    razorpayOrderId: string;
-    amount: number;
-  } | null>(null);
-  const [simMethodTab, setSimMethodTab] = useState<'upi' | 'card' | 'netbanking'>('upi');
-  const [simUpiId, setSimUpiId] = useState('farmer@okaxis');
-  const [simCardNumber, setSimCardNumber] = useState('4111 2222 3333 4444');
 
   // Calculations
   const freeDeliveryThreshold = 999;
@@ -175,34 +162,6 @@ export const CheckoutPage: React.FC = () => {
     };
   };
 
-  const completeSuccessfulPayment = async (orderId: string, paymentId: string, rzpOrderId: string, signature: string) => {
-    try {
-      setIsProcessing(true);
-      await paymentService.verifyPayment({
-        orderId,
-        razorpay_order_id: rzpOrderId,
-        razorpay_payment_id: paymentId,
-        razorpay_signature: signature,
-      });
-
-      // Clear local and server cart & invalidate queries for instant sync
-      clearCart();
-      queryClient.invalidateQueries({ queryKey: ['orders'] });
-      queryClient.invalidateQueries({ queryKey: ['cart'] });
-      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-
-      addToast({ type: 'success', message: 'Payment successful! Order confirmed.' });
-      setSimModalOpen(false);
-      navigate(`/order-confirmation/${orderId}`);
-    } catch (err: any) {
-      console.error('Verification error:', err);
-      addToast({ type: 'error', message: err.message || 'Payment verification failed' });
-      setErrorMsg(err.message || 'Payment verification failed');
-      setIsProcessing(false);
-    }
-  };
-
   const handlePaymentAndPlaceOrder = async () => {
     setErrorMsg(null);
 
@@ -216,7 +175,7 @@ export const CheckoutPage: React.FC = () => {
     try {
       const shippingAddress = getCombinedShippingAddress();
 
-      // 1. Create order in Backend database
+      // 1. Create order in Backend database (Initial status: PENDING)
       const orderRes = await orderService.createOrder({
         shippingAddress,
         paymentMethod,
@@ -228,73 +187,84 @@ export const CheckoutPage: React.FC = () => {
 
       const createdOrder = orderRes.data;
 
-      // 2. If Razorpay is chosen, initiate transaction
+      // 2. If Razorpay is chosen, open the official Razorpay Checkout SDK
       if (paymentMethod === 'RAZORPAY') {
-        const rzpRes = await paymentService.createRazorpayOrder(createdOrder.id);
+        const isLoaded = await loadRazorpayCheckout();
+        if (!isLoaded || typeof window.Razorpay !== 'function') {
+          throw new Error('Razorpay payment gateway failed to load. Please check your internet connection.');
+        }
 
+        const rzpRes = await paymentService.createRazorpayOrder(createdOrder.id);
         if (!rzpRes.success || !rzpRes.data) {
-          throw new Error(rzpRes.message || 'Failed to initiate Razorpay transaction');
+          throw new Error(rzpRes.message || 'Failed to create Razorpay payment order');
         }
 
         const rzpData = rzpRes.data;
-        const isSim =
-          (rzpData as any).isSimulation ||
-          rzpData.razorpayOrderId.startsWith('order_sim_') ||
-          !rzpData.keyId ||
-          rzpData.keyId === 'rzp_test_demo_key';
 
-        // A. If live Razorpay keys are configured and valid, open official Razorpay Checkout SDK
-        if (!isSim && typeof window.Razorpay === 'function') {
-          const options = {
-            key: rzpData.keyId,
-            amount: rzpData.amount,
-            currency: rzpData.currency || 'INR',
-            name: 'FarmerBench Agri Commerce',
-            description: `Payment for Order #${createdOrder.id.slice(0, 8)}`,
-            order_id: rzpData.razorpayOrderId,
-            prefill: {
-              name: fullName,
-              email: user?.email || '',
-              contact: phone,
-            },
-            theme: {
-              color: '#15803D',
-            },
-            handler: async (response: any) => {
-              await completeSuccessfulPayment(
-                createdOrder.id,
-                response.razorpay_payment_id || `pay_${Date.now()}`,
-                response.razorpay_order_id || rzpData.razorpayOrderId,
-                response.razorpay_signature || ''
-              );
-            },
-            modal: {
-              ondismiss: () => {
-                setIsProcessing(false);
-                addToast({ type: 'info', message: 'Payment popup closed. You can retry payment.' });
-              },
-            },
-          };
-
-          const rzpInstance = new window.Razorpay(options);
-          rzpInstance.on('payment.failed', (response: any) => {
-            const reason = response?.error?.description || 'Payment failed. Please retry.';
-            setErrorMsg(reason);
-            addToast({ type: 'error', message: reason });
-            setIsProcessing(false);
-          });
-          rzpInstance.open();
-          return;
-        }
-
-        // B. If running in smart test sandbox simulation mode, open Interactive Sandbox Gateway
-        setIsProcessing(false);
-        setSimOrderData({
-          orderId: createdOrder.id,
-          razorpayOrderId: rzpData.razorpayOrderId,
+        const options = {
+          key: rzpData.keyId,
           amount: rzpData.amount,
+          currency: rzpData.currency || 'INR',
+          name: 'FarmerBench Agri Commerce',
+          description: `Payment for Order #${createdOrder.id.slice(0, 8)}`,
+          order_id: rzpData.razorpayOrderId,
+          prefill: {
+            name: fullName.trim(),
+            email: user?.email || '',
+            contact: phone.trim(),
+          },
+          theme: {
+            color: '#15803D',
+          },
+          handler: async (response: {
+            razorpay_payment_id: string;
+            razorpay_order_id: string;
+            razorpay_signature: string;
+          }) => {
+            try {
+              setIsProcessing(true);
+              await paymentService.verifyPayment({
+                orderId: createdOrder.id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              });
+
+              clearCart();
+              queryClient.invalidateQueries({ queryKey: ['orders'] });
+              queryClient.invalidateQueries({ queryKey: ['cart'] });
+              queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
+              queryClient.invalidateQueries({ queryKey: ['products'] });
+
+              addToast({ type: 'success', message: 'Payment successful! Order confirmed.' });
+              navigate(`/order-confirmation/${createdOrder.id}`);
+            } catch (verifyErr: any) {
+              console.error('Payment verification error:', verifyErr);
+              setErrorMsg(verifyErr.message || 'Payment verification failed.');
+              addToast({ type: 'error', message: verifyErr.message || 'Payment verification failed' });
+              setIsProcessing(false);
+            }
+          },
+          modal: {
+            ondismiss: () => {
+              setIsProcessing(false);
+              addToast({ type: 'info', message: 'Payment window closed. You can retry payment.' });
+            },
+          },
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', (failResponse: any) => {
+          const errorDescription =
+            failResponse?.error?.description ||
+            failResponse?.error?.reason ||
+            'Payment failed. Please retry.';
+          setErrorMsg(errorDescription);
+          addToast({ type: 'error', message: errorDescription });
+          setIsProcessing(false);
         });
-        setSimModalOpen(true);
+        rzp.open();
+        return;
       } else {
         // Cash on Delivery
         clearCart();
@@ -642,7 +612,7 @@ export const CheckoutPage: React.FC = () => {
                   style={{ flex: 1 }}
                 >
                   {isProcessing ? (
-                    <span>Processing Payment...</span>
+                    <span>Connecting to Razorpay...</span>
                   ) : paymentMethod === 'RAZORPAY' ? (
                     <>
                       <span>Pay ₹{grandTotal.toFixed(2)} via Razorpay</span>
@@ -729,288 +699,6 @@ export const CheckoutPage: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* ================= RAZORPAY TEST SANDBOX SIMULATION MODAL ================= */}
-      {simModalOpen && simOrderData && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.75)',
-            backdropFilter: 'blur(6px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: '1rem',
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '20px',
-              maxWidth: '480px',
-              width: '100%',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-          >
-            {/* Modal Header */}
-            <div
-              style={{
-                backgroundColor: '#0F4726',
-                color: '#ffffff',
-                padding: '1.5rem',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-              }}
-            >
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.05em', backgroundColor: 'rgba(255,255,255,0.2)', padding: '0.2rem 0.6rem', borderRadius: '999px' }}>
-                    RAZORPAY TEST GATEWAY
-                  </span>
-                </div>
-                <h3 style={{ fontSize: '1.35rem', fontWeight: 800, margin: '0.25rem 0' }}>
-                  FarmerBench Agri Commerce
-                </h3>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#BBF7D0' }}>
-                  Order ID: #{simOrderData.orderId.slice(0, 8)}
-                </p>
-              </div>
-
-              <div style={{ textAlign: 'right' }}>
-                <span style={{ fontSize: '0.75rem', color: '#BBF7D0' }}>Amount to Pay</span>
-                <p style={{ margin: '0.1rem 0 0', fontSize: '1.4rem', fontWeight: 800 }}>
-                  ₹{(simOrderData.amount / 100).toFixed(2)}
-                </p>
-              </div>
-            </div>
-
-            {/* Modal Tabs */}
-            <div style={{ display: 'flex', borderBottom: '1px solid #E2E8F0', backgroundColor: '#F8FAFC' }}>
-              <button
-                type="button"
-                onClick={() => setSimMethodTab('upi')}
-                style={{
-                  flex: 1,
-                  padding: '0.85rem 0.5rem',
-                  border: 'none',
-                  background: simMethodTab === 'upi' ? '#ffffff' : 'transparent',
-                  fontWeight: simMethodTab === 'upi' ? 700 : 500,
-                  color: simMethodTab === 'upi' ? '#15803D' : '#64748B',
-                  borderBottom: simMethodTab === 'upi' ? '2px solid #15803D' : 'none',
-                  cursor: 'pointer',
-                  fontSize: '0.85rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.4rem',
-                }}
-              >
-                <Smartphone size={16} /> UPI / QR
-              </button>
-              <button
-                type="button"
-                onClick={() => setSimMethodTab('card')}
-                style={{
-                  flex: 1,
-                  padding: '0.85rem 0.5rem',
-                  border: 'none',
-                  background: simMethodTab === 'card' ? '#ffffff' : 'transparent',
-                  fontWeight: simMethodTab === 'card' ? 700 : 500,
-                  color: simMethodTab === 'card' ? '#15803D' : '#64748B',
-                  borderBottom: simMethodTab === 'card' ? '2px solid #15803D' : 'none',
-                  cursor: 'pointer',
-                  fontSize: '0.85rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.4rem',
-                }}
-              >
-                <CreditCard size={16} /> Card
-              </button>
-              <button
-                type="button"
-                onClick={() => setSimMethodTab('netbanking')}
-                style={{
-                  flex: 1,
-                  padding: '0.85rem 0.5rem',
-                  border: 'none',
-                  background: simMethodTab === 'netbanking' ? '#ffffff' : 'transparent',
-                  fontWeight: simMethodTab === 'netbanking' ? 700 : 500,
-                  color: simMethodTab === 'netbanking' ? '#15803D' : '#64748B',
-                  borderBottom: simMethodTab === 'netbanking' ? '2px solid #15803D' : 'none',
-                  cursor: 'pointer',
-                  fontSize: '0.85rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.4rem',
-                }}
-              >
-                <Building2 size={16} /> NetBanking
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              {simMethodTab === 'upi' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-                    {['Google Pay', 'PhonePe', 'Paytm', 'BHIM UPI'].map((app) => (
-                      <span
-                        key={app}
-                        style={{
-                          padding: '0.35rem 0.75rem',
-                          borderRadius: '8px',
-                          border: '1px solid #CBD5E1',
-                          backgroundColor: '#F8FAFC',
-                          fontSize: '0.8rem',
-                          fontWeight: 600,
-                          color: '#334155',
-                        }}
-                      >
-                        {app}
-                      </span>
-                    ))}
-                  </div>
-
-                  <div>
-                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.3rem' }}>
-                      UPI ID / VPA
-                    </label>
-                    <input
-                      type="text"
-                      value={simUpiId}
-                      onChange={(e) => setSimUpiId(e.target.value)}
-                      className="checkout-input"
-                      placeholder="e.g. mobile@upi"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {simMethodTab === 'card' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  <div>
-                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.3rem' }}>
-                      Card Number (Test Simulation)
-                    </label>
-                    <input
-                      type="text"
-                      value={simCardNumber}
-                      onChange={(e) => setSimCardNumber(e.target.value)}
-                      className="checkout-input"
-                    />
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                    <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.3rem' }}>
-                        Expiry (MM/YY)
-                      </label>
-                      <input type="text" defaultValue="12/28" className="checkout-input" />
-                    </div>
-                    <div>
-                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.3rem' }}>
-                        CVV
-                      </label>
-                      <input type="password" defaultValue="123" maxLength={3} className="checkout-input" />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {simMethodTab === 'netbanking' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#475569' }}>
-                    Select Popular Bank
-                  </label>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                    {['State Bank of India', 'HDFC Bank', 'ICICI Bank', 'Axis Bank', 'Kotak Mahindra', 'Punjab National'].map((bank) => (
-                      <div
-                        key={bank}
-                        style={{
-                          padding: '0.5rem 0.75rem',
-                          borderRadius: '8px',
-                          border: '1px solid #E2E8F0',
-                          backgroundColor: '#F8FAFC',
-                          fontSize: '0.8rem',
-                          fontWeight: 600,
-                          color: '#1E293B',
-                        }}
-                      >
-                        {bank}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', marginTop: '0.5rem' }}>
-                <button
-                  type="button"
-                  disabled={isProcessing}
-                  onClick={() => {
-                    const payId = `pay_sim_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-                    void completeSuccessfulPayment(
-                      simOrderData.orderId,
-                      payId,
-                      simOrderData.razorpayOrderId,
-                      'simulated_valid_signature'
-                    );
-                  }}
-                  style={{
-                    backgroundColor: '#15803D',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '12px',
-                    padding: '0.9rem',
-                    fontWeight: 800,
-                    fontSize: '1rem',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.5rem',
-                    boxShadow: '0 4px 14px rgba(21, 128, 61, 0.35)',
-                  }}
-                >
-                  <CheckCircle2 size={18} />
-                  <span>{isProcessing ? 'Verifying Payment...' : `Simulate Successful Payment (₹${(simOrderData.amount / 100).toFixed(2)})`}</span>
-                </button>
-
-                <button
-                  type="button"
-                  disabled={isProcessing}
-                  onClick={() => {
-                    setSimModalOpen(false);
-                    setErrorMsg('Payment was cancelled. You can retry anytime.');
-                    addToast({ type: 'info', message: 'Payment cancelled.' });
-                  }}
-                  style={{
-                    backgroundColor: '#F1F5F9',
-                    color: '#64748B',
-                    border: '1px solid #CBD5E1',
-                    borderRadius: '12px',
-                    padding: '0.65rem',
-                    fontWeight: 600,
-                    fontSize: '0.85rem',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Cancel / Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -22,6 +22,8 @@ import {
   X,
   Send,
   Sparkles,
+  Edit2,
+  Trash2,
 } from 'lucide-react';
 import { getUploadUrl } from '../utils/image';
 import './ProductDetailPage.css';
@@ -31,9 +33,15 @@ export const ProductDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { data: product, isLoading, isError } = useProduct(idOrSlug);
   const { addToCart } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const { addToast } = useUIStore();
-  const { addReview, isSubmittingReview } = useProductMutations();
+  const {
+    addReview,
+    isSubmittingReview,
+    updateReview,
+    isUpdatingReview,
+    deleteReview,
+  } = useProductMutations();
 
   // Dynamic attributes from PostgreSQL
   const attrs = (product?.attributes as Record<string, any>) || {};
@@ -67,6 +75,7 @@ export const ProductDetailPage: React.FC = () => {
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState('');
   const [hoverRating, setHoverRating] = useState(0);
+  const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
 
   // Crop Doctor Modal
   const [isExpertModalOpen, setIsExpertModalOpen] = useState(false);
@@ -169,15 +178,58 @@ export const ProductDetailPage: React.FC = () => {
     if (!newComment.trim()) return;
 
     try {
-      await addReview({
-        productId: product.id,
-        rating: newRating,
-        comment: newComment.trim(),
-      });
-      setNewComment('');
-      addToast({ type: 'success', message: 'Thank you! Your review has been published.' });
+      if (editingReviewId) {
+        await updateReview({
+          reviewId: editingReviewId,
+          productId: product.id,
+          data: {
+            rating: newRating,
+            comment: newComment.trim(),
+          },
+        });
+        setEditingReviewId(null);
+        setNewComment('');
+        addToast({ type: 'success', message: 'Your review has been updated successfully!' });
+      } else {
+        await addReview({
+          productId: product.id,
+          rating: newRating,
+          comment: newComment.trim(),
+        });
+        setNewComment('');
+        addToast({ type: 'success', message: 'Thank you! Your review has been published.' });
+      }
     } catch (err: any) {
       addToast({ type: 'error', message: err.message || 'Failed to submit review' });
+    }
+  };
+
+  const handleStartEdit = (rev: any) => {
+    setEditingReviewId(rev.id);
+    setNewRating(rev.rating);
+    setNewComment(rev.comment);
+    const formEl = document.querySelector('.pdp-add-review-card');
+    if (formEl) {
+      formEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingReviewId(null);
+    setNewRating(5);
+    setNewComment('');
+  };
+
+  const handleDeleteReview = async (reviewId: string) => {
+    if (!window.confirm('Are you sure you want to delete your review?')) return;
+    try {
+      await deleteReview({ reviewId, productId: product.id });
+      if (editingReviewId === reviewId) {
+        setEditingReviewId(null);
+        setNewComment('');
+      }
+    } catch (err: any) {
+      addToast({ type: 'error', message: err.message || 'Failed to delete review' });
     }
   };
 
@@ -761,7 +813,9 @@ export const ProductDetailPage: React.FC = () => {
 
             {/* Submit Review Form */}
             <form onSubmit={handleReviewSubmit} className="pdp-add-review-card">
-              <h4 className="pdp-review-form-title">Write a Customer Review</h4>
+              <h4 className="pdp-review-form-title">
+                {editingReviewId ? 'Edit Your Customer Review' : 'Write a Customer Review'}
+              </h4>
               <div>
                 <label style={{ fontSize: '0.85rem', fontWeight: 600, color: '#334155', display: 'block', marginBottom: '0.4rem' }}>
                   Your Rating
@@ -799,53 +853,119 @@ export const ProductDetailPage: React.FC = () => {
                 />
               </div>
 
-              <button
-                type="submit"
-                disabled={isSubmittingReview}
-                className="pdp-review-submit-btn"
-              >
-                {isSubmittingReview ? 'Submitting...' : 'Post Review'}
-              </button>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <button
+                  type="submit"
+                  disabled={isSubmittingReview || isUpdatingReview}
+                  className="pdp-review-submit-btn"
+                >
+                  {isSubmittingReview || isUpdatingReview
+                    ? 'Saving...'
+                    : editingReviewId
+                    ? 'Update Review'
+                    : 'Post Review'}
+                </button>
+                {editingReviewId && (
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="pdp-review-submit-btn"
+                    style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1' }}
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
             </form>
 
             {/* Reviews List */}
             <div className="pdp-reviews-list">
               {product.reviews && product.reviews.length > 0 ? (
-                product.reviews.map((rev) => (
-                  <div key={rev.id} className="pdp-review-item">
-                    <div className="pdp-review-top">
-                      <div className="pdp-reviewer-info">
-                        <div className="pdp-reviewer-avatar">
-                          {rev.user?.name ? rev.user.name[0] : 'F'}
+                product.reviews.map((rev) => {
+                  const isOwnerOrAdmin =
+                    isAuthenticated &&
+                    (rev.userId === user?.id || (rev.user as any)?.id === user?.id || user?.role === 'ADMIN');
+
+                  return (
+                    <div key={rev.id} className="pdp-review-item">
+                      <div className="pdp-review-top">
+                        <div className="pdp-reviewer-info">
+                          <div className="pdp-reviewer-avatar">
+                            {rev.user?.name ? rev.user.name[0] : 'F'}
+                          </div>
+                          <div>
+                            <div className="pdp-reviewer-name">{rev.user?.name || 'Verified Farmer'}</div>
+                            <span className="pdp-review-verified">
+                              <CheckCircle2 size={13} /> Verified Buyer
+                            </span>
+                          </div>
                         </div>
-                        <div>
-                          <div className="pdp-reviewer-name">{rev.user?.name || 'Verified Farmer'}</div>
-                          <span className="pdp-review-verified">
-                            <CheckCircle2 size={13} /> Verified Buyer
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                          <span className="pdp-review-date">
+                            {new Date(rev.createdAt).toLocaleDateString('en-IN', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            })}
                           </span>
+
+                          {isOwnerOrAdmin && (
+                            <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                              <button
+                                type="button"
+                                onClick={() => handleStartEdit(rev)}
+                                title="Edit your review"
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: '#15803D',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '0.2rem',
+                                  fontSize: '0.78rem',
+                                  fontWeight: 700,
+                                }}
+                              >
+                                <Edit2 size={12} /> Edit
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteReview(rev.id)}
+                                title="Delete your review"
+                                style={{
+                                  background: 'none',
+                                  border: 'none',
+                                  color: '#DC2626',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '0.2rem',
+                                  fontSize: '0.78rem',
+                                  fontWeight: 700,
+                                }}
+                              >
+                                <Trash2 size={12} /> Delete
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <span className="pdp-review-date">
-                        {new Date(rev.createdAt).toLocaleDateString('en-IN', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
-                      </span>
+                      <div className="pdp-stars">
+                        {[1, 2, 3, 4, 5].map((s) => (
+                          <Star
+                            key={s}
+                            size={14}
+                            fill={s <= rev.rating ? '#F59E0B' : 'none'}
+                            stroke={s <= rev.rating ? '#F59E0B' : '#CBD5E1'}
+                          />
+                        ))}
+                      </div>
+                      <p className="pdp-review-comment">{rev.comment}</p>
                     </div>
-                    <div className="pdp-stars">
-                      {[1, 2, 3, 4, 5].map((s) => (
-                        <Star
-                          key={s}
-                          size={14}
-                          fill={s <= rev.rating ? '#F59E0B' : 'none'}
-                          stroke={s <= rev.rating ? '#F59E0B' : '#CBD5E1'}
-                        />
-                      ))}
-                    </div>
-                    <p className="pdp-review-comment">{rev.comment}</p>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
                   No customer reviews yet. Be the first farmer to share your yield experience!

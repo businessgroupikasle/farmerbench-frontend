@@ -16,18 +16,14 @@ import {
   ArrowRight,
   Sparkles,
   ShoppingBag,
+  Package,
 } from 'lucide-react';
 import { useCart } from '../hooks/useCart';
+import { useProducts } from '../hooks/useProducts';
+import { useWishlistStore } from '../store/wishlistStore';
 import { useUIStore } from '../store/uiStore';
+import { Product } from '@formerbench/shared';
 import './CartPage.css';
-
-// Product fallback images for recommendations
-import growthBoosterImg from '../assets/growth-booster.jpg';
-import neemOilImg from '../assets/neem-oil-bottle.jpg';
-import humicPowerImg from '../assets/humic-power.jpg';
-import bioPowerImg from '../assets/bio-power-promoter.jpg';
-import seaweedExtractImg from '../assets/seaweed-extract.jpg';
-import trichodermaImg from '../assets/trichoderma-fungicide.jpg';
 
 interface SavedItemData {
   id: string;
@@ -41,6 +37,10 @@ export const CartPage: React.FC = () => {
   const navigate = useNavigate();
   const { addToast } = useUIStore();
   const { items, subtotal, totalItems, updateQuantity, removeItem, clearCart, addToCart } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlistStore();
+
+  // Fetch real products from Product Catalog API
+  const { data: productsData } = useProducts({ limit: 12 });
 
   // Saved for Later items
   const [savedItems, setSavedItems] = useState<SavedItemData[]>([]);
@@ -54,123 +54,35 @@ export const CartPage: React.FC = () => {
   const [pincode, setPincode] = useState('');
   const [deliveryChecked, setDeliveryChecked] = useState(false);
 
-  // Recommended Products ("You May Also Like")
-  const recommendedProducts = [
-    {
-      id: 'rec-1',
-      productId: 'trichoderma-fungicide',
-      title: 'Trichoderma Bio Fungicide',
-      category: 'Bio Fungicides',
-      rating: 4.8,
-      reviewsCount: 88,
-      price: 480,
-      image: trichodermaImg,
-      packSize: '1 L',
-      availableSizes: ['500 ml', '1 L', '5 L'],
-    },
-    {
-      id: 'rec-2',
-      productId: 'flowering-booster',
-      title: 'Flowering Booster',
-      category: 'Crop Nutrition',
-      rating: 4.7,
-      reviewsCount: 53,
-      price: 540,
-      image: growthBoosterImg,
-      packSize: '500 ml',
-      availableSizes: ['250 ml', '500 ml', '1 L'],
-    },
-    {
-      id: 'rec-3',
-      productId: 'organic-root-developer',
-      title: 'Organic Root Developer',
-      category: 'Bio Stimulants',
-      rating: 4.6,
-      reviewsCount: 66,
-      price: 480,
-      image: humicPowerImg,
-      packSize: '1 kg',
-      availableSizes: ['500 g', '1 kg', '5 kg'],
-    },
-    {
-      id: 'rec-4',
-      productId: 'plant-shield-pesticide',
-      title: 'Plant Shield Bio Pesticide',
-      category: 'Bio Pesticides',
-      rating: 4.5,
-      reviewsCount: 64,
-      price: 460,
-      image: bioPowerImg,
-      packSize: '1 L',
-      availableSizes: ['500 ml', '1 L', '5 L'],
-    },
-    {
-      id: 'rec-5',
-      productId: 'seaweed-extract-enhancer',
-      title: 'Seaweed Extract Plant Enhancer',
-      category: 'Plant Growth Promoter',
-      rating: 4.9,
-      reviewsCount: 142,
-      price: 550,
-      image: seaweedExtractImg,
-      packSize: '1 L',
-      availableSizes: ['500 ml', '1 L', '5 L'],
-    },
-    {
-      id: 'rec-6',
-      productId: 'cold-pressed-neem-oil',
-      title: 'Neem Oil 100% Cold Pressed',
-      category: 'Plant Protection',
-      rating: 4.7,
-      reviewsCount: 112,
-      price: 320,
-      image: neemOilImg,
-      packSize: '500 ml',
-      availableSizes: ['250 ml', '500 ml', '1 L'],
-    },
-  ];
+  // Filter real catalog products for "You May Also Like" (excluding products currently in cart)
+  const cartProductIds = new Set(items.map((i) => i.productId));
+  const catalogProducts: Product[] = productsData?.data || [];
+  const recommendedProducts = catalogProducts.filter((p) => !cartProductIds.has(p.id));
 
-  const [wishlistIds, setWishlistIds] = useState<string[]>([]);
   const [recStartIndex, setRecStartIndex] = useState(0);
 
-  const handleToggleWishlist = (id: string, title: string) => {
-    setWishlistIds((prev) => {
-      const isSaved = prev.includes(id);
-      if (isSaved) {
-        addToast({ type: 'info', message: `${title} removed from wishlist` });
-        return prev.filter((item) => item !== id);
-      } else {
-        addToast({ type: 'success', message: `${title} added to wishlist` });
-        return [...prev, id];
-      }
-    });
+  const handleToggleWishlistProduct = (prod: Product) => {
+    const added = toggleWishlist(prod);
+    if (added) {
+      addToast({ type: 'success', message: `${prod.title} added to wishlist` });
+    } else {
+      addToast({ type: 'info', message: `${prod.title} removed from wishlist` });
+    }
   };
 
-  const handleAddRecommendedToCart = (prod: typeof recommendedProducts[0]) => {
-    addToCart({
-      id: prod.productId,
-      title: prod.title,
-      slug: prod.productId,
-      description: prod.title,
-      price: prod.price,
-      stock: 50,
-      rating: prod.rating,
-      numReviews: prod.reviewsCount,
-      featured: false,
-      images: [prod.image],
-      categoryId: 'recommended',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    } as any, 1);
+  const handleAddRecommendedToCart = (prod: Product) => {
+    addToCart(prod, 1);
     addToast({ type: 'success', message: `${prod.title} added to cart!` });
   };
 
   const handleNextRec = () => {
-    setRecStartIndex((prev) => (prev + 1) % (recommendedProducts.length - 3));
+    if (recommendedProducts.length <= 3) return;
+    setRecStartIndex((prev) => (prev + 1) % Math.max(1, recommendedProducts.length - 2));
   };
 
   const handlePrevRec = () => {
-    setRecStartIndex((prev) => (prev - 1 + (recommendedProducts.length - 3)) % (recommendedProducts.length - 3));
+    if (recommendedProducts.length <= 3) return;
+    setRecStartIndex((prev) => (prev - 1 + Math.max(1, recommendedProducts.length - 2)) % Math.max(1, recommendedProducts.length - 2));
   };
 
   // Calculations
@@ -374,7 +286,7 @@ export const CartPage: React.FC = () => {
                 const price = prod.discountPrice ?? prod.price ?? 0;
                 const originalPrice = prod.price ?? price;
                 const title = prod.title || 'Agricultural Product';
-                const category = prod.category?.name || 'Bio-Inputs & Farming';
+                const category = (prod.category as any)?.name || 'Bio-Inputs & Farming';
                 const image = prod.images?.[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600';
                 const packSize = item.selectedAttributes?.packSize || '500 g';
                 const rating = prod.rating || 4.6;
@@ -407,7 +319,7 @@ export const CartPage: React.FC = () => {
                               />
                             ))}
                           </div>
-                          <span>{rating}</span>
+                          <span>{Number(rating).toFixed(1)}</span>
                           <span className="cart-rating-count">({reviewsCount})</span>
                         </div>
 
@@ -556,88 +468,115 @@ export const CartPage: React.FC = () => {
             </div>
           )}
 
-          {/* 7. Recommended Products Carousel ("You May Also Like") */}
-          <div className="cart-recommended-section">
-            <div className="cart-rec-header">
-              <div>
-                <h2 className="cart-rec-title">You May Also Like</h2>
-                <p className="cart-rec-subtitle">Top-rated bio-inputs recommended for your crops</p>
+          {/* 7. Recommended Products Carousel ("You May Also Like") - 100% Dynamic from Catalog API */}
+          {recommendedProducts.length > 0 && (
+            <div className="cart-recommended-section">
+              <div className="cart-rec-header">
+                <div>
+                  <h2 className="cart-rec-title">You May Also Like</h2>
+                  <p className="cart-rec-subtitle">Top-rated bio-inputs recommended for your crops</p>
+                </div>
+
+                {recommendedProducts.length > 3 && (
+                  <div className="cart-rec-nav">
+                    <button
+                      onClick={handlePrevRec}
+                      className="cart-rec-nav-btn"
+                      aria-label="Previous recommended products"
+                    >
+                      <ChevronLeft size={18} />
+                    </button>
+                    <button
+                      onClick={handleNextRec}
+                      className="cart-rec-nav-btn"
+                      aria-label="Next recommended products"
+                    >
+                      <ChevronRight size={18} />
+                    </button>
+                  </div>
+                )}
               </div>
 
-              <div className="cart-rec-nav">
-                <button
-                  onClick={handlePrevRec}
-                  className="cart-rec-nav-btn"
-                  aria-label="Previous recommended products"
-                >
-                  <ChevronLeft size={18} />
-                </button>
-                <button
-                  onClick={handleNextRec}
-                  className="cart-rec-nav-btn"
-                  aria-label="Next recommended products"
-                >
-                  <ChevronRight size={18} />
-                </button>
-              </div>
-            </div>
+              <div className="cart-rec-grid">
+                {recommendedProducts.slice(recStartIndex, recStartIndex + 3).map((prod) => {
+                  const isWishlisted = isInWishlist(prod.id);
+                  const price = prod.discountPrice ?? prod.price ?? 0;
+                  const prodImage = prod.images?.[0];
+                  const categoryName = (prod.category as any)?.name || 'Agri Inputs';
+                  const rating = prod.rating || 4.8;
+                  const reviewsCount = prod.numReviews || 0;
 
-            <div className="cart-rec-grid">
-              {recommendedProducts.slice(recStartIndex, recStartIndex + 3).map((prod) => {
-                const isWishlisted = wishlistIds.includes(prod.id);
-                return (
-                  <div key={prod.id} className="cart-rec-card">
-                    <div className="cart-rec-img-wrap">
-                      <img src={prod.image} alt={prod.title} className="cart-rec-img" />
-                      <button
-                        onClick={() => handleToggleWishlist(prod.id, prod.title)}
-                        className={`cart-rec-wish-btn ${isWishlisted ? 'active' : ''}`}
-                        aria-label="Add to wishlist"
-                      >
-                        <Heart size={16} fill={isWishlisted ? '#DC2626' : 'none'} stroke={isWishlisted ? '#DC2626' : '#475569'} />
-                      </button>
-                    </div>
-
-                    <div className="cart-rec-body">
-                      <span className="cart-rec-category">{prod.category}</span>
-                      <h4 className="cart-rec-name">{prod.title}</h4>
-
-                      <div className="cart-rec-rating">
-                        <div className="cart-stars-wrap">
-                          {[...Array(5)].map((_, i) => (
-                            <Star
-                              key={i}
-                              size={12}
-                              fill={i < Math.floor(prod.rating) ? '#F59E0B' : 'none'}
-                              stroke="#F59E0B"
-                            />
-                          ))}
-                        </div>
-                        <span>{prod.rating}</span>
-                        <span style={{ color: '#94A3B8' }}>({prod.reviewsCount})</span>
-                      </div>
-
-                      <div className="cart-rec-footer">
-                        <div>
-                          <span className="cart-rec-price">₹{prod.price.toFixed(2)}</span>
-                          <span className="cart-rec-size"> / {prod.packSize}</span>
-                        </div>
-
+                  return (
+                    <div key={prod.id} className="cart-rec-card">
+                      <div className="cart-rec-img-wrap">
+                        {prodImage ? (
+                          <img src={prodImage} alt={prod.title} className="cart-rec-img" />
+                        ) : (
+                          <div
+                            className="cart-rec-img"
+                            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F8FAFC' }}
+                          >
+                            <Package size={28} color="#94A3B8" />
+                          </div>
+                        )}
                         <button
-                          onClick={() => handleAddRecommendedToCart(prod)}
-                          className="cart-rec-add-btn"
-                          aria-label="Add to Cart"
+                          onClick={() => handleToggleWishlistProduct(prod)}
+                          className={`cart-rec-wish-btn ${isWishlisted ? 'active' : ''}`}
+                          aria-label="Add to wishlist"
                         >
-                          <ShoppingBag size={15} />
-                          <span>Add</span>
+                          <Heart size={16} fill={isWishlisted ? '#DC2626' : 'none'} stroke={isWishlisted ? '#DC2626' : '#475569'} />
                         </button>
                       </div>
+
+                      <div className="cart-rec-body">
+                        <span className="cart-rec-category">{categoryName}</span>
+                        <h4
+                          className="cart-rec-name"
+                          onClick={() => navigate(`/product/${prod.slug || prod.id}`)}
+                          style={{ cursor: 'pointer' }}
+                          title={prod.title}
+                        >
+                          {prod.title}
+                        </h4>
+
+                        <div className="cart-rec-rating">
+                          <div className="cart-stars-wrap">
+                            {[...Array(5)].map((_, i) => (
+                              <Star
+                                key={i}
+                                size={12}
+                                fill={i < Math.floor(rating) ? '#F59E0B' : 'none'}
+                                stroke="#F59E0B"
+                              />
+                            ))}
+                          </div>
+                          <span>{Number(rating).toFixed(1)}</span>
+                          {reviewsCount > 0 && (
+                            <span style={{ color: '#94A3B8' }}>({reviewsCount})</span>
+                          )}
+                        </div>
+
+                        <div className="cart-rec-footer">
+                          <div>
+                            <span className="cart-rec-price">₹{Number(price).toFixed(2)}</span>
+                          </div>
+
+                          <button
+                            onClick={() => handleAddRecommendedToCart(prod)}
+                            className="cart-rec-add-btn"
+                            aria-label="Add to Cart"
+                          >
+                            <ShoppingBag size={15} />
+                            <span>Add</span>
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Right Sticky Column: Order Summary & Checkout */}

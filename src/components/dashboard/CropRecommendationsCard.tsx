@@ -1,40 +1,21 @@
 import React from 'react';
-import { Sprout } from 'lucide-react';
-import humicImg from '../../assets/humic-power.jpg';
-import bioPowerImg from '../../assets/bio-power-promoter.jpg';
-import trichoImg from '../../assets/trichoderma-fungicide.jpg';
+import { Sprout, Package } from 'lucide-react';
+import { Product } from '@formerbench/shared';
 
 interface CropRecommendationsCardProps {
   cropName?: string;
+  products?: Product[];
   onViewRecommendations: () => void;
-  onSelectProduct?: (product: any) => void;
+  onSelectProduct?: (product: Product) => void;
 }
 
 export const CropRecommendationsCard: React.FC<CropRecommendationsCardProps> = ({
   cropName = 'Paddy',
+  products = [],
   onViewRecommendations,
   onSelectProduct,
 }) => {
-  const recommendedItems = [
-    {
-      id: 'rec-1',
-      title: 'Micronutrient Mix',
-      price: 300,
-      image: bioPowerImg,
-    },
-    {
-      id: 'rec-2',
-      title: 'Root Developer',
-      price: 480,
-      image: humicImg,
-    },
-    {
-      id: 'rec-3',
-      title: 'Plant Shield Bio Pesticide',
-      price: 460,
-      image: trichoImg,
-    },
-  ];
+  const displayItems = products.slice(0, 3);
 
   return (
     <div className="fb-card">
@@ -50,20 +31,35 @@ export const CropRecommendationsCard: React.FC<CropRecommendationsCardProps> = (
           Based on your recent orders and saved crop preference.
         </p>
 
-        <div className="fb-recom-items-grid">
-          {recommendedItems.map((item) => (
-            <div
-              key={item.id}
-              className="fb-recom-item-card"
-              onClick={() => onSelectProduct && onSelectProduct(item)}
-              style={{ cursor: 'pointer' }}
-            >
-              <img src={item.image} alt={item.title} className="fb-recom-item-img" />
-              <span className="fb-recom-item-title">{item.title}</span>
-              <span className="fb-recom-item-price">₹{item.price.toFixed(2)}</span>
-            </div>
-          ))}
-        </div>
+        {displayItems.length === 0 ? (
+          <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--fb-text-muted)', fontSize: '0.85rem' }}>
+            Explore our bio-fertilizers and crop boosters to receive customized farming recommendations.
+          </div>
+        ) : (
+          <div className="fb-recom-items-grid">
+            {displayItems.map((item) => (
+              <div
+                key={item.id}
+                className="fb-recom-item-card"
+                onClick={() => onSelectProduct && onSelectProduct(item)}
+                style={{ cursor: 'pointer' }}
+              >
+                {item.images?.[0] ? (
+                  <img src={item.images[0]} alt={item.title} className="fb-recom-item-img" />
+                ) : (
+                  <div
+                    className="fb-recom-item-img"
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', borderRadius: '6px' }}
+                  >
+                    <Package size={18} color="#94a3b8" />
+                  </div>
+                )}
+                <span className="fb-recom-item-title">{item.title}</span>
+                <span className="fb-recom-item-price">₹{Number(item.price).toFixed(2)}</span>
+              </div>
+            ))}
+          </div>
+        )}
 
         <button
           className="fb-btn-primary-dark"

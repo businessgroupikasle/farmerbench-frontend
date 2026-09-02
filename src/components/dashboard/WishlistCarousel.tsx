@@ -1,10 +1,7 @@
 import React, { useRef } from 'react';
-import { ArrowRight, ChevronLeft, ChevronRight, Heart, Star, Check } from 'lucide-react';
+import { ArrowRight, ChevronLeft, ChevronRight, Heart, Star, Check, ShoppingBag } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Product } from '@formerbench/shared';
-import humicPowerImg from '../../assets/humic-power.jpg';
-import bioPowerImg from '../../assets/bio-power-promoter.jpg';
-import seaweedImg from '../../assets/seaweed-extract.jpg';
-import trichodermaImg from '../../assets/trichoderma-fungicide.jpg';
 
 interface WishlistCarouselProps {
   wishlistItems: Product[];
@@ -14,11 +11,12 @@ interface WishlistCarouselProps {
 }
 
 export const WishlistCarousel: React.FC<WishlistCarouselProps> = ({
-  wishlistItems,
+  wishlistItems = [],
   onViewAllWishlist,
   onAddToCart,
   onRemoveFromWishlist,
 }) => {
+  const navigate = useNavigate();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scrollLeft = () => {
@@ -33,122 +31,143 @@ export const WishlistCarousel: React.FC<WishlistCarouselProps> = ({
     }
   };
 
-  // Fallback items matching reference screenshot if wishlist store has few items
-  const fallbackProducts = [
-    {
-      id: 'prod-humic',
-      title: 'Humic Power Soil Conditioner',
-      price: 650,
-      rating: 4.6,
-      numReviews: 76,
-      images: [humicPowerImg],
-      stock: 50,
-    },
-    {
-      id: 'prod-bio',
-      title: 'Bio Power Organic Growth Promoter',
-      price: 450,
-      rating: 4.8,
-      numReviews: 134,
-      images: [bioPowerImg],
-      stock: 40,
-    },
-    {
-      id: 'prod-seaweed',
-      title: 'Seaweed Extract Plant Enhancer',
-      price: 550,
-      rating: 4.7,
-      numReviews: 112,
-      images: [seaweedImg],
-      stock: 30,
-    },
-    {
-      id: 'prod-tricho',
-      title: 'Trichoderma Bio Fungicide',
-      price: 480,
-      rating: 4.6,
-      numReviews: 88,
-      images: [trichodermaImg],
-      stock: 25,
-    },
-  ];
-
-  const displayList = wishlistItems && wishlistItems.length > 0 ? wishlistItems : fallbackProducts;
-  const totalCount = wishlistItems?.length || 6;
+  const totalCount = wishlistItems.length;
 
   return (
     <div className="fb-card">
       <div className="fb-card-header">
         <h3 className="fb-card-title">Your Wishlist</h3>
-        <div className="fb-wishlist-header-actions">
-          <a
-            className="fb-card-link"
-            onClick={(e) => {
-              e.preventDefault();
-              onViewAllWishlist();
-            }}
-          >
-            View All {totalCount} Items <ArrowRight size={14} />
-          </a>
-          <div className="fb-carousel-controls">
-            <button className="fb-carousel-btn" onClick={scrollLeft} aria-label="Previous">
-              <ChevronLeft size={16} />
-            </button>
-            <button className="fb-carousel-btn" onClick={scrollRight} aria-label="Next">
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="fb-wishlist-scroll-track" ref={scrollRef}>
-        {displayList.map((item: any, idx: number) => {
-          const imgUrl = item.images?.[0] || item.imageUrl || fallbackProducts[idx % fallbackProducts.length].images[0];
-          const rating = item.rating || 4.7;
-          const reviews = item.numReviews || 90;
-
-          return (
-            <div key={item.id || idx} className="fb-wishlist-product-card">
-              <button
-                className="fb-wishlist-heart-btn"
-                onClick={() => onRemoveFromWishlist(item.id)}
-                title="Remove from wishlist"
-              >
-                <Heart size={14} fill="#ef4444" />
-              </button>
-
-              <div className="fb-wishlist-img-wrap">
-                <img src={imgUrl} alt={item.title} />
-              </div>
-
-              <span className="fb-wishlist-title" title={item.title}>
-                {item.title}
-              </span>
-
-              <div className="fb-rating-stars-mini">
-                <Star size={12} fill="#f59e0b" color="#f59e0b" />
-                <span>{rating}</span>
-                <span style={{ color: '#94a3b8', fontWeight: 500 }}>({reviews})</span>
-              </div>
-
-              <div className="fb-stock-pill-in">
-                <Check size={11} strokeWidth={3} />
-                <span>In Stock</span>
-              </div>
-
-              <div className="fb-wishlist-price-row">
-                <span className="fb-wishlist-price">₹{item.price?.toFixed(2) || '450.00'}</span>
-                <button
-                  className="fb-btn-add-cart-mini"
-                  onClick={() => onAddToCart(item)}
-                >
-                  Add to Cart
+        {totalCount > 0 && (
+          <div className="fb-wishlist-header-actions">
+            <a
+              className="fb-card-link"
+              onClick={(e) => {
+                e.preventDefault();
+                onViewAllWishlist();
+              }}
+            >
+              View All {totalCount} {totalCount === 1 ? 'Item' : 'Items'} <ArrowRight size={14} />
+            </a>
+            {totalCount > 3 && (
+              <div className="fb-carousel-controls">
+                <button className="fb-carousel-btn" onClick={scrollLeft} aria-label="Previous">
+                  <ChevronLeft size={16} />
+                </button>
+                <button className="fb-carousel-btn" onClick={scrollRight} aria-label="Next">
+                  <ChevronRight size={16} />
                 </button>
               </div>
-            </div>
-          );
-        })}
+            )}
+          </div>
+        )}
       </div>
+
+      {totalCount === 0 ? (
+        <div style={{ padding: '2.5rem 1rem', textAlign: 'center' }}>
+          <div
+            style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              background: 'var(--fb-green-50)',
+              color: 'var(--fb-green-800)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 0.75rem auto',
+            }}
+          >
+            <Heart size={22} />
+          </div>
+          <h4 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--fb-text-dark)' }}>
+            Your Wishlist is Empty
+          </h4>
+          <p style={{ fontSize: '0.825rem', color: 'var(--fb-text-muted)', marginTop: '0.25rem', maxWidth: '360px', margin: '0.25rem auto 1rem auto' }}>
+            Click the heart icon on any fertilizer, bio-promoter, or equipment to save it here for later purchase.
+          </p>
+          <button
+            className="fb-btn-primary-dark"
+            onClick={() => navigate('/products')}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.825rem' }}
+          >
+            <ShoppingBag size={14} /> Explore Products
+          </button>
+        </div>
+      ) : (
+        <div className="fb-wishlist-scroll-track" ref={scrollRef}>
+          {wishlistItems.map((item: any) => {
+            const imgUrl =
+              item.images?.[0] || item.imageUrl || '';
+            const rating = item.rating || 5;
+            const reviews = item.numReviews || 0;
+            const inStock = (item.stock ?? 1) > 0;
+
+            return (
+              <div key={item.id} className="fb-wishlist-product-card">
+                <button
+                  className="fb-wishlist-heart-btn"
+                  onClick={() => onRemoveFromWishlist(item.id)}
+                  title="Remove from wishlist"
+                >
+                  <Heart size={14} fill="#ef4444" />
+                </button>
+
+                <div className="fb-wishlist-img-wrap">
+                  {imgUrl ? (
+                    <img src={imgUrl} alt={item.title} />
+                  ) : (
+                    <div
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        background: '#f8fafc',
+                        borderRadius: '8px',
+                        color: 'var(--fb-text-muted)',
+                        fontSize: '0.75rem',
+                      }}
+                    >
+                      No image
+                    </div>
+                  )}
+                </div>
+
+                <span className="fb-wishlist-title" title={item.title}>
+                  {item.title}
+                </span>
+
+                <div className="fb-rating-stars-mini">
+                  <Star size={12} fill="#f59e0b" color="#f59e0b" />
+                  <span>{rating.toFixed(1)}</span>
+                  {reviews > 0 && (
+                    <span style={{ color: '#94a3b8', fontWeight: 500 }}>({reviews})</span>
+                  )}
+                </div>
+
+                <div className="fb-stock-pill-in">
+                  <Check size={11} strokeWidth={3} />
+                  <span>{inStock ? 'In Stock' : 'Out of Stock'}</span>
+                </div>
+
+                <div className="fb-wishlist-price-row">
+                  <span className="fb-wishlist-price">
+                    ₹{item.price ? Number(item.price).toFixed(2) : '0.00'}
+                  </span>
+                  <button
+                    className="fb-btn-add-cart-mini"
+                    onClick={() => onAddToCart(item)}
+                    disabled={!inStock}
+                  >
+                    Add to Cart
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 };

@@ -1,21 +1,23 @@
 import React from 'react';
-import { ArrowRight, Star, Sprout, Edit2 } from 'lucide-react';
-import growthBoosterImg from '../../assets/growth-booster.jpg';
-import neemOilImg from '../../assets/neem-oil-bottle.jpg';
-import fieldPhoto1 from '../../assets/crop-monitoring.jpg';
-import fieldPhoto2 from '../../assets/sustainable-farm.jpg';
+import { ArrowRight, Star, Sprout, MessageSquare } from 'lucide-react';
+import { Order, Product } from '@formerbench/shared';
 
 interface ReviewsFeedbackCardProps {
+  orders?: Order[];
   onViewAllReviews: () => void;
-  onEditReview: (reviewId: string) => void;
-  onWriteReview: (productTitle?: string) => void;
+  onEditReview?: (reviewId: string) => void;
+  onWriteReview: (product?: Product | any) => void;
 }
 
 export const ReviewsFeedbackCard: React.FC<ReviewsFeedbackCardProps> = ({
+  orders = [],
   onViewAllReviews,
-  onEditReview,
   onWriteReview,
 }) => {
+  // Extract purchased products from user orders
+  const purchasedProducts = orders.flatMap((o) => o.items || []);
+  const firstPurchased = purchasedProducts[0];
+
   return (
     <div className="fb-card">
       <div className="fb-card-header">
@@ -32,89 +34,69 @@ export const ReviewsFeedbackCard: React.FC<ReviewsFeedbackCardProps> = ({
       </div>
 
       <div className="fb-reviews-stack">
-        {/* Published Review Item */}
-        <div className="fb-reviewed-item">
-          <img
-            src={growthBoosterImg}
-            alt="Growth Booster for All Crops"
-            className="fb-review-prod-img"
-          />
-
-          <div className="fb-review-content-col">
-            <div className="fb-review-title-row">
-              <span className="fb-review-prod-title">Growth Booster for All Crops</span>
-              <button
-                className="fb-card-link"
-                style={{ background: 'none', border: 'none', padding: 0 }}
-                onClick={() => onEditReview('rev-1')}
-              >
-                <Edit2 size={12} /> Edit Review
-              </button>
-            </div>
-
-            <div className="fb-review-rating-row">
-              <div style={{ display: 'flex', gap: '2px', color: '#f59e0b' }}>
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Star key={i} size={13} fill="#f59e0b" />
-                ))}
-              </div>
-              <span className="fb-status-pill-green" style={{ fontSize: '0.65rem' }}>
-                Published
-              </span>
-              <span style={{ fontSize: '0.72rem', color: 'var(--fb-text-muted)' }}>
-                Reviewed on 28 Aug 2026
-              </span>
-            </div>
-
-            <p className="fb-review-text">
-              Excellent results on my paddy crop. Plants look greener and healthier.
-              Yield has improved noticeably after 20 days of use.
-            </p>
-
-            <div className="fb-review-tags-row">
-              <span className="fb-review-tag">Crop: Paddy</span>
-              <span className="fb-review-tag">Used for: 30 days</span>
-            </div>
-
-            <div className="fb-review-photos-row">
-              <img src={fieldPhoto1} alt="Field proof 1" className="fb-review-photo-thumb" />
-              <img src={fieldPhoto2} alt="Field proof 2" className="fb-review-photo-thumb" />
-            </div>
-          </div>
-        </div>
-
-        {/* Unreviewed Prompt */}
-        <div className="fb-pending-review-box">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <img
-              src={neemOilImg}
-              alt="Neem Oil"
-              style={{ width: '42px', height: '42px', borderRadius: '6px', objectFit: 'cover' }}
-            />
-            <div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 800 }}>
-                Neem Oil 100% Cold Pressed
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.15rem' }}>
-                <div style={{ display: 'flex', gap: '2px', color: '#cbd5e1' }}>
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star key={i} size={14} />
-                  ))}
+        {firstPurchased ? (
+          <div className="fb-pending-review-box">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              {firstPurchased.imageUrl ? (
+                <img
+                  src={firstPurchased.imageUrl}
+                  alt={firstPurchased.title}
+                  style={{ width: '42px', height: '42px', borderRadius: '6px', objectFit: 'cover' }}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '6px',
+                    background: 'var(--fb-green-100)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'var(--fb-green-800)',
+                  }}
+                >
+                  <MessageSquare size={20} />
                 </div>
-                <span style={{ fontSize: '0.75rem', color: 'var(--fb-text-muted)' }}>
-                  How was this product?
-                </span>
+              )}
+              <div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 800 }}>
+                  {firstPurchased.title}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.15rem' }}>
+                  <div style={{ display: 'flex', gap: '2px', color: '#cbd5e1' }}>
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <Star key={i} size={14} />
+                    ))}
+                  </div>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--fb-text-muted)' }}>
+                    How was this product?
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
 
-          <button
-            className="fb-btn-primary-dark"
-            onClick={() => onWriteReview('Neem Oil 100% Cold Pressed')}
-          >
-            Write a Review
-          </button>
-        </div>
+            <button
+              className="fb-btn-primary-dark"
+              onClick={() => onWriteReview(firstPurchased)}
+            >
+              Write a Review
+            </button>
+          </div>
+        ) : (
+          <div style={{ padding: '1.25rem 0.5rem', textAlign: 'center' }}>
+            <p style={{ fontSize: '0.825rem', color: 'var(--fb-text-muted)', marginBottom: '0.75rem' }}>
+              Purchase products to share crop yield results and leave verified reviews for fellow farmers.
+            </p>
+            <button
+              className="fb-btn-outline"
+              style={{ fontSize: '0.825rem' }}
+              onClick={() => onWriteReview({ title: 'FarmerBench Bio Input' })}
+            >
+              Share Farming Experience
+            </button>
+          </div>
+        )}
 
         {/* Motivational Banner */}
         <div className="fb-review-banner-footer">

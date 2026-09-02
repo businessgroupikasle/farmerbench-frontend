@@ -10,10 +10,10 @@ interface DashboardStatsProps {
 }
 
 export const DashboardStats: React.FC<DashboardStatsProps> = ({
-  activeOrdersCount,
-  wishlistCount,
-  bookingsCount,
-  rewardPoints = 1240,
+  activeOrdersCount = 0,
+  wishlistCount = 0,
+  bookingsCount = 0,
+  rewardPoints = 0,
   onNavigateTab,
 }) => {
   const rupeeValue = Math.round(rewardPoints / 10);
