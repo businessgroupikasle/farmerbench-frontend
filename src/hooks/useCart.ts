@@ -15,7 +15,6 @@ export const useCart = () => {
     updateGuestItemQuantity,
     removeGuestItem,
     clearGuestCart,
-    openDrawer,
   } = useCartStore();
 
   // Server cart query (only enabled if user is logged in)
@@ -33,7 +32,6 @@ export const useCart = () => {
     mutationFn: (data: AddToCartInput) => cartService.addToCart(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
-      openDrawer();
       addToast({ type: 'success', message: 'Added to cart' });
     },
     onError: (error: Error) => {

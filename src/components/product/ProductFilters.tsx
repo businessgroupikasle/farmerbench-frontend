@@ -1,12 +1,21 @@
 import React from 'react';
 import { useCategories } from '../../hooks/useCategories';
 import { useFilterStore } from '../../store/filterStore';
-import { RotateCcw, Filter, Star } from 'lucide-react';
+import { RotateCcw, Filter, Star, CheckSquare, Square, Sparkles, Tag, Layers } from 'lucide-react';
 
 export const ProductFilters: React.FC = () => {
   const { data: categories = [] } = useCategories();
-  const { filters, setCategory, setPriceRange, setMinRating, setSortBy, resetFilters } =
-    useFilterStore();
+  const {
+    filters,
+    inStockOnly,
+    setCategory,
+    setPriceRange,
+    setMinRating,
+    setSortBy,
+    setFeatured,
+    setInStockOnly,
+    resetFilters,
+  } = useFilterStore();
 
   const sortOptions = [
     { label: 'Newest Arrivals', value: 'newest' },
@@ -16,57 +25,55 @@ export const ProductFilters: React.FC = () => {
     { label: 'Most Popular', value: 'popular' },
   ] as const;
 
+  const pricePresets = [
+    { label: 'Under ₹500', min: undefined, max: 500 },
+    { label: '₹500 - ₹1,000', min: 500, max: 1000 },
+    { label: '₹1,000 - ₹2,500', min: 1000, max: 2500 },
+    { label: '₹2,500+', min: 2500, max: undefined },
+  ];
+
+  // Count active filters
+  const activeFilterCount = [
+    filters.category,
+    filters.minPrice !== undefined || filters.maxPrice !== undefined,
+    filters.minRating !== undefined,
+    filters.featured,
+    inStockOnly,
+  ].filter(Boolean).length;
+
   return (
-    <div
-      className="card"
-      style={{
-        padding: '1.25rem',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1.5rem',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          borderBottom: '1px solid var(--border-color)',
-          paddingBottom: '0.75rem',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700 }}>
-          <Filter size={18} style={{ color: 'var(--brand-primary)' }} />
-          <span>Filters</span>
+    <div className="fb-filters-panel">
+      {/* Header */}
+      <div className="fb-filters-header">
+        <div className="fb-filters-title-wrap">
+          <Filter size={18} className="fb-filters-icon" />
+          <span className="fb-filters-title">Filter Products</span>
+          {activeFilterCount > 0 && (
+            <span className="fb-filters-count-badge">{activeFilterCount}</span>
+          )}
         </div>
-        <button
-          onClick={resetFilters}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--text-muted)',
-            cursor: 'pointer',
-            fontSize: '0.8rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.3rem',
-          }}
-        >
-          <RotateCcw size={13} />
-          Reset
-        </button>
+        {activeFilterCount > 0 && (
+          <button
+            type="button"
+            onClick={resetFilters}
+            className="fb-filters-reset-btn"
+            title="Reset all filters"
+          >
+            <RotateCcw size={13} />
+            <span>Reset</span>
+          </button>
+        )}
       </div>
 
-      {/* Sort By */}
-      <div>
-        <label className="input-label" style={{ marginBottom: '0.5rem', display: 'block' }}>
-          Sort By
+      {/* 1. Sort By */}
+      <div className="fb-filter-section">
+        <label className="fb-filter-section-title">
+          <span>Sort By</span>
         </label>
         <select
           value={filters.sortBy}
           onChange={(e) => setSortBy(e.target.value as any)}
-          className="input-field"
-          style={{ cursor: 'pointer' }}
+          className="fb-filter-select"
         >
           {sortOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -76,28 +83,17 @@ export const ProductFilters: React.FC = () => {
         </select>
       </div>
 
-      {/* Categories Filter */}
-      <div>
-        <label className="input-label" style={{ marginBottom: '0.5rem', display: 'block' }}>
-          Category
+      {/* 2. Categories */}
+      <div className="fb-filter-section">
+        <label className="fb-filter-section-title">
+          <Layers size={15} />
+          <span>Categories</span>
         </label>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+        <div className="fb-filter-categories-list">
           <button
+            type="button"
             onClick={() => setCategory(undefined)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '0.45rem 0.65rem',
-              borderRadius: 'var(--radius-sm)',
-              background: !filters.category ? 'var(--brand-primary-light)' : 'transparent',
-              color: !filters.category ? 'var(--brand-primary)' : 'var(--text-primary)',
-              border: 'none',
-              fontWeight: !filters.category ? 600 : 400,
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              textAlign: 'left',
-            }}
+            className={`fb-category-item-btn ${!filters.category ? 'active' : ''}`}
           >
             <span>All Categories</span>
           </button>
@@ -107,27 +103,13 @@ export const ProductFilters: React.FC = () => {
             return (
               <button
                 key={cat.id}
-                onClick={() => setCategory(isSelected ? undefined : cat.slug)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '0.45rem 0.65rem',
-                  borderRadius: 'var(--radius-sm)',
-                  background: isSelected ? 'var(--brand-primary-light)' : 'transparent',
-                  color: isSelected ? 'var(--brand-primary)' : 'var(--text-primary)',
-                  border: 'none',
-                  fontWeight: isSelected ? 600 : 400,
-                  fontSize: '0.875rem',
-                  cursor: 'pointer',
-                  textAlign: 'left',
-                }}
+                type="button"
+                onClick={() => setCategory(isSelected ? undefined : (cat.slug || cat.id))}
+                className={`fb-category-item-btn ${isSelected ? 'active' : ''}`}
               >
-                <span>{cat.name}</span>
+                <span className="fb-cat-name">{cat.name}</span>
                 {cat._count?.products !== undefined && (
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                    {cat._count.products}
-                  </span>
+                  <span className="fb-cat-count">{cat._count.products}</span>
                 )}
               </button>
             );
@@ -135,73 +117,148 @@ export const ProductFilters: React.FC = () => {
         </div>
       </div>
 
-      {/* Price Range Filter */}
-      <div>
-        <label className="input-label" style={{ marginBottom: '0.5rem', display: 'block' }}>
-          Price Range ($)
+      {/* 3. Price Range */}
+      <div className="fb-filter-section">
+        <label className="fb-filter-section-title">
+          <Tag size={15} />
+          <span>Price Range (₹)</span>
         </label>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <input
-            type="number"
-            placeholder="Min"
-            value={filters.minPrice ?? ''}
-            onChange={(e) =>
-              setPriceRange(e.target.value ? Number(e.target.value) : undefined, filters.maxPrice)
-            }
-            className="input-field"
-            style={{ padding: '0.45rem' }}
-          />
-          <span style={{ color: 'var(--text-muted)' }}>-</span>
-          <input
-            type="number"
-            placeholder="Max"
-            value={filters.maxPrice ?? ''}
-            onChange={(e) =>
-              setPriceRange(filters.minPrice, e.target.value ? Number(e.target.value) : undefined)
-            }
-            className="input-field"
-            style={{ padding: '0.45rem' }}
-          />
+        
+        {/* Quick Presets */}
+        <div className="fb-price-presets-grid">
+          {pricePresets.map((preset, idx) => {
+            const isPresetActive =
+              filters.minPrice === preset.min && filters.maxPrice === preset.max;
+            return (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => {
+                  if (isPresetActive) {
+                    setPriceRange(undefined, undefined);
+                  } else {
+                    setPriceRange(preset.min, preset.max);
+                  }
+                }}
+                className={`fb-price-preset-pill ${isPresetActive ? 'active' : ''}`}
+              >
+                {preset.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Custom Min / Max Inputs */}
+        <div className="fb-price-inputs-row">
+          <div className="fb-price-input-box">
+            <span className="fb-currency-prefix">₹</span>
+            <input
+              type="number"
+              placeholder="Min"
+              min="0"
+              value={filters.minPrice ?? ''}
+              onChange={(e) =>
+                setPriceRange(
+                  e.target.value ? Number(e.target.value) : undefined,
+                  filters.maxPrice
+                )
+              }
+              className="fb-price-input"
+            />
+          </div>
+          <span className="fb-price-dash">-</span>
+          <div className="fb-price-input-box">
+            <span className="fb-currency-prefix">₹</span>
+            <input
+              type="number"
+              placeholder="Max"
+              min="0"
+              value={filters.maxPrice ?? ''}
+              onChange={(e) =>
+                setPriceRange(
+                  filters.minPrice,
+                  e.target.value ? Number(e.target.value) : undefined
+                )
+              }
+              className="fb-price-input"
+            />
+          </div>
         </div>
       </div>
 
-      {/* Minimum Rating */}
-      <div>
-        <label className="input-label" style={{ marginBottom: '0.5rem', display: 'block' }}>
-          Minimum Rating
+      {/* 4. Customer Rating */}
+      <div className="fb-filter-section">
+        <label className="fb-filter-section-title">
+          <Star size={15} />
+          <span>Minimum Rating</span>
         </label>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+        <div className="fb-ratings-list">
           {[4, 3, 2].map((stars) => {
             const isSelected = filters.minRating === stars;
             return (
               <button
                 key={stars}
+                type="button"
                 onClick={() => setMinRating(isSelected ? undefined : stars)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  padding: '0.4rem 0.6rem',
-                  borderRadius: 'var(--radius-sm)',
-                  background: isSelected ? 'var(--brand-primary-light)' : 'transparent',
-                  color: isSelected ? 'var(--brand-primary)' : 'var(--text-primary)',
-                  border: 'none',
-                  fontSize: '0.85rem',
-                  cursor: 'pointer',
-                  fontWeight: isSelected ? 600 : 400,
-                }}
+                className={`fb-rating-btn ${isSelected ? 'active' : ''}`}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '2px', color: '#fbbf24' }}>
-                  {Array.from({ length: stars }).map((_, i) => (
-                    <Star key={i} size={14} fill="#fbbf24" />
+                <div className="fb-stars-wrap">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      size={14}
+                      fill={i < stars ? '#f59e0b' : '#e2e8f0'}
+                      color={i < stars ? '#f59e0b' : '#cbd5e1'}
+                    />
                   ))}
                 </div>
-                <span>& Up</span>
+                <span className="fb-rating-text">{stars} Stars & Up</span>
               </button>
             );
           })}
         </div>
       </div>
+
+      {/* 5. Availability & Special Filters */}
+      <div className="fb-filter-section">
+        <label className="fb-filter-section-title">
+          <span>Availability & Offers</span>
+        </label>
+        <div className="fb-checkbox-list">
+          {/* In Stock Only */}
+          <button
+            type="button"
+            onClick={() => setInStockOnly(!inStockOnly)}
+            className="fb-checkbox-row-btn"
+          >
+            {inStockOnly ? (
+              <CheckSquare size={17} className="fb-checkbox-checked" />
+            ) : (
+              <Square size={17} className="fb-checkbox-unchecked" />
+            )}
+            <span className="fb-checkbox-label">In Stock Only</span>
+          </button>
+
+          {/* Featured Only */}
+          <button
+            type="button"
+            onClick={() => setFeatured(!filters.featured ? true : undefined)}
+            className="fb-checkbox-row-btn"
+          >
+            {filters.featured ? (
+              <CheckSquare size={17} className="fb-checkbox-checked" />
+            ) : (
+              <Square size={17} className="fb-checkbox-unchecked" />
+            )}
+            <span className="fb-checkbox-label">
+              <Sparkles size={13} color="#f59e0b" style={{ display: 'inline', marginRight: 4 }} />
+              Featured Products Only
+            </span>
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
+
+export default ProductFilters;

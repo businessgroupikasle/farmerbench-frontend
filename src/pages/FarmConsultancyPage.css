@@ -1,0 +1,1561 @@
+/* ==========================================================================
+   Farm Consultancy Service Details Page Styling
+   ========================================================================== */
+
+.consult-dev-page {
+  background-color: #FFFFFF;
+  color: var(--text-primary, #17251E);
+  min-height: 100vh;
+  font-family: inherit;
+}
+
+/* ==========================================================================
+   1. Hero Banner Section
+   ========================================================================== */
+.consult-dev-hero {
+  position: relative;
+  background: linear-gradient(135deg, #092617 0%, #114224 50%, #164627 100%);
+  color: #FFFFFF;
+  padding: 2rem 0 3.5rem;
+  overflow: hidden;
+}
+
+.consult-dev-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top right, rgba(120, 184, 51, 0.18) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.consult-dev-hero-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 3rem;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.consult-dev-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #A3C9B0;
+  margin-bottom: 1.5rem;
+}
+
+.consult-dev-breadcrumbs a {
+  color: #A3C9B0;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.consult-dev-breadcrumbs a:hover {
+  color: #FFFFFF;
+  text-decoration: underline;
+}
+
+.breadcrumb-separator {
+  color: #6E9B7E;
+  font-size: 0.8rem;
+}
+
+.breadcrumb-current {
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+.consult-dev-hero-title {
+  font-size: clamp(2.2rem, 3.8vw, 3.2rem);
+  font-weight: 800;
+  line-height: 1.18;
+  letter-spacing: -0.025em;
+  color: #FFFFFF;
+  margin-bottom: 1.25rem;
+}
+
+.consult-dev-hero-desc {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #D3E5D9;
+  max-width: 580px;
+  margin-bottom: 2rem;
+  font-weight: 400;
+}
+
+.consult-dev-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.consult-dev-btn-primary {
+  background-color: #78B833;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.9rem 1.8rem;
+  border-radius: 8px;
+  font-size: 0.975rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(120, 184, 51, 0.35);
+  text-decoration: none;
+}
+
+.consult-dev-btn-primary:hover {
+  background-color: #68A229;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(120, 184, 51, 0.45);
+}
+
+.consult-dev-btn-secondary {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  padding: 0.85rem 1.6rem;
+  border-radius: 8px;
+  font-size: 0.975rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
+}
+
+.consult-dev-btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: #FFFFFF;
+  transform: translateY(-2px);
+}
+
+.consult-dev-hero-media {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.consult-dev-hero-img-card {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+  border: 4px solid rgba(255, 255, 255, 0.12);
+  max-width: 480px;
+  width: 100%;
+}
+
+.consult-dev-hero-img {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+  display: block;
+}
+
+.consult-dev-hero-badge {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  right: 14px;
+  background: rgba(9, 38, 23, 0.92);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(136, 207, 58, 0.3);
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #FFFFFF;
+}
+
+.consult-dev-hero-badge strong {
+  display: block;
+  font-size: 0.85rem;
+  color: #FFFFFF;
+}
+
+.consult-dev-hero-badge span {
+  display: block;
+  font-size: 0.75rem;
+  color: #A3C9B0;
+}
+
+@media (max-width: 960px) {
+  .consult-dev-hero-container {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+  .consult-dev-hero-img-card {
+    max-width: 100%;
+  }
+}
+
+/* ==========================================================================
+   2. About Farm Consultancy Section
+   ========================================================================== */
+.consult-dev-about-section {
+  padding: 5rem 0 4rem;
+  background-color: #FFFFFF;
+}
+
+.consult-dev-about-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 3.5rem;
+  align-items: center;
+}
+
+.consult-dev-about-media {
+  position: relative;
+}
+
+.consult-dev-about-img-wrap {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  border: 1px solid #E5EBE7;
+}
+
+.consult-dev-about-img {
+  width: 100%;
+  height: 360px;
+  object-fit: cover;
+  display: block;
+}
+
+.consult-dev-about-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.consult-dev-about-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.consult-dev-about-desc {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: #4A5B52;
+  margin-bottom: 2rem;
+}
+
+.consult-dev-pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.consult-dev-pillar-card {
+  background-color: #FAFCFA;
+  border: 1px solid #E5EBE7;
+  border-radius: 12px;
+  padding: 1.5rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  transition: all 0.25s ease;
+}
+
+.consult-dev-pillar-card:hover {
+  border-color: #78B833;
+  box-shadow: 0 8px 22px rgba(120, 184, 51, 0.12);
+  transform: translateY(-3px);
+}
+
+.consult-dev-pillar-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background-color: #EBF5ED;
+  color: #164627;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.consult-dev-pillar-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 0.5rem;
+}
+
+.consult-dev-pillar-text {
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #64748B;
+}
+
+@media (max-width: 960px) {
+  .consult-dev-about-container {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .consult-dev-pillars-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   3. Expert Support Across Every Stage of Farming (12 Modules)
+   ========================================================================== */
+.consult-dev-modules-section {
+  padding: 4.5rem 0 5rem;
+  background-color: #F8FBF9;
+  border-top: 1px solid #EAEFEA;
+  border-bottom: 1px solid #EAEFEA;
+}
+
+.consult-dev-modules-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.consult-dev-section-header {
+  text-align: center;
+  margin-bottom: 3.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.consult-dev-leaf-icon {
+  color: #78B833;
+  margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.consult-dev-section-title {
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 800;
+  color: #17251E;
+  letter-spacing: -0.02em;
+}
+
+.consult-dev-modules-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+
+.consult-dev-module-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E5EBE7;
+  border-radius: 14px;
+  padding: 1.5rem 1.25rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.25s ease;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.02);
+}
+
+.consult-dev-module-card:hover {
+  border-color: #78B833;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 24px rgba(120, 184, 51, 0.12);
+}
+
+.consult-dev-module-icon-box {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background-color: #F2F8F3;
+  color: #164627;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  transition: all 0.25s ease;
+}
+
+.consult-dev-module-card:hover .consult-dev-module-icon-box {
+  background-color: #164627;
+  color: #88CF3A;
+}
+
+.consult-dev-module-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 0.4rem;
+  letter-spacing: -0.01em;
+}
+
+.consult-dev-module-desc {
+  font-size: 0.775rem;
+  line-height: 1.4;
+  color: #64748B;
+}
+
+@media (max-width: 1000px) {
+  .consult-dev-modules-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .consult-dev-modules-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 460px) {
+  .consult-dev-modules-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   4. Choose How You Want to Consult (6 Modes)
+   ========================================================================== */
+.consult-dev-modes-section {
+  padding: 5rem 0;
+  background-color: #FFFFFF;
+}
+
+.consult-dev-modes-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.consult-dev-modes-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1.25rem;
+}
+
+.consult-dev-mode-card {
+  background-color: #FFFFFF;
+  border: 1.5px solid #E5EBE7;
+  border-radius: 14px;
+  padding: 1.75rem 1.1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.25s ease;
+}
+
+.consult-dev-mode-card:hover {
+  border-color: #78B833;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 24px rgba(120, 184, 51, 0.15);
+}
+
+.consult-dev-mode-card.active {
+  border-color: #164627;
+  background-color: #F8FAF8;
+  box-shadow: 0 8px 24px rgba(22, 70, 39, 0.15);
+}
+
+.consult-dev-mode-badge {
+  position: absolute;
+  top: -11px;
+  background-color: #78B833;
+  color: #FFFFFF;
+  font-size: 0.675rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(120, 184, 51, 0.4);
+}
+
+.consult-dev-mode-icon-box {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  background-color: #EBF5ED;
+  color: #164627;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  transition: all 0.2s ease;
+}
+
+.consult-dev-mode-card:hover .consult-dev-mode-icon-box,
+.consult-dev-mode-card.active .consult-dev-mode-icon-box {
+  background-color: #164627;
+  color: #88CF3A;
+}
+
+.consult-dev-mode-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 0.4rem;
+}
+
+.consult-dev-mode-desc {
+  font-size: 0.775rem;
+  line-height: 1.45;
+  color: #64748B;
+  margin-bottom: 1.25rem;
+}
+
+.consult-dev-mode-action {
+  margin-top: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #164627;
+}
+
+@media (max-width: 1100px) {
+  .consult-dev-modes-grid {
+    grid-template-columns: repeat(3, 1fr);
+    row-gap: 2rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .consult-dev-modes-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 440px) {
+  .consult-dev-modes-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   5. Workflow Process (7 Steps)
+   ========================================================================== */
+.consult-dev-workflow-section {
+  padding: 5rem 0;
+  background-color: #F8FBF9;
+  border-top: 1px solid #EAEFEA;
+  border-bottom: 1px solid #EAEFEA;
+}
+
+.consult-dev-workflow-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.consult-dev-timeline-track {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1.25rem;
+  position: relative;
+  margin-top: 2rem;
+}
+
+.consult-dev-timeline-track::before {
+  content: '';
+  position: absolute;
+  top: 24px;
+  left: 6%;
+  right: 6%;
+  height: 3px;
+  background: linear-gradient(90deg, #164627 0%, #78B833 50%, #164627 100%);
+  z-index: 0;
+}
+
+.consult-dev-step-item {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.consult-dev-step-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #164627;
+  color: #FFFFFF;
+  font-size: 1.1rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4px solid #FFFFFF;
+  box-shadow: 0 4px 12px rgba(22, 70, 39, 0.25);
+  margin-bottom: 1rem;
+  transition: all 0.25s ease;
+}
+
+.consult-dev-step-item:hover .consult-dev-step-circle {
+  background-color: #78B833;
+  transform: scale(1.1);
+}
+
+.consult-dev-step-heading {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 0.35rem;
+}
+
+.consult-dev-step-text {
+  font-size: 0.775rem;
+  line-height: 1.4;
+  color: #64748B;
+  max-width: 150px;
+}
+
+@media (max-width: 1000px) {
+  .consult-dev-timeline-track {
+    grid-template-columns: repeat(4, 1fr);
+    row-gap: 2.5rem;
+  }
+  .consult-dev-timeline-track::before {
+    display: none;
+  }
+}
+
+@media (max-width: 580px) {
+  .consult-dev-timeline-track {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ==========================================================================
+   6. Confident Decisions & Action Plan Preview Card
+   ========================================================================== */
+.consult-dev-reasons-section {
+  padding: 5rem 0;
+  background-color: #FFFFFF;
+}
+
+.consult-dev-reasons-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 3.5rem;
+  align-items: center;
+}
+
+.consult-dev-reasons-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #17251E;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.85rem;
+}
+
+.consult-dev-title-divider {
+  width: 48px;
+  height: 4px;
+  background-color: #78B833;
+  border-radius: 2px;
+  margin-bottom: 2rem;
+}
+
+.consult-dev-benefits-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.consult-dev-benefit-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.consult-dev-benefit-check {
+  color: #164627;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Action Plan Preview Card */
+.consult-dev-plan-card {
+  background-color: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 18px;
+  padding: 1.75rem;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.08);
+}
+
+.consult-dev-plan-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #EAEFEA;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.consult-dev-plan-title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #17251E;
+}
+
+.consult-dev-expert-tag {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background-color: #FAFCFA;
+  border: 1px solid #E5EBE7;
+  padding: 0.35rem 0.75rem;
+  border-radius: 24px;
+}
+
+.consult-dev-expert-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #EBF5ED;
+  color: #164627;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.consult-dev-expert-name {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  color: #17251E;
+}
+
+.verified-check {
+  color: #164627;
+}
+
+.consult-dev-expert-role {
+  font-size: 0.725rem;
+  color: #64748B;
+  display: block;
+}
+
+.consult-dev-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.consult-dev-plan-box {
+  background-color: #F8FAF8;
+  border: 1px solid #EAEFEA;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.consult-dev-box-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 0.75rem;
+}
+
+.consult-dev-crop-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.consult-dev-crop-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.consult-dev-status-pill {
+  display: inline-block;
+  background-color: #EBF5ED;
+  color: #164627;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+  margin-bottom: 0.25rem;
+}
+
+.consult-dev-crop-sub {
+  font-size: 0.725rem;
+  color: #64748B;
+  margin: 0;
+  line-height: 1.35;
+}
+
+.consult-dev-actions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.consult-dev-actions-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  font-size: 0.75rem;
+  color: #334155;
+  line-height: 1.35;
+}
+
+.action-check {
+  color: #164627;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.consult-dev-nutrition-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.consult-dev-nut-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  color: #475569;
+}
+
+.consult-dev-nut-item strong {
+  color: #164627;
+}
+
+.consult-dev-plan-footer {
+  border-top: 1px solid #EAEFEA;
+  padding-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.consult-dev-footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.consult-dev-footer-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  color: #17251E;
+}
+
+.consult-dev-footer-text {
+  font-size: 0.75rem;
+  color: #64748B;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.consult-dev-next-badge {
+  display: inline-block;
+  background-color: #EBF5ED;
+  color: #164627;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  margin-top: 0.2rem;
+  width: fit-content;
+}
+
+.consult-dev-mode-tag {
+  font-size: 0.7rem;
+  color: #164627;
+  font-weight: 600;
+}
+
+@media (max-width: 960px) {
+  .consult-dev-reasons-container {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+  .consult-dev-plan-grid {
+    grid-template-columns: 1fr;
+  }
+  .consult-dev-plan-footer {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   7. Form Section
+   ========================================================================== */
+.consult-dev-consultation-section {
+  padding: 5rem 0;
+  background-color: #F4F7F4;
+  border-top: 1px solid #E5ECE5;
+}
+
+.consult-dev-consultation-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.consult-dev-consultation-heading-wrap {
+  margin-bottom: 2.5rem;
+}
+
+.consult-dev-form-main-title {
+  font-size: clamp(1.8rem, 3vw, 2.3rem);
+  font-weight: 800;
+  color: #17251E;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+
+.consult-dev-form-main-desc {
+  font-size: 0.95rem;
+  color: #64748B;
+}
+
+.consult-dev-form-layout-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 0.65fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.consult-dev-form-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E5EBE7;
+  border-radius: 18px;
+  padding: 2.5rem;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
+}
+
+.consult-dev-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.consult-dev-row-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 900px) {
+  .consult-dev-row-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.consult-dev-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.consult-dev-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.consult-dev-input-with-icon {
+  position: relative;
+}
+
+.consult-dev-input-with-icon .consult-dev-input {
+  padding-right: 2.4rem;
+}
+
+.input-loc-icon {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94A3B8;
+  pointer-events: none;
+}
+
+.consult-dev-input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #1E293B;
+  background-color: #FAFCFA;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.consult-dev-input:focus {
+  border-color: #78B833;
+  background-color: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(120, 184, 51, 0.15);
+}
+
+.consult-dev-input::placeholder {
+  color: #94A3B8;
+  font-size: 0.85rem;
+}
+
+.consult-dev-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  background-size: 16px;
+  padding-right: 2.2rem;
+}
+
+.consult-dev-textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+/* File Upload */
+.consult-dev-upload-box {
+  border: 2px dashed #CBD5E1;
+  background-color: #F8FAFC;
+  border-radius: 10px;
+  padding: 1.25rem;
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.consult-dev-upload-box:hover,
+.consult-dev-upload-box.drag-over {
+  border-color: #78B833;
+  background-color: #F0F9ED;
+}
+
+.consult-dev-upload-icon {
+  color: #78B833;
+  flex-shrink: 0;
+}
+
+.consult-dev-upload-prompt {
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.consult-dev-upload-prompt span {
+  color: #78B833;
+  text-decoration: underline;
+}
+
+.consult-dev-upload-hint {
+  font-size: 0.75rem;
+  color: #94A3B8;
+}
+
+.consult-dev-file-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.consult-dev-file-item {
+  background-color: #EBF5ED;
+  color: #164627;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid rgba(120, 184, 51, 0.3);
+}
+
+.consult-dev-file-remove {
+  background: none;
+  border: none;
+  color: #164627;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0;
+}
+
+.consult-dev-consent-row {
+  margin-top: 0.25rem;
+}
+
+.consult-dev-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  color: #475569;
+  cursor: pointer;
+}
+
+.consult-dev-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #164627;
+  cursor: pointer;
+}
+
+.consult-dev-btn-submit {
+  background-color: #164627;
+  color: #FFFFFF;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(22, 70, 39, 0.25);
+  margin-top: 0.5rem;
+}
+
+.consult-dev-btn-submit:hover:not(:disabled) {
+  background-color: #0E301A;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(22, 70, 39, 0.35);
+}
+
+.consult-dev-btn-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Success State */
+.consult-dev-success-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.consult-dev-success-icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background-color: #EBF5ED;
+  color: #164627;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+
+.consult-dev-success-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 0.75rem;
+}
+
+.consult-dev-success-desc {
+  color: #64748B;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  max-width: 480px;
+  margin: 0 auto 2rem;
+}
+
+/* Right Card: What Happens Next? */
+.consult-dev-next-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E5EBE7;
+  border-radius: 18px;
+  padding: 2.25rem 2rem;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
+}
+
+.consult-dev-next-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 1.75rem;
+  letter-spacing: -0.01em;
+}
+
+.consult-dev-next-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+}
+
+.consult-dev-next-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.consult-dev-next-badge-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #164627;
+  color: #FFFFFF;
+  font-size: 0.9rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.consult-dev-next-heading {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 0.2rem;
+}
+
+.consult-dev-next-desc {
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #475569;
+}
+
+@media (max-width: 960px) {
+  .consult-dev-form-layout-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   8. Frequently Asked Questions
+   ========================================================================== */
+.consult-dev-faqs-section {
+  padding: 5rem 0;
+  background-color: #FFFFFF;
+}
+
+.consult-dev-faqs-container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.consult-dev-faqs-title {
+  text-align: center;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 3rem;
+  letter-spacing: -0.02em;
+}
+
+.consult-dev-faqs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.consult-dev-faq-card {
+  background-color: #FAFCFA;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.consult-dev-faq-card:hover {
+  border-color: #78B833;
+  background-color: #FFFFFF;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.consult-dev-faq-card.active {
+  border-color: #78B833;
+  background-color: #FFFFFF;
+  box-shadow: 0 6px 20px rgba(120, 184, 51, 0.08);
+}
+
+.consult-dev-faq-question-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.consult-dev-faq-question {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #17251E;
+}
+
+.consult-dev-faq-toggle {
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.consult-dev-faq-card.active .consult-dev-faq-toggle {
+  color: #78B833;
+}
+
+.consult-dev-faq-answer {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid #EAEFEA;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #4A5B52;
+}
+
+@media (max-width: 800px) {
+  .consult-dev-faqs-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   9. Bottom CTA Banner
+   ========================================================================== */
+.consult-dev-bottom-banner {
+  background: linear-gradient(135deg, #092617 0%, #164627 100%);
+  color: #FFFFFF;
+  padding: 3.5rem 0;
+}
+
+.consult-dev-bottom-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.consult-dev-bottom-content {
+  max-width: 760px;
+}
+
+.consult-dev-bottom-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  margin-bottom: 0.4rem;
+}
+
+.consult-dev-bottom-desc {
+  font-size: 0.95rem;
+  color: #D3E5D9;
+  line-height: 1.5;
+}
+
+.consult-dev-bottom-btn {
+  background-color: #FFFFFF;
+  color: #164627;
+  border: none;
+  padding: 0.95rem 1.85rem;
+  border-radius: 8px;
+  font-size: 0.975rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  white-space: nowrap;
+}
+
+.consult-dev-bottom-btn:hover {
+  background-color: #EBF5ED;
+  color: #0E301A;
+  transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   Modal Dialog Styles
+   ========================================================================== */
+.consult-dev-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+}
+
+.consult-dev-modal-card {
+  background-color: #FFFFFF;
+  border-radius: 18px;
+  max-width: 460px;
+  width: 100%;
+  padding: 2.25rem;
+  position: relative;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+  animation: consultDevFadeIn 0.25s ease;
+}
+
+@keyframes consultDevFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.consult-dev-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: #F1F5F9;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.consult-dev-modal-close:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+}
+
+.consult-dev-modal-header {
+  margin-bottom: 1.5rem;
+}
+
+.consult-dev-modal-tag {
+  display: inline-block;
+  background-color: #EBF5ED;
+  color: #164627;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  margin-bottom: 0.6rem;
+}
+
+.consult-dev-modal-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 0.4rem;
+}
+
+.consult-dev-modal-desc {
+  font-size: 0.875rem;
+  color: #64748B;
+  line-height: 1.5;
+}
+
+.consult-dev-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.consult-dev-modal-footer-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: #64748B;
+  margin-top: 0.5rem;
+}
+
+.consult-dev-modal-success {
+  text-align: center;
+  padding: 1.5rem 0 0.5rem;
+}
+
+.consult-dev-modal-icon-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: #EBF5ED;
+  color: #164627;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.25rem;
+}

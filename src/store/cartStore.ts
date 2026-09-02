@@ -62,7 +62,7 @@ export const useCartStore = create<CartUIState>((set, get) => ({
     }
 
     saveGuestCart(updated);
-    set({ guestItems: updated, isDrawerOpen: true });
+    set({ guestItems: updated });
   },
 
   updateGuestItemQuantity: (productId, quantity) => {

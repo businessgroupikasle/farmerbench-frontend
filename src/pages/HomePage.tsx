@@ -18,7 +18,6 @@ export const HomePage: React.FC = () => {
         <HomeCategories />
         <HomeSmartHub />
         <HomeMarketPrices />
-
         <HomeServicesBlocks />
         <HomeGovernmentSchemes />
         <HomeFeaturedProducts />

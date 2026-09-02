@@ -5,12 +5,14 @@ import { Button } from './Button';
 interface ErrorStateProps {
   title?: string;
   message?: string;
+  actionText?: string;
   onRetry?: () => void;
 }
 
 export const ErrorState: React.FC<ErrorStateProps> = ({
   title = 'Something went wrong',
   message = 'An unexpected error occurred. Please try again.',
+  actionText = 'Try Again',
   onRetry,
 }) => {
   return (
@@ -50,7 +52,7 @@ export const ErrorState: React.FC<ErrorStateProps> = ({
       <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1.25rem' }}>{message}</p>
       {onRetry && (
         <Button variant="secondary" size="sm" onClick={onRetry}>
-          Try Again
+          {actionText}
         </Button>
       )}
     </div>

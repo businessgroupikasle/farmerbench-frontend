@@ -71,6 +71,7 @@ export const LoginPage: React.FC = () => {
   const [isSignupOtpSending, setIsSignupOtpSending] = useState(false);
   const [isSignupVerifying, setIsSignupVerifying] = useState(false);
   const [isSubmittingSignup, setIsSubmittingSignup] = useState(false);
+  const [registrationToken, setRegistrationToken] = useState<string | null>(null);
 
   // =========================================================================
   // FORGOT PASSWORD FLOW STATE
@@ -237,10 +238,6 @@ export const LoginPage: React.FC = () => {
         body: JSON.stringify({
           email: emailOrPhone.trim(),
           otp: entered,
-          name: name.trim() || undefined,
-          phone: phoneNumber.trim() || undefined,
-          location: district.trim() || undefined,
-          password: password || undefined,
         }),
       });
       const data = await res.json();
@@ -251,12 +248,8 @@ export const LoginPage: React.FC = () => {
       }
 
       setIsEmailVerified(true);
+      setRegistrationToken(data.data?.registrationToken || null);
       setSignupOtpSent(false);
-
-      // Store credentials / token immediately in state & localStorage
-      if (data.data?.token) {
-        setAuthSession(data.data.user, data.data.token);
-      }
 
       addToast({
         type: 'success',
@@ -283,10 +276,48 @@ export const LoginPage: React.FC = () => {
       setError('Please enter your full name');
       return;
     }
+    if (!registrationToken) {
+      setError('Your email verification session is missing. Please verify the OTP again.');
+      return;
+    }
+    if (!phoneNumber.trim()) {
+      setError('Please enter your mobile number');
+      return;
+    }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+    if (!district.trim()) {
+      setError('Please enter your district or location');
+      return;
+    }
 
     setIsSubmittingSignup(true);
 
     try {
+      const res = await fetch('http://localhost:5000/api/auth/complete-registration', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          registrationToken,
+          name: name.trim(),
+          phone: phoneNumber.trim(),
+          password,
+          location: district.trim(),
+        }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Account creation failed.');
+      }
+
+      if (!data.data?.user || !data.data?.token) {
+        throw new Error('Account was created but the login session was not returned.');
+      }
+
+      setAuthSession(data.data.user, data.data.token);
       addToast({ type: 'success', message: 'Welcome to FarmerBench! Your account is active.' });
       navigate('/dashboard');
     } catch (err: any) {
@@ -510,7 +541,6 @@ export const LoginPage: React.FC = () => {
       const res = await authService.resetPassword({
         resetToken,
         newPassword,
-        confirmPassword,
       });
       setIsResettingPassword(false);
 

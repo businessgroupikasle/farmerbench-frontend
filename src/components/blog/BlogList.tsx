@@ -1,127 +1,83 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { User, Calendar, ArrowRight, Search, Clock } from 'lucide-react';
-import aerialImg from '../../assets/vineyard-hills.jpg';
+import { Link, useSearchParams } from 'react-router-dom';
+import { User, Calendar, ArrowRight, Search, Clock, RotateCcw } from 'lucide-react';
+import { useBlogs, useBlogCategories } from '../../hooks/useBlogs';
+import { getUploadUrl } from '../../utils/image';
 import wheatImg from '../../assets/wheat-sunburst.jpg';
-import pastureImg from '../../assets/farming-practices.jpg';
-import smartImg from '../../assets/smart-irrigation.jpg';
-import sustainableImg from '../../assets/sustainable-farm.jpg';
-import organicImg from '../../assets/organic-farming.jpg';
-
-interface BlogPost {
-  id: string;
-  title: string;
-  category: string;
-  author: string;
-  date: string;
-  readTime: string;
-  excerpt: string;
-  image: string;
-}
 
 export const BlogList: React.FC = () => {
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialCategory = searchParams.get('category') || 'all';
+  const initialSearch = searchParams.get('search') || '';
 
-  const categories = [
-    { id: 'all', name: 'All Articles' },
-    { id: 'crop-care', name: 'Crop Care' },
-    { id: 'sustainable', name: 'Sustainable Farming' },
-    { id: 'soil-health', name: 'Soil Health' },
-    { id: 'livestock', name: 'Livestock Care' },
-    { id: 'irrigation', name: 'Modern Irrigation' },
-  ];
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
 
-  const posts: BlogPost[] = [
-    {
-      id: '1',
-      title: 'Expert Tips for Maximizing Crop Yields',
-      category: 'crop-care',
-      author: 'Ellan John',
-      date: 'April 29, 2024',
-      readTime: '5 min read',
-      excerpt: 'Discover proven techniques in precision planting, seasonal crop rotation, and optimal nutrient management.',
-      image: aerialImg,
-    },
-    {
-      id: '2',
-      title: 'Practices and Benefits of Sustainable Farming',
-      category: 'sustainable',
-      author: 'Max Wills',
-      date: 'April 29, 2024',
-      readTime: '6 min read',
-      excerpt: 'How regenerative agriculture protects topsoil vitality, enhances biodiversity, and reduces water consumption.',
-      image: wheatImg,
-    },
-    {
-      id: '3',
-      title: 'Essential Guidelines for Livestock Health',
-      category: 'livestock',
-      author: 'Sam Andre',
-      date: 'April 29, 2024',
-      readTime: '4 min read',
-      excerpt: 'A comprehensive checklist for pasture hygiene, balanced mineral supplements, and seasonal livestock shelter.',
-      image: pastureImg,
-    },
-    {
-      id: '4',
-      title: 'Smart Drip Irrigation & Water Efficiency',
-      category: 'irrigation',
-      author: 'Dr. Ramesh Kumar',
-      date: 'May 12, 2024',
-      readTime: '7 min read',
-      excerpt: 'Automated soil moisture sensors and root-zone water delivery to slash water consumption by up to 45%.',
-      image: smartImg,
-    },
-    {
-      id: '5',
-      title: 'Microbial Soil Health and Organic Compost',
-      category: 'soil-health',
-      author: 'Kavitha Nathan',
-      date: 'June 04, 2024',
-      readTime: '5 min read',
-      excerpt: 'Restoring natural mycorrhizal fungi networks to boost drought tolerance and natural disease resistance in roots.',
-      image: sustainableImg,
-    },
-    {
-      id: '6',
-      title: 'Natural Pest Management Without Synthetic Chemicals',
-      category: 'crop-care',
-      author: 'Ellan John',
-      date: 'July 18, 2024',
-      readTime: '6 min read',
-      excerpt: 'Utilizing biological controls, companion planting, and neem-based biopesticides for clean chemical-free harvests.',
-      image: organicImg,
-    },
-  ];
-
-  const filteredPosts = posts.filter((p) => {
-    const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
-    const matchesSearch =
-      !searchQuery ||
-      p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.excerpt.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+  const { data: categories = [] } = useBlogCategories();
+  const { data: blogData, isLoading } = useBlogs({
+    category: selectedCategory !== 'all' ? selectedCategory : undefined,
+    search: searchQuery || undefined,
   });
 
+  const posts = blogData?.blogs || [];
+
+  const handleCategoryClick = (catSlug: string) => {
+    setSelectedCategory(catSlug);
+    const nextParams = new URLSearchParams(searchParams);
+    if (catSlug && catSlug !== 'all') {
+      nextParams.set('category', catSlug);
+    } else {
+      nextParams.delete('category');
+    }
+    setSearchParams(nextParams);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const nextParams = new URLSearchParams(searchParams);
+    if (searchQuery.trim()) {
+      nextParams.set('search', searchQuery.trim());
+    } else {
+      nextParams.delete('search');
+    }
+    setSearchParams(nextParams);
+  };
+
+  const handleResetFilters = () => {
+    setSelectedCategory('all');
+    setSearchQuery('');
+    setSearchParams({});
+  };
+
   return (
-    <section className="blog-list-section">
+    <section className="blog-list-section" aria-label="Agricultural Articles">
       <div className="container">
         {/* Category Filters & Search */}
         <div className="blog-filters-row">
           <div className="blog-category-chips">
-            {categories.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => setSelectedCategory(c.id)}
-                className={`blog-cat-chip ${selectedCategory === c.id ? 'active' : ''}`}
-              >
-                {c.name}
-              </button>
-            ))}
+            <button
+              type="button"
+              onClick={() => handleCategoryClick('all')}
+              className={`blog-cat-chip ${selectedCategory === 'all' ? 'active' : ''}`}
+            >
+              All Articles
+            </button>
+            {categories
+              .filter((c) => c.slug !== 'all')
+              .map((c) => (
+                <button
+                  key={c.slug}
+                  type="button"
+                  onClick={() => handleCategoryClick(c.slug)}
+                  className={`blog-cat-chip ${selectedCategory === c.slug ? 'active' : ''}`}
+                >
+                  <span>{c.name}</span>
+                  <span className="blog-cat-count-pill">{c.count}</span>
+                </button>
+              ))}
           </div>
 
-          <div className="blog-search-box">
+          <form onSubmit={handleSearchSubmit} className="blog-search-box">
             <Search size={17} style={{ color: '#5D7A68' }} />
             <input
               type="text"
@@ -129,45 +85,115 @@ export const BlogList: React.FC = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="blog-search-input"
+              aria-label="Search articles"
             />
-          </div>
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  const nextParams = new URLSearchParams(searchParams);
+                  nextParams.delete('search');
+                  setSearchParams(nextParams);
+                }}
+                className="blog-search-clear-btn"
+                title="Clear search"
+              >
+                ×
+              </button>
+            )}
+          </form>
         </div>
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className="blog-cards-grid">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="blog-card blog-card-skeleton animate-pulse-subtle">
+                <div className="blog-card-img-wrap blog-skeleton-img" />
+                <div className="blog-card-body">
+                  <div className="blog-skeleton-line" style={{ width: '40%', height: 12 }} />
+                  <div className="blog-skeleton-line" style={{ width: '90%', height: 20 }} />
+                  <div className="blog-skeleton-line" style={{ width: '75%', height: 14 }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && posts.length === 0 && (
+          <div className="blog-empty-state">
+            <div className="blog-empty-icon">🌾</div>
+            <h3>No articles found</h3>
+            <p>We couldn't find any articles matching your search or selected category.</p>
+            <button onClick={handleResetFilters} className="btn btn-secondary btn-sm" style={{ marginTop: '0.75rem' }}>
+              <RotateCcw size={14} /> Reset Filters
+            </button>
+          </div>
+        )}
 
         {/* 3-Column Blog Cards Grid */}
-        <div className="blog-cards-grid">
-          {filteredPosts.map((post) => (
-            <Link to={`/blog/${post.id}`} key={post.id} className="blog-card" style={{ textDecoration: 'none' }}>
-              <div className="blog-card-img-wrap">
-                <img src={post.image} alt={post.title} />
-                <span className="blog-card-category-badge">
-                  {post.category.replace('-', ' ').toUpperCase()}
-                </span>
-              </div>
+        {!isLoading && posts.length > 0 && (
+          <div className="blog-cards-grid">
+            {posts.map((post) => {
+              const formattedDate = post.publishedAt
+                ? new Date(post.publishedAt).toLocaleDateString('en-GB', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                  })
+                : 'Recent';
 
-              <div className="blog-card-body">
-                <div className="blog-card-meta">
-                  <span className="blog-card-meta-item">
-                    <User size={13} /> {post.author}
-                  </span>
-                  <span className="blog-card-meta-item">
-                    <Calendar size={13} /> {post.date}
-                  </span>
-                  <span className="blog-card-meta-item">
-                    <Clock size={13} /> {post.readTime}
-                  </span>
-                </div>
+              const coverImage = getUploadUrl(post.featuredImage, wheatImg);
 
-                <h3 className="blog-card-title">{post.title}</h3>
-                <p className="blog-card-excerpt">{post.excerpt}</p>
+              return (
+                <Link
+                  to={`/blog/${post.slug || post.id}`}
+                  key={post.id}
+                  className="blog-card"
+                  style={{ textDecoration: 'none' }}
+                >
+                  <div className="blog-card-img-wrap">
+                    <img
+                      src={coverImage}
+                      alt={post.title}
+                      loading="lazy"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = wheatImg;
+                      }}
+                    />
+                    <span className="blog-card-category-badge">{post.category}</span>
+                  </div>
 
-                <span className="blog-card-read-more">
-                  <span>Read Article</span>
-                  <ArrowRight size={15} />
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
+                  <div className="blog-card-body">
+                    <div className="blog-card-meta">
+                      <span className="blog-card-meta-item">
+                        <User size={13} /> {post.author || 'Agri Expert'}
+                      </span>
+                      <span className="blog-card-meta-item">
+                        <Calendar size={13} /> {formattedDate}
+                      </span>
+                      {post.readingTime && (
+                        <span className="blog-card-meta-item">
+                          <Clock size={13} /> {post.readingTime}
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 className="blog-card-title">{post.title}</h3>
+                    <p className="blog-card-excerpt">{post.excerpt}</p>
+
+                    <span className="blog-card-read-more">
+                      <span>Read Article</span>
+                      <ArrowRight size={15} />
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
     </section>
   );

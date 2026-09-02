@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
   FlaskConical,
-  Bug,
   Droplets,
-  Sprout,
   TrendingUp,
-  ShieldCheck,
   PhoneCall,
   Calendar,
   CheckCircle2,
@@ -176,13 +174,43 @@ export const ServicesPage: React.FC = () => {
                     ))}
                   </ul>
 
-                  <button
-                    onClick={() => handleOpenConsultation(item.title)}
-                    className="services-card-cta-btn"
-                  >
-                    <span>Request This Service</span>
-                    <ArrowRight size={16} />
-                  </button>
+                  <div style={{ display: 'flex', gap: '0.6rem', marginTop: 'auto', paddingTop: '1rem', flexWrap: 'wrap' }}>
+                    {item.id === 'farm-development' || item.id === 'well-development' || item.id === 'drip-irrigation' || item.id === 'farm-consultancy' ? (
+                      <>
+                        <Link
+                          to={`/services/${item.id}`}
+                          className="services-card-cta-btn"
+                          style={{ textDecoration: 'none', textAlign: 'center', flex: '1 1 140px', justifyContent: 'center' }}
+                        >
+                          <span>View Details</span>
+                          <ArrowRight size={16} />
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenConsultation(item.title)}
+                          className="services-card-cta-btn"
+                          style={{
+                            flex: '1 1 120px',
+                            backgroundColor: '#EBF5ED',
+                            color: '#164627',
+                            border: '1px solid rgba(120, 184, 51, 0.4)',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <span>Consult</span>
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        onClick={() => handleOpenConsultation(item.title)}
+                        className="services-card-cta-btn"
+                        style={{ width: '100%', justifyContent: 'center' }}
+                      >
+                        <span>Request This Service</span>
+                        <ArrowRight size={16} />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

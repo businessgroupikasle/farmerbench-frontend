@@ -9,7 +9,6 @@ interface ServicesCTAProps {
 
 export const ServicesCTA: React.FC<ServicesCTAProps> = ({
   onBookConsultation,
-  onTalkToExpert,
 }) => {
   return (
     <section

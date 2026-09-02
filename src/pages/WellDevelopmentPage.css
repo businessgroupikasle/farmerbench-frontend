@@ -1,0 +1,1315 @@
+/* ==========================================================================
+   Well Development Service Details Page Styling
+   ========================================================================== */
+
+.well-dev-page {
+  background-color: #FFFFFF;
+  color: var(--text-primary, #17251E);
+  min-height: 100vh;
+  font-family: inherit;
+}
+
+/* ==========================================================================
+   1. Hero Banner Section
+   ========================================================================== */
+.well-dev-hero {
+  position: relative;
+  background: linear-gradient(135deg, #092617 0%, #114224 50%, #164627 100%);
+  color: #FFFFFF;
+  padding: 2rem 0 3.5rem;
+  overflow: hidden;
+}
+
+.well-dev-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.12) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.well-dev-hero-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 3rem;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.well-dev-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #A3C9B0;
+  margin-bottom: 1.5rem;
+}
+
+.well-dev-breadcrumbs a {
+  color: #A3C9B0;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.well-dev-breadcrumbs a:hover {
+  color: #FFFFFF;
+  text-decoration: underline;
+}
+
+.breadcrumb-separator {
+  color: #6E9B7E;
+  font-size: 0.8rem;
+}
+
+.breadcrumb-current {
+  color: #FFFFFF;
+  font-weight: 600;
+}
+
+.well-dev-hero-title {
+  font-size: clamp(2.2rem, 3.8vw, 3.2rem);
+  font-weight: 800;
+  line-height: 1.18;
+  letter-spacing: -0.025em;
+  color: #FFFFFF;
+  margin-bottom: 1.25rem;
+}
+
+.well-dev-hero-desc {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #D3E5D9;
+  max-width: 580px;
+  margin-bottom: 2rem;
+  font-weight: 400;
+}
+
+.well-dev-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.well-dev-btn-primary {
+  background-color: #78B833;
+  color: #FFFFFF;
+  border: none;
+  padding: 0.9rem 1.8rem;
+  border-radius: 8px;
+  font-size: 0.975rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(120, 184, 51, 0.35);
+  text-decoration: none;
+}
+
+.well-dev-btn-primary:hover {
+  background-color: #68A229;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(120, 184, 51, 0.45);
+}
+
+.well-dev-btn-secondary {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+  padding: 0.85rem 1.6rem;
+  border-radius: 8px;
+  font-size: 0.975rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
+}
+
+.well-dev-btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: #FFFFFF;
+  transform: translateY(-2px);
+}
+
+.well-dev-hero-media {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.well-dev-hero-img-card {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+  border: 4px solid rgba(255, 255, 255, 0.12);
+  max-width: 480px;
+  width: 100%;
+}
+
+.well-dev-hero-img {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+  display: block;
+}
+
+.well-dev-hero-badge {
+  position: absolute;
+  bottom: 14px;
+  left: 14px;
+  right: 14px;
+  background: rgba(9, 38, 23, 0.92);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(136, 207, 58, 0.3);
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #FFFFFF;
+}
+
+.well-dev-hero-badge strong {
+  display: block;
+  font-size: 0.85rem;
+  color: #FFFFFF;
+}
+
+.well-dev-hero-badge span {
+  display: block;
+  font-size: 0.75rem;
+  color: #A3C9B0;
+}
+
+@media (max-width: 960px) {
+  .well-dev-hero-container {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+  .well-dev-hero-img-card {
+    max-width: 100%;
+  }
+}
+
+/* ==========================================================================
+   2. About Well Development Section
+   ========================================================================== */
+.well-dev-about-section {
+  padding: 5rem 0 4rem;
+  background-color: #FFFFFF;
+}
+
+.well-dev-about-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 3.5rem;
+  align-items: center;
+}
+
+.well-dev-about-media {
+  position: relative;
+}
+
+.well-dev-about-img-wrap {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  border: 1px solid #E5EBE7;
+}
+
+.well-dev-about-img {
+  width: 100%;
+  height: 360px;
+  object-fit: cover;
+  display: block;
+}
+
+.well-dev-about-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.well-dev-about-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.well-dev-about-desc {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: #4A5B52;
+  margin-bottom: 2rem;
+}
+
+.well-dev-pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+}
+
+.well-dev-pillar-card {
+  background-color: #FAFCFA;
+  border: 1px solid #E5EBE7;
+  border-radius: 12px;
+  padding: 1.5rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  transition: all 0.25s ease;
+}
+
+.well-dev-pillar-card:hover {
+  border-color: #78B833;
+  box-shadow: 0 8px 22px rgba(120, 184, 51, 0.12);
+  transform: translateY(-3px);
+}
+
+.well-dev-pillar-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background-color: #EBF5ED;
+  color: #164627;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.well-dev-pillar-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 0.5rem;
+}
+
+.well-dev-pillar-text {
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #64748B;
+}
+
+@media (max-width: 960px) {
+  .well-dev-about-container {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .well-dev-pillars-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   3. Complete Well & Water Development Support (10 Modules)
+   ========================================================================== */
+.well-dev-modules-section {
+  padding: 4.5rem 0 5rem;
+  background-color: #F8FBF9;
+  border-top: 1px solid #EAEFEA;
+  border-bottom: 1px solid #EAEFEA;
+}
+
+.well-dev-modules-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.well-dev-section-header {
+  text-align: center;
+  margin-bottom: 3.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.well-dev-leaf-icon {
+  color: #78B833;
+  margin-bottom: 0.6rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.well-dev-section-title {
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 800;
+  color: #17251E;
+  letter-spacing: -0.02em;
+}
+
+.well-dev-modules-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1.25rem;
+}
+
+.well-dev-module-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E5EBE7;
+  border-radius: 14px;
+  padding: 1.75rem 1.25rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.25s ease;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.02);
+}
+
+.well-dev-module-card:hover {
+  border-color: #78B833;
+  transform: translateY(-4px);
+  box-shadow: 0 10px 24px rgba(120, 184, 51, 0.12);
+}
+
+.well-dev-module-icon-box {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background-color: #F2F8F3;
+  color: #164627;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.1rem;
+  transition: all 0.25s ease;
+}
+
+.well-dev-module-card:hover .well-dev-module-icon-box {
+  background-color: #164627;
+  color: #88CF3A;
+}
+
+.well-dev-module-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 0.45rem;
+  letter-spacing: -0.01em;
+}
+
+.well-dev-module-desc {
+  font-size: 0.775rem;
+  line-height: 1.4;
+  color: #64748B;
+}
+
+@media (max-width: 1100px) {
+  .well-dev-modules-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .well-dev-modules-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 460px) {
+  .well-dev-modules-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   4. Process Timeline (6 Steps)
+   ========================================================================== */
+.well-dev-workflow-section {
+  padding: 5rem 0;
+  background-color: #FFFFFF;
+}
+
+.well-dev-workflow-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.well-dev-timeline-track {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1.5rem;
+  position: relative;
+  margin-top: 2rem;
+}
+
+.well-dev-timeline-track::before {
+  content: '';
+  position: absolute;
+  top: 24px;
+  left: 8%;
+  right: 8%;
+  height: 3px;
+  background: linear-gradient(90deg, #164627 0%, #78B833 50%, #164627 100%);
+  z-index: 0;
+}
+
+.well-dev-step-item {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.well-dev-step-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #164627;
+  color: #FFFFFF;
+  font-size: 1.1rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4px solid #FFFFFF;
+  box-shadow: 0 4px 12px rgba(22, 70, 39, 0.25);
+  margin-bottom: 1.1rem;
+  transition: all 0.25s ease;
+}
+
+.well-dev-step-item:hover .well-dev-step-circle {
+  background-color: #78B833;
+  transform: scale(1.1);
+}
+
+.well-dev-step-heading {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 0.4rem;
+}
+
+.well-dev-step-text {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #64748B;
+  max-width: 170px;
+}
+
+@media (max-width: 960px) {
+  .well-dev-timeline-track {
+    grid-template-columns: repeat(3, 1fr);
+    row-gap: 2.5rem;
+  }
+  .well-dev-timeline-track::before {
+    display: none;
+  }
+}
+
+@media (max-width: 540px) {
+  .well-dev-timeline-track {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ==========================================================================
+   5. Smarter Water Planning & Visual Plan
+   ========================================================================== */
+.well-dev-reasons-section {
+  padding: 4.5rem 0 5rem;
+  background-color: #FFFFFF;
+}
+
+.well-dev-reasons-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  gap: 3.5rem;
+  align-items: center;
+}
+
+.well-dev-reasons-title {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #17251E;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.85rem;
+}
+
+.well-dev-title-divider {
+  width: 48px;
+  height: 4px;
+  background-color: #78B833;
+  border-radius: 2px;
+  margin-bottom: 2rem;
+}
+
+.well-dev-benefits-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.well-dev-benefit-item {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1E293B;
+}
+
+.well-dev-benefit-check {
+  color: #164627;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.well-dev-plan-wrapper {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+  background-color: #F8FAF9;
+}
+
+.well-dev-plan-img {
+  width: 100%;
+  height: 380px;
+  object-fit: cover;
+  display: block;
+}
+
+/* Callout Overlay Badges */
+.well-dev-tag {
+  position: absolute;
+  background-color: #FFFFFF;
+  color: #17251E;
+  font-size: 0.675rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+}
+
+.tag-borewell {
+  top: 18%;
+  left: 28%;
+}
+
+.tag-storage-tank {
+  bottom: 20%;
+  left: 32%;
+}
+
+.tag-recharge-pit {
+  top: 48%;
+  left: 38%;
+}
+
+.tag-rain-channel {
+  bottom: 12%;
+  right: 18%;
+}
+
+.tag-pipeline {
+  top: 48%;
+  right: 22%;
+}
+
+.tag-water-tower {
+  top: 14%;
+  right: 22%;
+}
+
+@media (max-width: 960px) {
+  .well-dev-reasons-container {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+}
+
+/* ==========================================================================
+   6. Alert Banner
+   ========================================================================== */
+.well-dev-alert-section {
+  padding: 0 0 3.5rem;
+}
+
+.well-dev-alert-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.well-dev-alert-card {
+  background-color: #FFFBEB;
+  border: 1.5px solid #FDE68A;
+  border-radius: 12px;
+  padding: 1.25rem 1.75rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.08);
+}
+
+.well-dev-alert-icon-wrap {
+  color: #D97706;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.well-dev-alert-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #92400E;
+  margin-bottom: 0.25rem;
+}
+
+.well-dev-alert-desc {
+  font-size: 0.9rem;
+  color: #78350F;
+  line-height: 1.45;
+}
+
+/* ==========================================================================
+   7. Book a Well & Water Assessment (Form Section)
+   ========================================================================== */
+.well-dev-consultation-section {
+  padding: 5rem 0;
+  background-color: #F4F7F4;
+  border-top: 1px solid #E5ECE5;
+}
+
+.well-dev-consultation-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.well-dev-consultation-heading-wrap {
+  margin-bottom: 2.5rem;
+}
+
+.well-dev-form-main-title {
+  font-size: clamp(1.8rem, 3vw, 2.3rem);
+  font-weight: 800;
+  color: #17251E;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+
+.well-dev-form-main-desc {
+  font-size: 0.95rem;
+  color: #64748B;
+}
+
+.well-dev-form-layout-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 0.65fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.well-dev-form-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E5EBE7;
+  border-radius: 18px;
+  padding: 2.5rem;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
+}
+
+.well-dev-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.well-dev-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 580px) {
+  .well-dev-row-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.well-dev-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.well-dev-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #334155;
+}
+
+.well-dev-input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #1E293B;
+  background-color: #FAFCFA;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.well-dev-input:focus {
+  border-color: #78B833;
+  background-color: #FFFFFF;
+  box-shadow: 0 0 0 3px rgba(120, 184, 51, 0.15);
+}
+
+.well-dev-input::placeholder {
+  color: #94A3B8;
+  font-size: 0.85rem;
+}
+
+.well-dev-select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  background-size: 16px;
+  padding-right: 2.2rem;
+}
+
+.well-dev-textarea {
+  resize: vertical;
+  min-height: 48px;
+}
+
+/* File Upload */
+.well-dev-upload-box {
+  border: 2px dashed #CBD5E1;
+  background-color: #F8FAFC;
+  border-radius: 10px;
+  padding: 1.25rem;
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.well-dev-upload-box:hover,
+.well-dev-upload-box.drag-over {
+  border-color: #78B833;
+  background-color: #F0F9ED;
+}
+
+.well-dev-upload-icon {
+  color: #78B833;
+  flex-shrink: 0;
+}
+
+.well-dev-upload-prompt {
+  font-size: 0.85rem;
+  color: #334155;
+}
+
+.well-dev-upload-prompt span {
+  color: #78B833;
+  text-decoration: underline;
+}
+
+.well-dev-file-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.well-dev-file-item {
+  background-color: #EBF5ED;
+  color: #164627;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid rgba(120, 184, 51, 0.3);
+}
+
+.well-dev-file-remove {
+  background: none;
+  border: none;
+  color: #164627;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0;
+}
+
+.well-dev-consent-row {
+  margin-top: 0.25rem;
+}
+
+.well-dev-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  color: #475569;
+  cursor: pointer;
+}
+
+.well-dev-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #164627;
+  cursor: pointer;
+}
+
+.well-dev-btn-submit {
+  background-color: #164627;
+  color: #FFFFFF;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 14px rgba(22, 70, 39, 0.25);
+  margin-top: 0.5rem;
+}
+
+.well-dev-btn-submit:hover:not(:disabled) {
+  background-color: #0E301A;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(22, 70, 39, 0.35);
+}
+
+.well-dev-btn-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Success State */
+.well-dev-success-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.well-dev-success-icon-wrap {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background-color: #EBF5ED;
+  color: #164627;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+
+.well-dev-success-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 0.75rem;
+}
+
+.well-dev-success-desc {
+  color: #64748B;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  max-width: 480px;
+  margin: 0 auto 2rem;
+}
+
+/* Right Card: What Happens Next? */
+.well-dev-next-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E5EBE7;
+  border-radius: 18px;
+  padding: 2.25rem 2rem;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.04);
+}
+
+.well-dev-next-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 1.75rem;
+  letter-spacing: -0.01em;
+}
+
+.well-dev-next-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+}
+
+.well-dev-next-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.well-dev-next-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: #F2F8F3;
+  color: #164627;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.well-dev-next-heading {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 0.2rem;
+}
+
+.well-dev-next-desc {
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #475569;
+}
+
+@media (max-width: 960px) {
+  .well-dev-form-layout-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   8. Frequently Asked Questions
+   ========================================================================== */
+.well-dev-faqs-section {
+  padding: 5rem 0;
+  background-color: #FFFFFF;
+}
+
+.well-dev-faqs-container {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.well-dev-faqs-title {
+  text-align: center;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 3rem;
+  letter-spacing: -0.02em;
+}
+
+.well-dev-faqs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.well-dev-faq-card {
+  background-color: #FAFCFA;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.well-dev-faq-card:hover {
+  border-color: #78B833;
+  background-color: #FFFFFF;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.well-dev-faq-card.active {
+  border-color: #78B833;
+  background-color: #FFFFFF;
+  box-shadow: 0 6px 20px rgba(120, 184, 51, 0.08);
+}
+
+.well-dev-faq-question-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.well-dev-faq-question {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #17251E;
+}
+
+.well-dev-faq-toggle {
+  color: #64748B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.well-dev-faq-card.active .well-dev-faq-toggle {
+  color: #78B833;
+}
+
+.well-dev-faq-answer {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid #EAEFEA;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #4A5B52;
+}
+
+@media (max-width: 800px) {
+  .well-dev-faqs-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   9. Bottom CTA Banner
+   ========================================================================== */
+.well-dev-bottom-banner {
+  background: linear-gradient(135deg, #092617 0%, #164627 100%);
+  color: #FFFFFF;
+  padding: 3.5rem 0;
+}
+
+.well-dev-bottom-container {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.well-dev-bottom-content {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 760px;
+}
+
+.well-dev-bottom-icon {
+  color: #88CF3A;
+  flex-shrink: 0;
+}
+
+.well-dev-bottom-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  margin-bottom: 0.4rem;
+}
+
+.well-dev-bottom-desc {
+  font-size: 0.95rem;
+  color: #D3E5D9;
+  line-height: 1.5;
+}
+
+.well-dev-bottom-btn {
+  background-color: #FFFFFF;
+  color: #164627;
+  border: none;
+  padding: 0.95rem 1.85rem;
+  border-radius: 8px;
+  font-size: 0.975rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  white-space: nowrap;
+}
+
+.well-dev-bottom-btn:hover {
+  background-color: #EBF5ED;
+  color: #0E301A;
+  transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   Modal Dialog Styles
+   ========================================================================== */
+.well-dev-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 1rem;
+}
+
+.well-dev-modal-card {
+  background-color: #FFFFFF;
+  border-radius: 18px;
+  max-width: 460px;
+  width: 100%;
+  padding: 2.25rem;
+  position: relative;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+  animation: wellDevFadeIn 0.25s ease;
+}
+
+@keyframes wellDevFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.well-dev-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: #F1F5F9;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.well-dev-modal-close:hover {
+  background: #E2E8F0;
+  color: #0F172A;
+}
+
+.well-dev-modal-header {
+  margin-bottom: 1.5rem;
+}
+
+.well-dev-modal-tag {
+  display: inline-block;
+  background-color: #EBF5ED;
+  color: #164627;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  margin-bottom: 0.6rem;
+}
+
+.well-dev-modal-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #17251E;
+  margin-bottom: 0.4rem;
+}
+
+.well-dev-modal-desc {
+  font-size: 0.875rem;
+  color: #64748B;
+  line-height: 1.5;
+}
+
+.well-dev-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.well-dev-modal-footer-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: #64748B;
+  margin-top: 0.5rem;
+}
+
+.well-dev-modal-success {
+  text-align: center;
+  padding: 1.5rem 0 0.5rem;
+}
+
+.well-dev-modal-icon-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background-color: #EBF5ED;
+  color: #164627;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.25rem;
+}

@@ -14,10 +14,11 @@ import {
   MessageSquareQuote,
   BookOpen,
   Image as ImageIcon,
+  Upload,
+  Loader2,
   BarChart3,
   UserCog,
   Settings,
-  MoreVertical,
   Search,
   Calendar,
   HelpCircle,
@@ -37,43 +38,33 @@ import {
   Trash2,
   Edit3,
   Eye,
-  Check,
-  Filter,
   RefreshCw,
-  Clock,
   MapPin,
   Phone,
-  Mail,
   Send,
-  ArrowRight,
-  Sliders,
-  DollarSign,
-  AlertTriangle,
   LogOut,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { useProducts, useProductMutations } from '../hooks/useProducts';
+import { useCategories, useCategoryMutations } from '../hooks/useCategories';
+import { useUIStore } from '../store/uiStore';
+import { getUploadUrl } from '../utils/image';
+import { uploadService } from '../services/upload.service';
 import './AdminPage.css';
 
 // Assets
-import growthBoosterImg from '../assets/growth-booster.jpg';
-import neemOilImg from '../assets/neem-oil-bottle.jpg';
-import humicPowerImg from '../assets/humic-power.jpg';
-import bioPowerImg from '../assets/bio-power-promoter.jpg';
-import farmingPracticesImg from '../assets/farming-practices.jpg';
-import vineyardImg from '../assets/vineyard-hills.jpg';
-import wheatImg from '../assets/wheat-sunburst.jpg';
-import cropMonitoringImg from '../assets/crop-monitoring.jpg';
-import smartIrrigationImg from '../assets/smart-irrigation.jpg';
-import burntLeavesImg from '../assets/burnt-leaves.jpg';
-import seaweedExtractImg from '../assets/seaweed-extract.jpg';
-import trichodermaImg from '../assets/trichoderma-fungicide.jpg';
 import farmerLogo from '../assets/farmerbench-logo.png';
-import { useCustomerStore } from '../store/customerStore';
+import { useCustomers, useCustomerMutations } from '../hooks/useCustomers';
+import { useAdminOrders, useOrderMutations } from '../hooks/useOrders';
+import { useBlogs, useBlogMutations } from '../hooks/useBlogs';
+import { BlogPost } from '../types/blog';
 
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, isAdmin, isLoading, logout } = useAuth();
-  const { customers } = useCustomerStore();
+  const { data: customerData, refetch: refetchCustomers } = useCustomers();
+  const { createCustomer, updateCustomer } = useCustomerMutations();
+  const customers = customerData?.customers || [];
 
   const handleAdminLogout = () => {
     logout();
@@ -113,9 +104,285 @@ export const AdminPage: React.FC = () => {
   const [isEditProductOpen, setIsEditProductOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
+  // Product CMS Gallery Upload State
+  const { addToast } = useUIStore();
+  const [isUploadingGallery, setIsUploadingGallery] = useState(false);
+  const [replacingGalleryIndex, setReplacingGalleryIndex] = useState<number | null>(null);
+  const [galleryUploadError, setGalleryUploadError] = useState<string | null>(null);
+  const [isDraggingGallery, setIsDraggingGallery] = useState(false);
+  const galleryFileInputRef = React.useRef<HTMLInputElement | null>(null);
+  const replaceFileInputRef = React.useRef<HTMLInputElement | null>(null);
+  const [activeReplaceTargetIndex, setActiveReplaceTargetIndex] = useState<number | null>(null);
+
+  const handleUploadGalleryFiles = async (files: FileList | File[]) => {
+    const fileList = Array.from(files);
+    if (!fileList.length) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'];
+    const invalidType = fileList.find((f) => !allowedTypes.includes(f.type));
+    if (invalidType) {
+      const err = 'Invalid file type for ' + invalidType.name + '. Only JPEG, PNG, WebP, GIF, SVG are supported.';
+      setGalleryUploadError(err);
+      addToast({ type: 'error', message: err });
+      return;
+    }
+
+    const overSized = fileList.find((f) => f.size > 10 * 1024 * 1024);
+    if (overSized) {
+      const err = 'File ' + overSized.name + ' exceeds 10MB limit.';
+      setGalleryUploadError(err);
+      addToast({ type: 'error', message: err });
+      return;
+    }
+
+    setIsUploadingGallery(true);
+    setGalleryUploadError(null);
+    const successfullyUploaded: string[] = [];
+
+    try {
+      for (const file of fileList) {
+        try {
+          const res = await uploadService.uploadImage(file, 'products/gallery');
+          if (res?.data?.url) {
+            const url = res.data.url;
+            successfullyUploaded.push(url);
+          }
+        } catch (err: any) {
+          const errMsg = err?.message || 'Failed to upload ' + file.name;
+          setGalleryUploadError(errMsg);
+          addToast({ type: 'error', message: errMsg });
+        }
+      }
+
+      if (successfullyUploaded.length > 0) {
+        setCmsForm((prev: any) => {
+          const currentImages = Array.isArray(prev.images)
+            ? prev.images.filter((img: string) => Boolean(img && img.trim()))
+            : [];
+          return {
+            ...prev,
+            images: [...currentImages, ...successfullyUploaded],
+          };
+        });
+        addToast({
+          type: 'success',
+          message: 'Successfully uploaded ' + successfullyUploaded.length + ' image(s)',
+        });
+      }
+    } finally {
+      setIsUploadingGallery(false);
+      if (galleryFileInputRef.current) {
+        galleryFileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleReplaceGalleryImage = async (index: number, file: File) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.type)) {
+      addToast({ type: 'error', message: 'Only JPEG, PNG, WebP, GIF, SVG are supported.' });
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      addToast({ type: 'error', message: 'File size cannot exceed 10MB.' });
+      return;
+    }
+
+    setReplacingGalleryIndex(index);
+    try {
+      const res = await uploadService.uploadImage(file, 'products/gallery');
+      if (res?.data?.url) {
+        const newUrl = res.data.url;
+        setCmsForm((prev: any) => {
+          const updated = [...prev.images];
+          updated[index] = newUrl;
+          return { ...prev, images: updated };
+        });
+        addToast({ type: 'success', message: 'Gallery image replaced successfully' });
+      }
+    } catch (err: any) {
+      addToast({ type: 'error', message: err?.message || 'Failed to replace image' });
+    } finally {
+      setReplacingGalleryIndex(null);
+      setActiveReplaceTargetIndex(null);
+      if (replaceFileInputRef.current) {
+        replaceFileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const triggerReplaceGallery = (index: number) => {
+    setActiveReplaceTargetIndex(index);
+    if (replaceFileInputRef.current) {
+      replaceFileInputRef.current.click();
+    }
+  };
+
+  const handleSetAsMainImage = (index: number) => {
+    if (index === 0) return;
+    setCmsForm((prev: any) => {
+      const current = [...prev.images];
+      const target = current[index];
+      const remaining = current.filter((_, i) => i !== index);
+      return { ...prev, images: [target, ...remaining] };
+    });
+    addToast({ type: 'info', message: 'Set as primary stage image' });
+  };
+
+  const handleRemoveGalleryImage = (index: number) => {
+    setCmsForm((prev: any) => ({
+      ...prev,
+      images: prev.images.filter((_: any, i: number) => i !== index),
+    }));
+    addToast({ type: 'info', message: 'Image removed from gallery' });
+  };
+
+  // Product CMS Multi-Tab Form State
+  const [cmsTab, setCmsTab] = useState<'basic' | 'media' | 'highlights' | 'steps' | 'dosage' | 'specs' | 'faqs'>('basic');
+  const [cmsForm, setCmsForm] = useState<any>({
+    title: '',
+    slug: '',
+    categoryId: '',
+    price: 500,
+    discountPrice: 450,
+    stock: 50,
+    featured: false,
+    description: '',
+    images: ['https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800'],
+    features: ['Promotes faster and healthier growth', 'Improves flowering and crop yield'],
+    packSizes: ['500 g', '1 kg', '5 kg'],
+    benefits: ['Accelerates vegetative branching and root formation.', 'Increases tillering and fruit set.'],
+    usageSteps: [
+      { stepNumber: 1, title: 'Measure', description: 'Take the recommended amount as per dosage.' },
+      { stepNumber: 2, title: 'Mix', description: 'Mix with water thoroughly until dissolved.' },
+      { stepNumber: 3, title: 'Apply', description: 'Apply to soil or as foliar spray to plants.' },
+    ],
+    dosageTable: [
+      { crop: 'Paddy & Cereals', foliarSpray: '2.5 ml / Litre', dripIrrigation: '500 ml / Acre' },
+      { crop: 'Vegetables', foliarSpray: '2.0 ml / Litre', dripIrrigation: '500 ml / Acre' },
+    ],
+    ingredients: 'Cold-fermented seaweed extract, amino acids, and micronutrient chelates.',
+    specifications: [
+      { label: 'Product Type', value: 'Organic' },
+      { label: 'Form', value: 'Granular' },
+      { label: 'Suitable Crops', value: 'All Crops' },
+      { label: 'Application Method', value: 'Soil Application / Foliar Spray' },
+      { label: 'Shelf Life', value: '24 Months' },
+      { label: 'Manufacturer', value: 'FarmerBench Agri Solutions' },
+    ],
+    faqs: [
+      { question: 'Can I use this product in drip irrigation?', answer: 'Yes, 100% water soluble and does not clog emitters.' },
+    ],
+    beforeAfter: {
+      beforeImage: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800',
+      afterImage: 'https://images.unsplash.com/photo-1530507629858-e4977d30e9e0?w=800',
+      beforeTag: 'Before',
+      afterTag: 'After 30 Days',
+      disclaimer: '*Results may vary depending on crop variety and soil conditions.',
+    },
+  });
+
+  const openAddProductCMS = () => {
+    setCmsTab('basic');
+    setCmsForm({
+      title: '',
+      slug: '',
+      categoryId: dbCategories[0]?.id || '',
+      price: 500,
+      discountPrice: 450,
+      stock: 50,
+      featured: false,
+      description: 'High-potency bio-formulation crafted for superior crop yield, enhanced root growth, and soil health.',
+      images: ['https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800'],
+      features: ['Promotes faster and healthier growth', 'Improves flowering and crop yield'],
+      packSizes: ['500 g', '1 kg', '5 kg'],
+      benefits: ['Accelerates vegetative branching and root formation.', 'Increases tillering and fruit set.'],
+      usageSteps: [
+        { stepNumber: 1, title: 'Measure', description: 'Take the recommended amount as per dosage.' },
+        { stepNumber: 2, title: 'Mix', description: 'Mix with water thoroughly until dissolved.' },
+        { stepNumber: 3, title: 'Apply', description: 'Apply to soil or as foliar spray to plants.' },
+      ],
+      dosageTable: [
+        { crop: 'Paddy & Cereals', foliarSpray: '2.5 ml / Litre', dripIrrigation: '500 ml / Acre' },
+        { crop: 'Vegetables', foliarSpray: '2.0 ml / Litre', dripIrrigation: '500 ml / Acre' },
+      ],
+      ingredients: 'Cold-fermented seaweed extract, amino acids, and micronutrient chelates.',
+      specifications: [
+        { label: 'Product Type', value: 'Organic' },
+        { label: 'Form', value: 'Granular' },
+        { label: 'Suitable Crops', value: 'All Crops' },
+        { label: 'Application Method', value: 'Soil Application / Foliar Spray' },
+        { label: 'Shelf Life', value: '24 Months' },
+        { label: 'Manufacturer', value: 'FarmerBench Agri Solutions' },
+      ],
+      faqs: [
+        { question: 'Can I use this product in drip irrigation?', answer: 'Yes, 100% water soluble and does not clog emitters.' },
+      ],
+      beforeAfter: {
+        beforeImage: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800',
+        afterImage: 'https://images.unsplash.com/photo-1530507629858-e4977d30e9e0?w=800',
+        beforeTag: 'Before',
+        afterTag: 'After 30 Days',
+        disclaimer: '*Results may vary depending on crop variety and soil conditions.',
+      },
+    });
+    setIsAddProductOpen(true);
+  };
+
+  const openEditProductCMS = (prod: any) => {
+    setSelectedProduct(prod);
+    setCmsTab('basic');
+    const attrs = prod.attributes || {};
+    setCmsForm({
+      id: prod.id,
+      title: prod.title || prod.name,
+      slug: prod.slug,
+      categoryId: prod.categoryId || dbCategories[0]?.id || '',
+      price: prod.price,
+      discountPrice: prod.discountPrice || prod.price,
+      stock: prod.stock,
+      featured: Boolean(prod.featured),
+      description: prod.description || '',
+      images: prod.images && prod.images.length > 0 ? prod.images : [prod.image],
+      features: Array.isArray(attrs.features) && attrs.features.length > 0 ? attrs.features : ['Promotes faster and healthier growth'],
+      packSizes: Array.isArray(attrs.packSizes) && attrs.packSizes.length > 0 ? attrs.packSizes : ['500 g', '1 kg', '5 kg'],
+      benefits: Array.isArray(attrs.benefits) && attrs.benefits.length > 0 ? attrs.benefits : ['Accelerates vegetative branching and root formation.'],
+      usageSteps: Array.isArray(attrs.usageSteps) && attrs.usageSteps.length > 0 ? attrs.usageSteps : [
+        { stepNumber: 1, title: 'Measure', description: 'Take the recommended amount as per dosage.' },
+        { stepNumber: 2, title: 'Mix', description: 'Mix with water thoroughly until dissolved.' },
+        { stepNumber: 3, title: 'Apply', description: 'Apply to soil or as foliar spray to plants.' },
+      ],
+      dosageTable: Array.isArray(attrs.dosageTable) && attrs.dosageTable.length > 0 ? attrs.dosageTable : [
+        { crop: 'Paddy & Cereals', foliarSpray: '2.5 ml / Litre', dripIrrigation: '500 ml / Acre' },
+      ],
+      ingredients: typeof attrs.ingredients === 'string' ? attrs.ingredients : 'Organic bio-stimulants and plant nutrients.',
+      specifications: Array.isArray(attrs.specifications) && attrs.specifications.length > 0 ? attrs.specifications : [
+        { label: 'Product Type', value: 'Organic' },
+        { label: 'Form', value: 'Granular' },
+      ],
+      faqs: Array.isArray(attrs.faqs) && attrs.faqs.length > 0 ? attrs.faqs : [
+        { question: 'Can I use this product in drip irrigation?', answer: 'Yes, 100% water soluble.' },
+      ],
+      beforeAfter: attrs.beforeAfter || {
+        beforeImage: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800',
+        afterImage: 'https://images.unsplash.com/photo-1530507629858-e4977d30e9e0?w=800',
+        beforeTag: 'Before',
+        afterTag: 'After 30 Days',
+        disclaimer: '*Results may vary depending on crop variety and soil conditions.',
+      },
+    });
+    setIsEditProductOpen(true);
+  };
+
+  const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false);
+  const [isEditCustomerOpen, setIsEditCustomerOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const [customerStatusFilter, setCustomerStatusFilter] = useState('All');
+  const [customerSearchQuery, setCustomerSearchQuery] = useState('');
+
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
   const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
-  const [isBlogModalOpen, setIsBlogModalOpen] = useState(false);
   const [isExpertModalOpen, setIsExpertModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
   const [assignBookingId, setAssignBookingId] = useState<string | null>(null);
@@ -131,458 +398,273 @@ export const AdminPage: React.FC = () => {
   // DATA STATES
   // =========================================================================
 
-  // 1. Orders
-  const [orders, setOrders] = useState([
-    {
-      id: '#GL-10482',
-      customer: 'Ramanathan',
-      phone: '+91 98421 88321',
-      email: 'ramanathan@farmmail.in',
-      products: '3 items (Growth Booster, Humic Power, Neem Oil)',
-      amount: '₹2,010',
-      payment: 'Paid',
-      paymentClass: 'paid',
-      status: 'Processing',
-      statusClass: 'processing',
-      date: '28 Aug 2026, 10:30 AM',
-      items: [
-        { name: 'Growth Booster 500ml', qty: 1, price: '₹580' },
-        { name: 'Humic Power Soil Conditioner 1kg', qty: 1, price: '₹650' },
-        { name: 'Neem Oil 100% Cold Pressed 1L', qty: 1, price: '₹780' },
-      ],
-      shippingAddress: '42 South Main Road, Thanjavur, Tamil Nadu - 613001',
-    },
-    {
-      id: '#GL-10481',
-      customer: 'Meena Devi',
-      phone: '+91 97892 44102',
-      email: 'meenafarms@gmail.com',
-      products: '1 item (Bio Power Promoter)',
-      amount: '₹580',
-      payment: 'COD',
-      paymentClass: 'cod',
-      status: 'Pending',
-      statusClass: 'pending',
-      date: '28 Aug 2026, 09:15 AM',
-      items: [{ name: 'Bio Power Organic Growth Promoter 500ml', qty: 1, price: '₹580' }],
-      shippingAddress: '15 Cauvery Nagar, Erode, Tamil Nadu - 638002',
-    },
-    {
-      id: '#GL-10480',
-      customer: 'Suresh Babu',
-      phone: '+91 94432 11980',
-      email: 'suresh.babu@cottonagri.com',
-      products: '2 items (Trichoderma Fungicide, Seaweed Extract)',
-      amount: '₹1,130',
-      payment: 'Paid',
-      paymentClass: 'paid',
-      status: 'Shipped',
-      statusClass: 'shipped',
-      date: '27 Aug 2026, 04:20 PM',
-      items: [
-        { name: 'Trichoderma Bio-Fungicide 1kg', qty: 1, price: '₹480' },
-        { name: 'Seaweed Extract Concentrated Liquid 500ml', qty: 1, price: '₹650' },
-      ],
-      shippingAddress: '88 Ring Road, Madurai, Tamil Nadu - 625001',
-    },
-    {
-      id: '#GL-10479',
-      customer: 'Kaliyaperumal',
-      phone: '+91 94860 32115',
-      email: 'kaliya.delta@yahoo.com',
-      products: '4 items (Growth Booster, Neem Oil, Humic Power x2)',
-      amount: '₹3,240',
-      payment: 'Paid',
-      paymentClass: 'paid',
-      status: 'Delivered',
-      statusClass: 'delivered',
-      date: '27 Aug 2026, 02:10 PM',
-      items: [
-        { name: 'Growth Booster 500ml', qty: 1, price: '₹580' },
-        { name: 'Neem Oil 100% Cold Pressed 1L', qty: 1, price: '₹780' },
-        { name: 'Humic Power Soil Conditioner 1kg', qty: 2, price: '₹1,300' },
-        { name: 'Trichoderma Bio-Fungicide 1kg', qty: 1, price: '₹580' },
-      ],
-      shippingAddress: 'Kumbakonam Road, Thiruvarur, Tamil Nadu - 610001',
-    },
-    {
-      id: '#GL-10478',
-      customer: 'Priya K',
-      phone: '+91 98400 99221',
-      email: 'priya.agrifarm@outlook.com',
-      products: '2 items (Bio Power Promoter, Humic Power)',
-      amount: '₹980',
-      payment: 'Refunded',
-      paymentClass: 'refunded',
-      status: 'Cancelled',
-      statusClass: 'cancelled',
-      date: '26 Aug 2026, 11:00 AM',
-      items: [{ name: 'Bio Power Organic Growth Promoter 500ml', qty: 1, price: '₹450' }],
-      shippingAddress: 'Fairlands, Salem, Tamil Nadu - 636016',
-    },
-  ]);
+  // 1. Orders (Live Database Orders)
+  const { data: adminOrdersData, refetch: refetchOrders } = useAdminOrders({ limit: 100 });
+  const { updateOrderStatus } = useOrderMutations();
 
-  // 2. Products
-  const [products, setProducts] = useState([
-    {
-      id: 'p1',
-      name: 'Growth Booster for All Crops',
-      sku: 'GB-ORG-500',
-      category: 'Bio Stimulants',
-      price: 580,
-      discountPrice: 520,
-      stock: 42,
-      sold: 248,
-      revenue: '₹1.43L',
-      image: growthBoosterImg,
-      featured: true,
-      status: 'In Stock',
-    },
-    {
-      id: 'p2',
-      name: 'Neem Oil 100% Cold Pressed',
-      sku: 'NO-BIO-1000',
-      category: 'Bio Pesticides',
-      price: 780,
-      discountPrice: 699,
-      stock: 28,
-      sold: 196,
-      revenue: '₹62.7K',
-      image: neemOilImg,
-      featured: true,
-      status: 'In Stock',
-    },
-    {
-      id: 'p3',
-      name: 'Humic Power Soil Conditioner',
-      sku: 'HP-SOIL-1KG',
-      category: 'Fertilizers',
-      price: 650,
-      discountPrice: 590,
-      stock: 4,
-      sold: 174,
-      revenue: '₹1.13L',
-      image: humicPowerImg,
-      featured: false,
-      status: 'Low Stock',
-    },
-    {
-      id: 'p4',
-      name: 'Bio Power Organic Growth Promoter',
-      sku: 'BP-ORG-500',
-      category: 'Crop Nutrition',
-      price: 450,
-      discountPrice: 420,
-      stock: 35,
-      sold: 151,
-      revenue: '₹67.9K',
-      image: bioPowerImg,
-      featured: true,
-      status: 'In Stock',
-    },
-    {
-      id: 'p5',
-      name: 'Trichoderma Bio-Fungicide',
-      sku: 'TC-BIO-1KG',
-      category: 'Bio Pesticides',
-      price: 480,
-      discountPrice: 440,
-      stock: 7,
-      sold: 120,
-      revenue: '₹57.6K',
-      image: trichodermaImg,
-      featured: false,
-      status: 'Low Stock',
-    },
-    {
-      id: 'p6',
-      name: 'Seaweed Extract Concentrated Liquid',
-      sku: 'SE-CONC-500',
-      category: 'Bio Stimulants',
-      price: 650,
-      discountPrice: 580,
-      stock: 52,
-      sold: 95,
-      revenue: '₹55.1K',
-      image: seaweedExtractImg,
-      featured: false,
-      status: 'In Stock',
-    },
-  ]);
+  const orders = (adminOrdersData?.orders || []).map((o: any) => ({
+    id: o.id.length > 8 ? '#GL-' + o.id.slice(0, 5).toUpperCase() : o.id,
+    realId: o.id,
+    customer: o.user?.name || o.shippingAddress?.fullName || 'Customer',
+    phone: o.user?.phone || o.shippingAddress?.phone || 'N/A',
+    email: o.user?.email || 'N/A',
+    products: (o.items?.length || 1) + ' items (' + (o.items?.map((it: any) => it.title).join(', ') || 'Agricultural inputs') + ')',
+    amount: '₹' + (o.totalPrice || o.itemsPrice || 0).toLocaleString('en-IN'),
+    payment: o.paymentStatus === 'PAID' ? 'Paid' : o.paymentStatus === 'FAILED' ? 'Failed' : 'Pending',
+    paymentClass: (o.paymentStatus || 'pending').toLowerCase(),
+    status: o.orderStatus ? (o.orderStatus.charAt(0) + o.orderStatus.slice(1).toLowerCase()) : 'Pending',
+    statusClass: (o.orderStatus || 'pending').toLowerCase(),
+    date: new Date(o.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+    items: o.items?.map((it: any) => ({ name: it.title, qty: it.quantity, price: '₹' + it.price })) || [],
+    shippingAddress: o.shippingAddress ? (o.shippingAddress.street + ', ' + o.shippingAddress.city + ', ' + o.shippingAddress.state + ' - ' + o.shippingAddress.postalCode) : 'Standard Shipping Address',
+  }));
 
-  // 3. Categories
-  const [categories, setCategories] = useState([
-    {
-      id: 'cat-1',
-      name: 'Bio Stimulants',
-      slug: 'bio-stimulants',
-      count: 18,
-      description: 'Plant growth promoters, root energizers, and flowering catalysts.',
-      icon: '🌿',
-    },
-    {
-      id: 'cat-2',
-      name: 'Bio Pesticides',
-      slug: 'bio-pesticides',
-      count: 16,
-      description: 'Neem oils, trichoderma, and organic biological pest protection.',
-      icon: '🛡️',
-    },
-    {
-      id: 'cat-3',
-      name: 'Fertilizers',
-      slug: 'fertilizers',
-      count: 24,
-      description: 'Humic power, vermicompost extracts, and organic mineral fertilizers.',
-      icon: '🌱',
-    },
-    {
-      id: 'cat-4',
-      name: 'Crop Nutrition',
-      slug: 'crop-nutrition',
-      count: 26,
-      description: 'Micronutrient blends, chelated zinc, boron, and calcium foliar sprays.',
-      icon: '⚡',
-    },
-  ]);
+  const totalRevenue = orders.reduce((sum: number, o: any) => {
+    const cleanAmount = parseFloat(String(o.amount).replace(/[^0-9.]/g, '')) || 0;
+    return sum + cleanAmount;
+  }, 0);
+
+  // 2. Database-Driven Products & Categories (PostgreSQL Single Source of Truth)
+  const { data: productsResponse } = useProducts({ limit: 100 });
+  const { data: dbCategories = [] } = useCategories();
+
+  const { createProduct, updateProduct, deleteProduct } = useProductMutations();
+  const { createCategory, deleteCategory } = useCategoryMutations();
+
+  const products = (productsResponse?.data || []).map((p: any) => ({
+    id: p.id,
+    name: p.title,
+    title: p.title,
+    slug: p.slug,
+    description: p.description,
+    sku: p.slug ? ('SKU-' + p.slug.slice(0, 8).toUpperCase()) : ('SKU-' + p.id.slice(0, 6).toUpperCase()),
+    category: p.category?.name || (typeof p.category === 'string' ? p.category : 'General'),
+    categoryId: p.categoryId || p.category?.id,
+    price: p.price,
+    discountPrice: p.discountPrice || p.price,
+    stock: p.stock,
+    sold: p.numReviews ? p.numReviews * 5 : 18,
+    revenue: '₹' + (((p.discountPrice || p.price) * (p.numReviews ? p.numReviews * 5 : 18)) / 1000).toFixed(1) + 'K',
+    image: p.images?.[0] || 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800',
+    images: p.images || [],
+    attributes: p.attributes || {},
+    featured: p.featured,
+    status: p.stock === 0 ? 'Out of Stock' : p.stock <= 10 ? 'Low Stock' : 'In Stock',
+  }));
+
+  const categories = dbCategories.map((c: any) => ({
+    id: c.id,
+    name: c.name,
+    slug: c.slug,
+    count: c._count?.products ?? 0,
+    description: c.description || 'Certified biological & organic agricultural inputs.',
+    icon: c.name.toLowerCase().includes('pesticide') ? '🛡️' : c.name.toLowerCase().includes('fertilizer') ? '🌱' : c.name.toLowerCase().includes('seed') ? '🌾' : '🧪',
+    imageUrl: c.imageUrl,
+  }));
 
   // 4. Coupons
-  const [coupons, setCoupons] = useState([
-    {
-      id: 'c1',
-      code: 'HARVEST20',
-      discount: '20% OFF',
-      minOrder: '₹999',
-      usage: '142 / 500',
-      validUntil: '30 Sep 2026',
-      status: 'Active',
-    },
-    {
-      id: 'c2',
-      code: 'ORGANIC10',
-      discount: '10% OFF',
-      minOrder: '₹499',
-      usage: '388 / 1000',
-      validUntil: '15 Oct 2026',
-      status: 'Active',
-    },
-    {
-      id: 'c3',
-      code: 'MONSOON50',
-      discount: 'Flat ₹50 OFF',
-      minOrder: '₹600',
-      usage: '89 / 200',
-      validUntil: '31 Aug 2026',
-      status: 'Active',
-    },
-    {
-      id: 'c4',
-      code: 'AGRIFLOW100',
-      discount: 'Flat ₹100 OFF',
-      minOrder: '₹1,500',
-      usage: '210 / 250',
-      validUntil: '20 Sep 2026',
-      status: 'Active',
-    },
-  ]);
+  const [coupons, setCoupons] = useState<any[]>([]);
 
   // 5. Service Bookings
-  const [serviceBookings, setServiceBookings] = useState([
-    {
-      id: 'SB-326',
-      customer: 'Ramanathan',
-      avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&auto=format&fit=crop&q=80',
-      service: 'Crop Consultation',
-      mode: 'Farm Visit',
-      location: 'Thanjavur (Delta Region)',
-      crop: 'Paddy / 15 Acres',
-      time: 'Today 11:30 AM',
-      assignedExpert: 'Unassigned',
-      status: 'New',
-      statusClass: 'pending',
-      isNew: true,
-    },
-    {
-      id: 'SB-325',
-      customer: 'Meena Devi',
-      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80',
-      service: 'Soil Testing & NPK Audit',
-      mode: 'Phone Call',
-      location: 'Erode',
-      crop: 'Tomato & Vegetables',
-      time: 'Today 2:00 PM',
-      assignedExpert: 'Dr. V. Priya',
-      status: 'Assigned',
-      statusClass: 'shipped',
-      isNew: false,
-    },
-    {
-      id: 'SB-324',
-      customer: 'Suresh Babu',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80',
-      service: 'Pest Diagnosis & Bio Plan',
-      mode: 'Video Call',
-      location: 'Madurai',
-      crop: 'Cotton & Pulses',
-      time: 'Tomorrow 10:00 AM',
-      assignedExpert: 'Dr. Murugan',
-      status: 'Confirmed',
-      statusClass: 'delivered',
-      isNew: false,
-    },
-  ]);
+  const [serviceBookings, setServiceBookings] = useState<any[]>([]);
 
   // 6. Crop Doctor
-  const [cropDoctorRequests, setCropDoctorRequests] = useState([
-    {
-      id: 'CD-1',
-      title: 'Tomato leaf spots & curling',
-      author: 'Meena Devi',
-      location: 'Erode',
-      phone: '+91 97892 44102',
-      time: '10 min ago',
-      severity: 'High',
-      severityClass: 'severity-high',
-      image: burntLeavesImg,
-      crop: 'Tomato (Coimbatore Selection)',
-      notes: 'Brown concentric spots appearing on lower leaves after rain. Fast spreading.',
-      prescription: 'Prescribe: Trichoderma 5g/L + Neem Oil 3ml/L foliar spray every 7 days.',
-    },
-    {
-      id: 'CD-2',
-      title: 'Paddy leaf yellowing & tip burn',
-      author: 'Ramanathan',
-      location: 'Thanjavur',
-      phone: '+91 98421 88321',
-      time: '32 min ago',
-      severity: 'Medium',
-      severityClass: 'severity-medium',
-      image: wheatImg,
-      crop: 'Paddy (CR 1009)',
-      notes: 'Lower leaves turning yellow from margin towards center. Tillering slow.',
-      prescription: 'Prescribe: Zinc EDTA 1g/L + Humic Power Soil Application 2kg/acre.',
-    },
-    {
-      id: 'CD-3',
-      title: 'Cotton bollworm & sucking pest attack',
-      author: 'Suresh Babu',
-      location: 'Madurai',
-      phone: '+91 94432 11980',
-      time: '1 hr ago',
-      severity: 'High',
-      severityClass: 'severity-high',
-      image: cropMonitoringImg,
-      crop: 'Bt Cotton / Hybrid',
-      notes: 'Boll punctures visible. Small green caterpillars noticed.',
-      prescription: 'Prescribe: Bio Pesticide Bacillus formulation + Neem extract 5ml/L spray.',
-    },
-  ]);
+  const [cropDoctorRequests, setCropDoctorRequests] = useState<any[]>([]);
 
   // 7. Experts
-  const [experts, setExperts] = useState([
-    {
-      id: 'exp-1',
-      name: 'Dr. V. Priya M.Sc., Ph.D.',
-      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=120&auto=format&fit=crop&q=80',
-      spec: 'Soil Biology & Crop Nutrition',
-      territory: 'Thanjavur & Delta District',
-      rating: '4.9 ★',
-      consultations: 148,
-      status: 'Available',
-      phone: '+91 98412 77201',
-    },
-    {
-      id: 'exp-2',
-      name: 'Dr. S. Murugan M.Sc. Agri',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&auto=format&fit=crop&q=80',
-      spec: 'Pest Diagnosis & Bio-Control',
-      territory: 'Madurai & South Region',
-      rating: '4.8 ★',
-      consultations: 192,
-      status: 'On Field',
-      phone: '+91 94420 55104',
-    },
-    {
-      id: 'exp-3',
-      name: 'Dr. K. Anitha M.Sc.',
-      avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=120&auto=format&fit=crop&q=80',
-      spec: 'Organic Horticulture & Drone Spray',
-      territory: 'Erode & Western Ghats',
-      rating: '5.0 ★',
-      consultations: 86,
-      status: 'Available',
-      phone: '+91 97880 11923',
-    },
-  ]);
+  const [experts, setExperts] = useState<any[]>([]);
 
   // 8. Reviews
-  const [reviews, setReviews] = useState([
-    {
-      id: 'REV-1',
-      reviewer: 'Ramanathan',
-      location: 'Thanjavur, Tamil Nadu',
-      avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&auto=format&fit=crop&q=80',
-      product: 'Growth Booster for All Crops',
-      productImg: growthBoosterImg,
-      crop: 'Paddy',
-      duration: 'Used for: 30 days',
-      photos: [farmingPracticesImg, vineyardImg],
-      review:
-        'Excellent results on my paddy crop. Plants look greener and healthier. Tillering improved a lot.',
-      status: 'Pending',
-    },
-    {
-      id: 'REV-2',
-      reviewer: 'Meena Devi',
-      location: 'Erode, Tamil Nadu',
-      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80',
-      product: 'Neem Oil 100% Cold Pressed',
-      productImg: neemOilImg,
-      crop: 'Tomato',
-      duration: 'Used for: 28 days',
-      photos: [cropMonitoringImg, smartIrrigationImg],
-      review:
-        'Great for vegetable crops. Applied on my tomato crop through soil drenching. Flowers and fruits increased noticeably.',
-      status: 'Pending',
-    },
-  ]);
+  const [reviews, setReviews] = useState<any[]>([]);
 
-  // 9. Blogs
-  const [blogs, setBlogs] = useState([
-    {
-      id: 'blog-1',
-      title: 'Essential Organic Practices for High-Yield Paddy Farming',
-      slug: 'organic-paddy-practices',
-      category: 'Farming Techniques',
-      author: 'Dr. V. Priya',
-      date: 'Aug 24, 2026',
-      views: '1,420 views',
-      image: farmingPracticesImg,
-      status: 'Published',
-    },
-    {
-      id: 'blog-2',
-      title: 'Natural Pest Shield: How Cold Pressed Neem Oil Protects Crops',
-      slug: 'neem-oil-pest-protection',
-      category: 'Pest Control',
-      author: 'Dr. S. Murugan',
-      date: 'Aug 18, 2026',
-      views: '980 views',
-      image: cropMonitoringImg,
-      status: 'Published',
-    },
-    {
-      id: 'blog-3',
-      title: 'Revitalizing Soil Health with Humic Acid & Bio Fertilizers',
-      slug: 'humic-acid-soil-health',
-      category: 'Soil Nutrition',
-      author: 'FarmerBench Agronomists',
-      date: 'Aug 10, 2026',
-      views: '2,150 views',
-      image: smartIrrigationImg,
-      status: 'Published',
-    },
-  ]);
+  // 9. Blogs (Live Database-Driven CMS via useBlogs)
+  const { data: adminBlogsData } = useBlogs({ status: 'ALL' });
+  const { createBlog, updateBlog, deleteBlog, toggleStatus: toggleBlogStatus } = useBlogMutations();
+  const blogs: BlogPost[] = adminBlogsData?.blogs || [];
+
+  const [isBlogModalOpen, setIsBlogModalOpen] = useState(false);
+  const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null);
+  const [blogFilter, setBlogFilter] = useState<'ALL' | 'PUBLISHED' | 'DRAFT'>('ALL');
+  const [blogSearchQuery, setBlogSearchQuery] = useState('');
+  const [blogEditorTab, setBlogEditorTab] = useState<'content' | 'preview' | 'seo'>('content');
+  const [isUploadingFeatured, setIsUploadingFeatured] = useState(false);
+  const [isUploadingContentImg, setIsUploadingContentImg] = useState(false);
+
+  const initialBlogForm = {
+    title: '',
+    slug: '',
+    category: 'Crop Nutrition',
+    author: user?.name || 'FarmerBench Agri Expert',
+    authorBio: 'Senior agricultural specialist and agronomist at FarmerBench.',
+    readingTime: '5 min read',
+    excerpt: '',
+    content: '',
+    featuredImage: '',
+    tags: 'Fertilizers, Soil Health, Crop Care',
+    status: 'PUBLISHED' as 'PUBLISHED' | 'DRAFT',
+    metaTitle: '',
+    metaDescription: '',
+  };
+  const [blogForm, setBlogForm] = useState(initialBlogForm);
+  const blogContentTextareaRef = React.useRef<HTMLTextAreaElement | null>(null);
+
+  const openCreateBlogCMS = () => {
+    setEditingBlog(null);
+    setBlogForm({
+      ...initialBlogForm,
+      author: user?.name || 'FarmerBench Agri Expert',
+    });
+    setBlogEditorTab('content');
+    setIsBlogModalOpen(true);
+  };
+
+  const openEditBlogCMS = (b: BlogPost) => {
+    setEditingBlog(b);
+    setBlogForm({
+      title: b.title,
+      slug: b.slug,
+      category: b.category,
+      author: b.author,
+      authorBio: b.authorBio || 'Senior agricultural specialist and agronomist at FarmerBench.',
+      readingTime: b.readingTime || '5 min read',
+      excerpt: b.excerpt,
+      content: b.content,
+      featuredImage: b.featuredImage,
+      tags: Array.isArray(b.tags) ? b.tags.join(', ') : '',
+      status: (b.status === 'DRAFT' ? 'DRAFT' : 'PUBLISHED') as 'PUBLISHED' | 'DRAFT',
+      metaTitle: b.metaTitle || '',
+      metaDescription: b.metaDescription || '',
+    });
+    setBlogEditorTab('content');
+    setIsBlogModalOpen(true);
+  };
+
+  const handleFeaturedImageChange = async (file: File) => {
+    if (!file) return;
+    setIsUploadingFeatured(true);
+    try {
+      const res: any = await uploadService.uploadImage(file, 'blogs/featured');
+      if (res?.data?.url) {
+        setBlogForm((prev) => ({ ...prev, featuredImage: res.data.url }));
+        showToast('Featured image uploaded successfully');
+      }
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to upload featured image');
+    } finally {
+      setIsUploadingFeatured(false);
+    }
+  };
+
+  const handleContentImageInsert = async (file: File) => {
+    if (!file) return;
+    setIsUploadingContentImg(true);
+    try {
+      const res = await uploadService.uploadImage(file, 'blogs/content');
+      if (res?.data?.url) {
+        const imgTag = `\n<img src="${res.data.url}" alt="${file.name.replace(/\\.[^/.]+$/, '')}" class="blog-inline-img" />\n`;
+        insertAtBlogCursor(imgTag);
+        showToast('Image inserted into article content');
+      }
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to upload content image');
+    } finally {
+      setIsUploadingContentImg(false);
+    }
+  };
+
+  const insertAtBlogCursor = (textToInsert: string) => {
+    const textarea = blogContentTextareaRef.current;
+    if (!textarea) {
+      setBlogForm((prev) => ({ ...prev, content: prev.content + textToInsert }));
+      return;
+    }
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const current = blogForm.content;
+    const next = current.substring(0, start) + textToInsert + current.substring(end);
+    setBlogForm((prev) => ({ ...prev, content: next }));
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + textToInsert.length, start + textToInsert.length);
+    }, 0);
+  };
+
+  const insertFormattingTag = (openTag: string, closeTag = '') => {
+    const textarea = blogContentTextareaRef.current;
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selected = blogForm.content.substring(start, end) || 'Sample text';
+    const formatted = `${openTag}${selected}${closeTag}`;
+    insertAtBlogCursor(formatted);
+  };
+
+  const handleSaveBlogCMS = async (publishStatus?: 'PUBLISHED' | 'DRAFT') => {
+    if (!blogForm.title.trim()) {
+      showToast('Please provide an article title');
+      return;
+    }
+    if (!blogForm.content.trim()) {
+      showToast('Please write content for the article');
+      return;
+    }
+
+    const tagsArray = blogForm.tags
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+
+    const targetStatus = (publishStatus || blogForm.status) as 'PUBLISHED' | 'DRAFT';
+    const wordCount = blogForm.content.replace(/<[^>]*>?/gm, '').trim().split(/\\s+/).length;
+    const autoReadingTime = `${Math.max(1, Math.ceil(wordCount / 180))} min read`;
+
+    const payload = {
+      title: blogForm.title.trim(),
+      slug: blogForm.slug.trim() || undefined,
+      category: blogForm.category,
+      author: blogForm.author.trim() || 'FarmerBench Agri Expert',
+      authorBio: blogForm.authorBio.trim(),
+      readingTime: blogForm.readingTime.trim() || autoReadingTime,
+      excerpt: blogForm.excerpt.trim() || blogForm.content.replace(/<[^>]*>?/gm, '').slice(0, 150) + '...',
+      content: blogForm.content,
+      featuredImage: blogForm.featuredImage || undefined,
+      tags: tagsArray,
+      status: targetStatus,
+      metaTitle: blogForm.metaTitle.trim() || undefined,
+      metaDescription: blogForm.metaDescription.trim() || undefined,
+    };
+
+    try {
+      if (editingBlog) {
+        await updateBlog({ id: editingBlog.id, data: payload });
+      } else {
+        await createBlog(payload);
+      }
+      setIsBlogModalOpen(false);
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to save blog post');
+    }
+  };
+
+  const handleDeleteBlogClick = async (b: BlogPost) => {
+    if (!window.confirm(`Are you sure you want to permanently delete the article "${b.title}"?`)) {
+      return;
+    }
+    try {
+      await deleteBlog(b.id);
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to delete blog');
+    }
+  };
+
+  const handleToggleBlogStatusClick = async (b: BlogPost) => {
+    const nextStatus = b.status === 'PUBLISHED' ? 'DRAFT' : 'PUBLISHED';
+    try {
+      await toggleBlogStatus({ id: b.id, status: nextStatus });
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to toggle status');
+    }
+  };
 
   // 11. Banners
   const [banners] = useState([
@@ -652,28 +734,29 @@ export const AdminPage: React.FC = () => {
   };
 
   // Status Handlers
-  const handleUpdateOrderStatus = (orderId: string, newStatus: string, newClass: string) => {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === orderId ? { ...o, status: newStatus, statusClass: newClass } : o))
-    );
-    showToast(`Order ${orderId} marked as ${newStatus}`);
+  const handleUpdateOrderStatus = async (orderId: string, newStatus: string, _newClass: string) => {
+    try {
+      const target = orders.find((o) => o.id === orderId);
+      const targetId = target?.realId || orderId;
+      const dbStatus = newStatus.toUpperCase() as any;
+      await updateOrderStatus({ id: targetId, data: { orderStatus: dbStatus } });
+      refetchOrders();
+      showToast('Order status updated to ' + newStatus);
+    } catch (err: any) {
+      showToast('Failed to update order status');
+    }
   };
 
-  const handleUpdateStock = (prodId: string, delta: number) => {
-    setProducts((prev) =>
-      prev.map((p) => {
-        if (p.id === prodId) {
-          const updated = Math.max(0, p.stock + delta);
-          return {
-            ...p,
-            stock: updated,
-            status: updated === 0 ? 'Out of Stock' : updated <= 10 ? 'Low Stock' : 'In Stock',
-          };
-        }
-        return p;
-      })
-    );
-    showToast('Stock count updated');
+  const handleUpdateStock = async (prodId: string, delta: number) => {
+    const current = products.find((p) => p.id === prodId);
+    if (!current) return;
+    const newStock = Math.max(0, current.stock + delta);
+    try {
+      await updateProduct({ id: prodId, data: { stock: newStock } });
+      showToast(`Stock updated to ${newStock} units`);
+    } catch (err: any) {
+      showToast(err.message || 'Failed to update stock');
+    }
   };
 
   const handleApproveReview = (id: string) => {
@@ -686,9 +769,16 @@ export const AdminPage: React.FC = () => {
     showToast('Review marked as rejected.');
   };
 
-  const handleDeleteProduct = (id: string, name: string) => {
-    setProducts((prev) => prev.filter((p) => p.id !== id));
-    showToast(`Product "${name}" deleted.`);
+  const handleDeleteProduct = async (id: string, name: string) => {
+    if (!window.confirm(`Are you sure you want to permanently delete "${name}" from PostgreSQL?`)) {
+      return;
+    }
+    try {
+      await deleteProduct(id);
+      showToast(`Product "${name}" deleted from database.`);
+    } catch (err: any) {
+      showToast(err.message || 'Failed to delete product');
+    }
   };
 
   // Auth loading state (Only shows if no local credentials exist)
@@ -830,8 +920,9 @@ export const AdminPage: React.FC = () => {
   });
 
   const filteredCustomers = customers.filter((c) => {
-    if (!searchQuery) return true;
-    const q = searchQuery.toLowerCase();
+    if (customerStatusFilter !== 'All' && c.status !== customerStatusFilter) return false;
+    const q = (customerSearchQuery || searchQuery).trim().toLowerCase();
+    if (!q) return true;
     return (
       c.name.toLowerCase().includes(q) ||
       c.email.toLowerCase().includes(q) ||
@@ -1190,7 +1281,7 @@ export const AdminPage: React.FC = () => {
                     <option>This Year</option>
                   </select>
 
-                  <button onClick={() => setIsAddProductOpen(true)} className="admin-primary-btn">
+                  <button onClick={openAddProductCMS} className="admin-primary-btn">
                     <Plus size={16} /> Add Product
                   </button>
                 </div>
@@ -1205,7 +1296,7 @@ export const AdminPage: React.FC = () => {
                     </div>
                     <div className="admin-kpi-meta">
                       <span className="admin-kpi-label">Total Revenue</span>
-                      <span className="admin-kpi-value">₹8,42,560</span>
+                      <span className="admin-kpi-value">₹{totalRevenue.toLocaleString('en-IN')}</span>
                     </div>
                   </div>
                   <div className="admin-kpi-bottom">
@@ -1221,7 +1312,7 @@ export const AdminPage: React.FC = () => {
                     <div className="admin-kpi-icon-wrap bg-ord"><ShoppingCart size={20} /></div>
                     <div className="admin-kpi-meta">
                       <span className="admin-kpi-label">Total Orders</span>
-                      <span className="admin-kpi-value">1,248</span>
+                      <span className="admin-kpi-value">{orders.filter((o: any) => o.status === 'Delivered').length}</span>
                     </div>
                   </div>
                   <div className="admin-kpi-bottom">
@@ -1291,11 +1382,11 @@ export const AdminPage: React.FC = () => {
                       <div className="admin-chart-legend-wrap" style={{ marginTop: '0.4rem' }}>
                         <div className="admin-chart-legend-item">
                           <span className="admin-chart-legend-dot" style={{ backgroundColor: '#15803D' }} />
-                          <span>Revenue <strong>₹8.42L</strong></span>
+                          <span>Revenue <strong>₹{totalRevenue.toLocaleString('en-IN')}</strong></span>
                         </div>
                         <div className="admin-chart-legend-item">
                           <span className="admin-chart-legend-dot" style={{ backgroundColor: '#94A3B8' }} />
-                          <span>Orders <strong>1,248</strong></span>
+                          <span>Orders <strong>{orders.length}</strong></span>
                         </div>
                       </div>
                     </div>
@@ -1540,7 +1631,7 @@ export const AdminPage: React.FC = () => {
               <div className="admin-quick-actions-bar">
                 <span className="admin-quick-actions-title">Quick Actions</span>
                 <div className="admin-quick-actions-btns">
-                  <button onClick={() => setIsAddProductOpen(true)} className="admin-quick-btn">
+                  <button onClick={openAddProductCMS} className="admin-quick-btn">
                     <Plus size={15} /> Add Product
                   </button>
                   <button onClick={() => setIsCouponModalOpen(true)} className="admin-quick-btn">
@@ -1675,7 +1766,7 @@ export const AdminPage: React.FC = () => {
                   <h2 className="admin-welcome-title" style={{ fontSize: '1.4rem' }}>Product Catalog</h2>
                   <p className="admin-welcome-sub">Manage product stock, pricing, bio-certifications, and catalog visibility.</p>
                 </div>
-                <button onClick={() => setIsAddProductOpen(true)} className="admin-primary-btn">
+                <button onClick={openAddProductCMS} className="admin-primary-btn">
                   <Plus size={16} /> Add New Product
                 </button>
               </div>
@@ -1759,7 +1850,7 @@ export const AdminPage: React.FC = () => {
                           <div className="admin-action-btn-group" style={{ justifyContent: 'center' }}>
                             <button
                               className="admin-mini-btn"
-                              onClick={() => { setSelectedProduct(prod); setIsEditProductOpen(true); }}
+                              onClick={() => openEditProductCMS(prod)}
                             >
                               <Edit3 size={13} /> Edit
                             </button>
@@ -1812,15 +1903,33 @@ export const AdminPage: React.FC = () => {
                       <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155' }}>
                         {cat.count} Products
                       </span>
-                      <button
-                        className="admin-mini-btn"
-                        onClick={() => {
-                          setProductCategoryFilter(cat.name);
-                          setActiveNav('Products');
-                        }}
-                      >
-                        View Items →
-                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <button
+                          className="admin-mini-btn"
+                          onClick={() => {
+                            setProductCategoryFilter(cat.name);
+                            setActiveNav('Products');
+                          }}
+                        >
+                          View Items →
+                        </button>
+                        <button
+                          className="admin-action-btn delete"
+                          title="Delete Category"
+                          style={{ padding: '0.35rem 0.5rem' }}
+                          onClick={async () => {
+                            if (!window.confirm(`Are you sure you want to delete category "${cat.name}" from PostgreSQL?`)) return;
+                            try {
+                              await deleteCategory(cat.id);
+                              showToast(`Category "${cat.name}" deleted.`);
+                            } catch (err: any) {
+                              showToast(err.message || 'Failed to delete category');
+                            }
+                          }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -1945,69 +2054,130 @@ export const AdminPage: React.FC = () => {
             <div className="admin-card">
               <div className="admin-card-header">
                 <div>
-                  <h2 className="admin-welcome-title" style={{ fontSize: '1.4rem' }}>Farmers & Customers</h2>
-                  <p className="admin-welcome-sub">View farmer demographics, crop acreage, and purchase histories.</p>
+                  <h2 className="admin-welcome-title" style={{ fontSize: '1.4rem' }}>Farmers & Customers Directory</h2>
+                  <p className="admin-welcome-sub">Manage registered farmers, crop profiles, farm locations, and order histories persisted in PostgreSQL.</p>
                 </div>
-                <button onClick={() => showToast('Customer database exported')} className="admin-quick-btn">
-                  <Download size={15} /> Export Customers
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                  <button onClick={() => setIsAddCustomerOpen(true)} className="admin-primary-btn">
+                    <Plus size={16} /> Add New Farmer
+                  </button>
+                  <button onClick={() => { refetchCustomers(); showToast('Customer database refreshed from PostgreSQL'); }} className="admin-quick-btn">
+                    <RefreshCw size={14} /> Refresh
+                  </button>
+                  <button onClick={() => showToast('Customer database exported')} className="admin-quick-btn">
+                    <Download size={14} /> Export CSV
+                  </button>
+                </div>
+              </div>
+
+              {/* Customer Filter Bar */}
+              <div className="admin-filter-bar">
+                <div className="admin-filter-tabs">
+                  {['All', 'Verified', 'Active', 'Pending'].map((st) => (
+                    <button
+                      key={st}
+                      className={`admin-filter-tab-btn ${customerStatusFilter === st ? 'active' : ''}`}
+                      onClick={() => setCustomerStatusFilter(st)}
+                    >
+                      {st} ({st === 'All' ? customers.length : customers.filter((c) => c.status === st).length})
+                    </button>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <input
+                    type="text"
+                    placeholder="Search by name, phone, crop, region..."
+                    value={customerSearchQuery}
+                    onChange={(e) => setCustomerSearchQuery(e.target.value)}
+                    className="admin-form-input"
+                    style={{ width: '280px', padding: '0.4rem 0.75rem', fontSize: '0.8rem' }}
+                  />
+                  <span style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: 600 }}>
+                    Showing {filteredCustomers.length} of {customers.length} farmers
+                  </span>
+                </div>
               </div>
 
               <div className="admin-table-wrap">
                 <table className="admin-data-table">
                   <thead>
                     <tr>
-                      <th>Farmer Name</th>
-                      <th>Contact Info</th>
+                      <th>Farmer Profile</th>
+                      <th>Contact Details</th>
                       <th>Location / Region</th>
-                      <th>Crops Grown</th>
-                      <th>Total Orders</th>
+                      <th>Crops & Acreage</th>
+                      <th>Orders</th>
                       <th>Total Spend</th>
+                      <th>Last Order</th>
                       <th>Status</th>
-                      <th style={{ textAlign: 'center' }}>Action</th>
+                      <th style={{ textAlign: 'center' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredCustomers.map((c) => (
-                      <tr key={c.id}>
-                        <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                            <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#E8F5E9', color: '#15803D', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
-                              {c.name[0]}
-                            </div>
-                            <div>
-                              <div style={{ fontWeight: 700 }}>{c.name}</div>
-                              <div style={{ fontSize: '0.72rem', color: '#16A34A', display: 'flex', alignItems: 'center', gap: '3px' }}>
-                                <CheckCircle2 size={11} /> {c.status || 'Verified Farmer'}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <div style={{ fontSize: '0.8rem', color: '#1E293B', fontWeight: 600 }}>{c.phone}</div>
-                          <div style={{ fontSize: '0.72rem', color: '#64748B' }}>{c.email}</div>
-                        </td>
-                        <td style={{ color: '#475569' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                            <MapPin size={13} style={{ color: '#16A34A' }} /> {c.location}
-                          </div>
-                        </td>
-                        <td style={{ color: '#334155', fontWeight: 600 }}>{c.crops}</td>
-                        <td style={{ fontWeight: 700 }}>{c.totalOrders ?? 0} orders</td>
-                        <td style={{ fontWeight: 800, color: '#0F291B' }}>{c.totalSpent || (c as any).spent || '₹0'}</td>
-                        <td>
-                          <span className="admin-status-badge paid">{c.status || 'Verified'}</span>
-                        </td>
-                        <td style={{ textAlign: 'center' }}>
-                          <button
-                            className="admin-mini-btn"
-                            onClick={() => showToast(`Opening account records for ${c.name}`)}
-                          >
-                            <Eye size={13} /> View Details
-                          </button>
+                    {filteredCustomers.length === 0 ? (
+                      <tr>
+                        <td colSpan={9} style={{ textAlign: 'center', padding: '2.5rem', color: '#64748B' }}>
+                          No farmers found matching the filter criteria.
                         </td>
                       </tr>
-                    ))}
+                    ) : (
+                      filteredCustomers.map((c) => (
+                        <tr key={c.id}>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                              {c.avatarUrl ? (
+                                <img
+                                  src={c.avatarUrl}
+                                  alt={c.name}
+                                  style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }}
+                                />
+                              ) : (
+                                <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#E8F5E9', color: '#15803D', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
+                                  {c.name[0]}
+                                </div>
+                              )}
+                              <div>
+                                <div style={{ fontWeight: 700, color: '#0F291B' }}>{c.name}</div>
+                                <div style={{ fontSize: '0.72rem', color: '#16A34A', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                  <CheckCircle2 size={11} /> {c.status || 'Verified Farmer'}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <div style={{ fontSize: '0.8rem', color: '#1E293B', fontWeight: 600 }}>{c.phone}</div>
+                            <div style={{ fontSize: '0.72rem', color: '#64748B' }}>{c.email}</div>
+                          </td>
+                          <td style={{ color: '#475569' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                              <MapPin size={13} style={{ color: '#16A34A' }} /> {c.location}
+                            </div>
+                          </td>
+                          <td style={{ color: '#334155', fontWeight: 600 }}>{c.crops}</td>
+                          <td style={{ fontWeight: 700 }}>{c.totalOrders ?? c.ordersCount ?? 0} orders</td>
+                          <td style={{ fontWeight: 800, color: '#0F291B' }}>{c.totalSpent || '₹0'}</td>
+                          <td style={{ color: '#64748B', fontSize: '0.78rem' }}>{c.lastOrder || c.registeredAt || '31 Aug 2026'}</td>
+                          <td>
+                            <span className={`admin-status-badge ${c.status === 'Verified' || c.status === 'Active' ? 'paid' : 'pending'}`}>
+                              {c.status || 'Verified'}
+                            </span>
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <div className="admin-action-btn-group" style={{ justifyContent: 'center' }}>
+                              <button
+                                className="admin-mini-btn"
+                                onClick={() => {
+                                  setSelectedCustomer(c);
+                                  setIsEditCustomerOpen(true);
+                                }}
+                              >
+                                <Edit3 size={13} /> Edit
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -2336,7 +2506,7 @@ export const AdminPage: React.FC = () => {
 
                     {/* Field Photos */}
                     <div className="admin-field-photos-wrap">
-                      {rev.photos.map((ph, idx) => (
+                      {rev.photos?.map((ph: string, idx: number) => (
                         <img key={idx} src={ph} alt="Crop proof" className="admin-field-photo-thumb" />
                       ))}
                     </div>
@@ -2368,59 +2538,225 @@ export const AdminPage: React.FC = () => {
           )}
 
           {/* ================================================================
-              VIEW 12: BLOG & AGRICULTURAL INSIGHTS
+              VIEW 12: BLOG & AGRICULTURAL INSIGHTS (CMS)
               ================================================================ */}
           {activeNav === 'Blog' && (
             <div className="admin-card">
               <div className="admin-card-header">
                 <div>
-                  <h2 className="admin-welcome-title" style={{ fontSize: '1.4rem' }}>Farm Blog & Articles</h2>
-                  <p className="admin-welcome-sub">Publish educational agriculture guides, seasonal disease alerts, and soil tips.</p>
+                  <h2 className="admin-welcome-title" style={{ fontSize: '1.4rem' }}>Farm Blog & Articles CMS</h2>
+                  <p className="admin-welcome-sub">Create, edit, publish, and manage agricultural guides, disease alerts, and fertilizer practices.</p>
                 </div>
-                <button onClick={() => setIsBlogModalOpen(true)} className="admin-primary-btn">
+                <button onClick={openCreateBlogCMS} className="admin-primary-btn">
                   <Plus size={16} /> Write New Article
                 </button>
               </div>
 
+              {/* Stats Strip */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
+                <div style={{ padding: '0.85rem 1.15rem', backgroundColor: '#F8FAF8', border: '1px solid #E2E8F0', borderRadius: '10px' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 600, textTransform: 'uppercase' }}>Total Articles</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#17251E', marginTop: '0.2rem' }}>{blogs.length}</div>
+                </div>
+                <div style={{ padding: '0.85rem 1.15rem', backgroundColor: '#F0FDF4', border: '1px solid #DCFCE7', borderRadius: '10px' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#166534', fontWeight: 600, textTransform: 'uppercase' }}>Published Live</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#166534', marginTop: '0.2rem' }}>
+                    {blogs.filter((b) => b.status === 'PUBLISHED').length}
+                  </div>
+                </div>
+                <div style={{ padding: '0.85rem 1.15rem', backgroundColor: '#FEF9C3', border: '1px solid #FEF08A', borderRadius: '10px' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#854D0E', fontWeight: 600, textTransform: 'uppercase' }}>Drafts & Revisions</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#854D0E', marginTop: '0.2rem' }}>
+                    {blogs.filter((b) => b.status === 'DRAFT').length}
+                  </div>
+                </div>
+                <div style={{ padding: '0.85rem 1.15rem', backgroundColor: '#F1F5F9', border: '1px solid #E2E8F0', borderRadius: '10px' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#475569', fontWeight: 600, textTransform: 'uppercase' }}>Total Readers</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#334155', marginTop: '0.2rem' }}>
+                    {blogs.reduce((acc, b) => acc + (b.views || 0), 0).toLocaleString()}
+                  </div>
+                </div>
+              </div>
+
+              {/* Filter and Search Bar */}
+              <div className="admin-filter-bar" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
+                <div className="admin-filter-tabs">
+                  {(['ALL', 'PUBLISHED', 'DRAFT'] as const).map((st) => (
+                    <button
+                      key={st}
+                      className={`admin-filter-tab-btn ${blogFilter === st ? 'active' : ''}`}
+                      onClick={() => setBlogFilter(st)}
+                    >
+                      {st === 'ALL' ? 'All Posts' : st === 'PUBLISHED' ? 'Published' : 'Drafts'} (
+                      {st === 'ALL'
+                        ? blogs.length
+                        : blogs.filter((b) => b.status === st).length}
+                      )
+                    </button>
+                  ))}
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    placeholder="Search by title, tag, or author..."
+                    value={blogSearchQuery}
+                    onChange={(e) => setBlogSearchQuery(e.target.value)}
+                    className="admin-form-input"
+                    style={{ width: '240px', padding: '0.45rem 0.75rem', fontSize: '0.825rem' }}
+                  />
+                  {blogSearchQuery && (
+                    <button onClick={() => setBlogSearchQuery('')} className="admin-mini-btn">
+                      Clear
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Blog Table */}
               <div className="admin-table-wrap">
                 <table className="admin-data-table">
                   <thead>
                     <tr>
-                      <th>Article</th>
-                      <th>Category</th>
+                      <th>Article & Slug</th>
+                      <th>Category & Read Time</th>
                       <th>Author</th>
-                      <th>Published Date</th>
-                      <th>Total Reads</th>
                       <th>Status</th>
+                      <th>Published Date</th>
+                      <th>Views</th>
                       <th style={{ textAlign: 'center' }}>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {blogs.map((b) => (
-                      <tr key={b.id}>
-                        <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <img src={b.image} alt={b.title} style={{ width: '56px', height: '40px', borderRadius: '6px', objectFit: 'cover' }} />
-                            <div>
-                              <div style={{ fontWeight: 700, color: '#0F291B' }}>{b.title}</div>
-                              <div style={{ fontSize: '0.72rem', color: '#16A34A' }}>/blog/{b.slug}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td style={{ color: '#475569', fontWeight: 600 }}>{b.category}</td>
-                        <td style={{ color: '#334155' }}>{b.author}</td>
-                        <td style={{ color: '#64748B' }}>{b.date}</td>
-                        <td style={{ fontWeight: 700 }}>{b.views}</td>
-                        <td>
-                          <span className="admin-status-badge active-badge">{b.status}</span>
-                        </td>
-                        <td style={{ textAlign: 'center' }}>
-                          <Link to={`/blog/${b.slug}`} target="_blank" className="admin-mini-btn" style={{ textDecoration: 'none' }}>
-                            <ExternalLink size={13} /> View Post
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
+                    {blogs
+                      .filter((b) => {
+                        if (blogFilter !== 'ALL' && b.status !== blogFilter) return false;
+                        if (blogSearchQuery) {
+                          const q = blogSearchQuery.toLowerCase();
+                          const match =
+                            b.title.toLowerCase().includes(q) ||
+                            b.author.toLowerCase().includes(q) ||
+                            b.category.toLowerCase().includes(q) ||
+                            b.tags?.some((t) => t.toLowerCase().includes(q));
+                          if (!match) return false;
+                        }
+                        return true;
+                      })
+                      .map((b) => {
+                        const imgUrl = getUploadUrl(
+                          b.featuredImage,
+                          'https://images.unsplash.com/photo-1592417817098-8f3d6910985c?w=120'
+                        );
+                        const isPub = b.status === 'PUBLISHED';
+                        const pubDate = b.publishedAt
+                          ? new Date(b.publishedAt).toLocaleDateString('en-GB', {
+                              day: 'numeric',
+                              month: 'short',
+                              year: 'numeric',
+                            })
+                          : 'Draft (Unpublished)';
+
+                        return (
+                          <tr key={b.id}>
+                            <td>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <img
+                                  src={imgUrl}
+                                  alt={b.title}
+                                  style={{
+                                    width: '56px',
+                                    height: '42px',
+                                    borderRadius: '6px',
+                                    objectFit: 'cover',
+                                    border: '1px solid #E2E8F0',
+                                  }}
+                                  onError={(e) => {
+                                    (e.currentTarget as HTMLImageElement).src =
+                                      'https://images.unsplash.com/photo-1592417817098-8f3d6910985c?w=120';
+                                  }}
+                                />
+                                <div>
+                                  <div style={{ fontWeight: 700, color: '#0F291B', maxWidth: '280px' }}>
+                                    {b.title}
+                                  </div>
+                                  <div style={{ fontSize: '0.72rem', color: '#16A34A', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                    <span>/blog/{b.slug}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </td>
+                            <td>
+                              <div style={{ color: '#166534', fontWeight: 700, fontSize: '0.825rem' }}>
+                                {b.category}
+                              </div>
+                              <div style={{ color: '#94A3B8', fontSize: '0.72rem' }}>
+                                {b.readingTime || '5 min read'}
+                              </div>
+                            </td>
+                            <td>
+                              <div style={{ color: '#334155', fontWeight: 600, fontSize: '0.825rem' }}>
+                                {b.author}
+                              </div>
+                              {b.tags && b.tags.length > 0 && (
+                                <div style={{ fontSize: '0.7rem', color: '#64748B', maxWidth: '140px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  {b.tags.join(', ')}
+                                </div>
+                              )}
+                            </td>
+                            <td>
+                              <span
+                                className={`admin-status-badge ${isPub ? 'paid' : 'pending'}`}
+                                style={{ cursor: 'pointer' }}
+                                onClick={() => handleToggleBlogStatusClick(b)}
+                                title="Click to toggle status"
+                              >
+                                {isPub ? '● Published' : '○ Draft'}
+                              </span>
+                            </td>
+                            <td style={{ color: '#64748B', fontSize: '0.78rem' }}>{pubDate}</td>
+                            <td style={{ fontWeight: 700, fontSize: '0.85rem' }}>{b.views || 0}</td>
+                            <td style={{ textAlign: 'center' }}>
+                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => openEditBlogCMS(b)}
+                                  className="admin-mini-btn"
+                                  title="Edit Blog"
+                                >
+                                  <Edit3 size={13} /> Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleToggleBlogStatusClick(b)}
+                                  className="admin-mini-btn"
+                                  title={isPub ? 'Unpublish to Draft' : 'Publish Live'}
+                                  style={{ color: isPub ? '#854D0E' : '#166534' }}
+                                >
+                                  {isPub ? 'Unpublish' : 'Publish'}
+                                </button>
+                                <Link
+                                  to={`/blog/${b.slug || b.id}`}
+                                  target="_blank"
+                                  className="admin-mini-btn"
+                                  style={{ textDecoration: 'none' }}
+                                  title="View on Storefront"
+                                >
+                                  <ExternalLink size={13} />
+                                </Link>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeleteBlogClick(b)}
+                                  className="admin-mini-btn"
+                                  style={{ color: '#DC2626' }}
+                                  title="Delete Article"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                   </tbody>
                 </table>
               </div>
@@ -2490,7 +2826,7 @@ export const AdminPage: React.FC = () => {
                 </div>
                 <div className="admin-kpi-card">
                   <span className="admin-kpi-label">Average Order Value</span>
-                  <span className="admin-kpi-value">₹675</span>
+                  <span className="admin-kpi-value">₹{orders.length ? Math.round(totalRevenue / orders.length).toLocaleString('en-IN') : 0}</span>
                 </div>
                 <div className="admin-kpi-card">
                   <span className="admin-kpi-label">Consultations Delivered</span>
@@ -2671,7 +3007,8 @@ export const AdminPage: React.FC = () => {
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-                  <button type="submit" className="admin-primary-btn">
+                  <button type="submit" className="admin-primary-btn" disabled={isUploadingGallery || replacingGalleryIndex !== null}>
+                  {(isUploadingGallery || replacingGalleryIndex !== null) ? <Loader2 size={16} className="animate-spin" /> : null}
                     Save Changes
                   </button>
                 </div>
@@ -2693,144 +3030,815 @@ export const AdminPage: React.FC = () => {
       </div>
 
       {/* ====================================================================
-          MODALS & DIALOGS
+          MODALS & DIALOGS: PRODUCT CONTENT MANAGEMENT SYSTEM (CMS)
           ==================================================================== */}
 
-      {/* Modal: Add Product */}
-      {isAddProductOpen && (
-        <div className="admin-modal-overlay" onClick={() => setIsAddProductOpen(false)}>
-          <div className="admin-modal-card" onClick={(e) => e.stopPropagation()}>
+      {/* Modal: Full Product CMS (Add / Edit) */}
+      {(isAddProductOpen || isEditProductOpen) && (
+        <div className="admin-modal-overlay" onClick={() => { setIsAddProductOpen(false); setIsEditProductOpen(false); }}>
+          <div className="admin-modal-card admin-cms-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="admin-modal-header">
-              <h3 className="admin-modal-title">Add New Product to Catalog</h3>
-              <button onClick={() => setIsAddProductOpen(false)} className="admin-modal-close-btn">
+              <h3 className="admin-modal-title">
+                {isAddProductOpen ? '➕ Create New Agricultural Product (CMS)' : `✏️ Product CMS Editor — ${cmsForm.title}`}
+              </h3>
+              <button
+                onClick={() => { setIsAddProductOpen(false); setIsEditProductOpen(false); }}
+                className="admin-modal-close-btn"
+              >
                 <X size={20} />
               </button>
             </div>
-            <form
-              onSubmit={(e: any) => {
-                e.preventDefault();
-                const name = e.target.prodName.value;
-                const price = Number(e.target.prodPrice.value);
-                const stock = Number(e.target.prodStock.value);
-                const category = e.target.prodCat.value;
 
-                const newProd = {
-                  id: `p${products.length + 1}`,
-                  name,
-                  sku: `SKU-${Date.now().toString().slice(-4)}`,
-                  category,
-                  price,
-                  discountPrice: Math.round(price * 0.9),
-                  stock,
-                  sold: 0,
-                  revenue: '₹0',
-                  image: bioPowerImg,
-                  featured: false,
-                  status: stock <= 10 ? 'Low Stock' : 'In Stock',
+            {/* CMS Navigation Tabs */}
+            <div className="admin-cms-tabs-bar">
+              <button
+                type="button"
+                className={`admin-cms-tab-btn ${cmsTab === 'basic' ? 'active' : ''}`}
+                onClick={() => setCmsTab('basic')}
+              >
+                📋 Basic & Pricing
+              </button>
+              <button
+                type="button"
+                className={`admin-cms-tab-btn ${cmsTab === 'media' ? 'active' : ''}`}
+                onClick={() => setCmsTab('media')}
+              >
+                🖼️ Media & Gallery
+              </button>
+              <button
+                type="button"
+                className={`admin-cms-tab-btn ${cmsTab === 'highlights' ? 'active' : ''}`}
+                onClick={() => setCmsTab('highlights')}
+              >
+                📝 Overview & Highlights
+              </button>
+              <button
+                type="button"
+                className={`admin-cms-tab-btn ${cmsTab === 'steps' ? 'active' : ''}`}
+                onClick={() => setCmsTab('steps')}
+              >
+                🌱 Benefits & Steps
+              </button>
+              <button
+                type="button"
+                className={`admin-cms-tab-btn ${cmsTab === 'dosage' ? 'active' : ''}`}
+                onClick={() => setCmsTab('dosage')}
+              >
+                💧 Dosage & Ingredients
+              </button>
+              <button
+                type="button"
+                className={`admin-cms-tab-btn ${cmsTab === 'specs' ? 'active' : ''}`}
+                onClick={() => setCmsTab('specs')}
+              >
+                🔬 Specs, FAQs & Results
+              </button>
+            </div>
+
+            <form
+              onSubmit={async (e: any) => {
+                e.preventDefault();
+                const title = cmsForm.title.trim();
+                const slug = cmsForm.slug.trim() || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') + '-' + Date.now().toString().slice(-4);
+                const price = Number(cmsForm.price);
+                const discountPrice = Number(cmsForm.discountPrice) || price;
+                const stock = Number(cmsForm.stock);
+                const categoryId = cmsForm.categoryId || dbCategories[0]?.id;
+                const description = cmsForm.description.trim() || 'Premium certified organic agricultural input.';
+                const images = cmsForm.images.filter((img: string) => Boolean(img.trim()));
+
+                const attributes = {
+                  features: cmsForm.features.filter((f: string) => Boolean(f.trim())),
+                  packSizes: cmsForm.packSizes.filter((p: string) => Boolean(p.trim())),
+                  benefits: cmsForm.benefits.filter((b: string) => Boolean(b.trim())),
+                  usageSteps: cmsForm.usageSteps,
+                  dosageTable: cmsForm.dosageTable,
+                  ingredients: cmsForm.ingredients,
+                  specifications: cmsForm.specifications,
+                  faqs: cmsForm.faqs,
+                  beforeAfter: cmsForm.beforeAfter,
                 };
-                setProducts([newProd, ...products]);
-                setIsAddProductOpen(false);
-                showToast(`Product "${name}" added successfully!`);
+
+                try {
+                  if (isAddProductOpen) {
+                    await createProduct({
+                      title,
+                      slug,
+                      description,
+                      price,
+                      discountPrice,
+                      stock,
+                      featured: cmsForm.featured,
+                      images: images.length > 0 ? images : ['https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800'],
+                      categoryId,
+                      attributes,
+                    });
+                    setIsAddProductOpen(false);
+                    showToast(`Product "${title}" created and published to PostgreSQL!`);
+                  } else {
+                    await updateProduct({
+                      id: selectedProduct.id,
+                      data: {
+                        title,
+                        slug,
+                        description,
+                        price,
+                        discountPrice,
+                        stock,
+                        featured: cmsForm.featured,
+                        images: images.length > 0 ? images : selectedProduct.images,
+                        categoryId,
+                        attributes,
+                      },
+                    });
+                    setIsEditProductOpen(false);
+                    showToast(`Product "${title}" CMS details updated in PostgreSQL!`);
+                  }
+                } catch (err: any) {
+                  showToast(err.message || 'Failed to save product content');
+                }
               }}
             >
-              <div className="admin-modal-body">
-                <div className="admin-form-group">
-                  <label className="admin-form-label">Product Title</label>
-                  <input name="prodName" required placeholder="e.g. Organic Bio Fertilizer" className="admin-form-input" />
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="admin-form-group">
-                    <label className="admin-form-label">Price (₹)</label>
-                    <input name="prodPrice" required type="number" placeholder="450" className="admin-form-input" />
-                  </div>
-                  <div className="admin-form-group">
-                    <label className="admin-form-label">Stock Units</label>
-                    <input name="prodStock" required type="number" placeholder="50" className="admin-form-input" />
-                  </div>
-                </div>
-                <div className="admin-form-group">
-                  <label className="admin-form-label">Category</label>
-                  <select name="prodCat" className="admin-form-select">
-                    <option>Bio Stimulants</option>
-                    <option>Bio Pesticides</option>
-                    <option>Fertilizers</option>
-                    <option>Crop Nutrition</option>
-                  </select>
-                </div>
-                <div className="admin-form-group">
-                  <label className="admin-form-label">Product Description</label>
-                  <textarea rows={3} placeholder="Enter agronomic features & dosage..." className="admin-form-textarea" />
-                </div>
-              </div>
-              <div className="admin-modal-footer">
-                <button type="button" onClick={() => setIsAddProductOpen(false)} className="admin-quick-btn">
-                  Cancel
-                </button>
-                <button type="submit" className="admin-primary-btn">
-                  Save & Publish
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+              <div className="admin-modal-body" style={{ minHeight: '380px' }}>
+                {/* 1. BASIC & PRICING TAB */}
+                {cmsTab === 'basic' && (
+                  <div className="admin-cms-section">
+                    <div className="admin-form-group">
+                      <label className="admin-form-label">Product Name *</label>
+                      <input
+                        required
+                        value={cmsForm.title}
+                        onChange={(e) => setCmsForm({ ...cmsForm, title: e.target.value })}
+                        placeholder="e.g. Growth Booster for All Crops 500ml"
+                        className="admin-form-input"
+                      />
+                    </div>
 
-      {/* Modal: Edit Product */}
-      {isEditProductOpen && selectedProduct && (
-        <div className="admin-modal-overlay" onClick={() => setIsEditProductOpen(false)}>
-          <div className="admin-modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="admin-modal-header">
-              <h3 className="admin-modal-title">Edit Product — {selectedProduct.name}</h3>
-              <button onClick={() => setIsEditProductOpen(false)} className="admin-modal-close-btn">
-                <X size={20} />
-              </button>
-            </div>
-            <form
-              onSubmit={(e: any) => {
-                e.preventDefault();
-                const price = Number(e.target.editPrice.value);
-                const discount = Number(e.target.editDiscount.value);
-                const stock = Number(e.target.editStock.value);
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Category *</label>
+                        <select
+                          value={cmsForm.categoryId}
+                          onChange={(e) => setCmsForm({ ...cmsForm, categoryId: e.target.value })}
+                          className="admin-form-select"
+                          required
+                        >
+                          {categories.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
 
-                setProducts((prev) =>
-                  prev.map((p) =>
-                    p.id === selectedProduct.id
-                      ? {
-                          ...p,
-                          price,
-                          discountPrice: discount,
-                          stock,
-                          status: stock === 0 ? 'Out of Stock' : stock <= 10 ? 'Low Stock' : 'In Stock',
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">URL Slug</label>
+                        <input
+                          value={cmsForm.slug}
+                          onChange={(e) => setCmsForm({ ...cmsForm, slug: e.target.value })}
+                          placeholder="e.g. growth-booster-for-all-crops"
+                          className="admin-form-input"
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">MRP / Base Price (₹) *</label>
+                        <input
+                          type="number"
+                          required
+                          value={cmsForm.price}
+                          onChange={(e) => setCmsForm({ ...cmsForm, price: Number(e.target.value) })}
+                          className="admin-form-input"
+                        />
+                      </div>
+
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Discount Price (₹)</label>
+                        <input
+                          type="number"
+                          value={cmsForm.discountPrice}
+                          onChange={(e) => setCmsForm({ ...cmsForm, discountPrice: Number(e.target.value) })}
+                          className="admin-form-input"
+                        />
+                      </div>
+
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Warehouse Stock Units *</label>
+                        <input
+                          type="number"
+                          required
+                          value={cmsForm.stock}
+                          onChange={(e) => setCmsForm({ ...cmsForm, stock: Number(e.target.value) })}
+                          className="admin-form-input"
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginTop: '0.5rem' }}>
+                      <input
+                        type="checkbox"
+                        id="prodFeatured"
+                        checked={cmsForm.featured}
+                        onChange={(e) => setCmsForm({ ...cmsForm, featured: e.target.checked })}
+                      />
+                      <label htmlFor="prodFeatured" style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1E293B', cursor: 'pointer' }}>
+                        Feature on Homepage & Recommended Badges
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. MEDIA & GALLERY TAB */}
+                {cmsTab === 'media' && (
+                  <div className="admin-gallery-uploader">
+                    {/* Header */}
+                    <div className="admin-gallery-header-wrap">
+                      <div className="admin-gallery-title">
+                        <ImageIcon size={18} style={{ color: '#0F4726' }} />
+                        <span>Gallery Images (Direct Upload)</span>
+                      </div>
+                      <p className="admin-gallery-subtitle">
+                        Select product images directly from your computer. Uploaded files are stored in <code>backend/uploads/products/gallery/</code>. The first image is always the <strong>Main Stage Image</strong>.
+                      </p>
+                    </div>
+
+                    {/* Error Banner */}
+                    {galleryUploadError && (
+                      <div className="admin-gallery-alert">
+                        <ShieldAlert size={16} />
+                        <span>{galleryUploadError}</span>
+                      </div>
+                    )}
+
+                    {/* Image Cards Grid */}
+                    {cmsForm.images && cmsForm.images.length > 0 && (
+                      <div className="admin-gallery-grid">
+                        {cmsForm.images.map((img: string, idx: number) => {
+                          const isMain = idx === 0;
+                          const isReplacing = replacingGalleryIndex === idx;
+                          return (
+                            <div key={idx} className={'admin-gallery-card ' + (isMain ? 'is-main' : '')}>
+                              {/* Thumbnail Frame */}
+                              <div className="admin-gallery-thumb-wrap">
+                                <img
+                                  src={getUploadUrl(img, 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800')}
+                                  alt={'Product image ' + (idx + 1)}
+                                  className="admin-gallery-thumb"
+                                />
+
+                                {/* Main / Index Badge */}
+                                {isMain ? (
+                                  <span className="admin-gallery-badge-main">
+                                    <Star size={11} fill="#FFFFFF" /> Main Stage Image
+                                  </span>
+                                ) : (
+                                  <span className="admin-gallery-badge-sub">#{idx + 1}</span>
+                                )}
+
+                                {/* Replacing Loading Overlay */}
+                                {isReplacing && (
+                                  <div className="admin-gallery-uploading-overlay">
+                                    <div className="admin-gallery-spinner" />
+                                    <span style={{ fontSize: '0.72rem', fontWeight: 600, color: '#15803D' }}>Replacing...</span>
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Card Body & Actions */}
+                              <div className="admin-gallery-card-body">
+                                <div className="admin-gallery-path-text" title={img}>
+                                  {img.startsWith('/uploads/') ? img.replace('/uploads/', '') : img}
+                                </div>
+
+                                <div className="admin-gallery-card-actions">
+                                  {!isMain && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSetAsMainImage(idx)}
+                                      className="admin-gallery-action-btn btn-main"
+                                      title="Set as Main Stage Image"
+                                      disabled={isUploadingGallery || isReplacing}
+                                    >
+                                      <Star size={12} /> Set Main
+                                    </button>
+                                  )}
+
+                                  <button
+                                    type="button"
+                                    onClick={() => triggerReplaceGallery(idx)}
+                                    className="admin-gallery-action-btn"
+                                    title="Choose a new file to replace this image"
+                                    disabled={isUploadingGallery || isReplacing}
+                                  >
+                                    <RefreshCw size={12} /> Replace
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => handleRemoveGalleryImage(idx)}
+                                    className="admin-gallery-action-btn btn-remove"
+                                    title="Remove this image from gallery"
+                                    disabled={isUploadingGallery || isReplacing}
+                                  >
+                                    <Trash2 size={12} />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+
+                        {/* Optimistic uploading skeleton card */}
+                        {isUploadingGallery && (
+                          <div className="admin-gallery-card is-main" style={{ minHeight: '160px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                            <div className="admin-gallery-spinner" />
+                            <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#15803D' }}>
+                              Uploading image to server...
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Upload Dropzone */}
+                    <div
+                      className={'admin-gallery-dropzone ' + (isDraggingGallery ? 'drag-active' : '')}
+                      onClick={() => galleryFileInputRef.current?.click()}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setIsDraggingGallery(true);
+                      }}
+                      onDragLeave={() => setIsDraggingGallery(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setIsDraggingGallery(false);
+                        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                          handleUploadGalleryFiles(e.dataTransfer.files);
                         }
-                      : p
-                  )
-                );
-                setIsEditProductOpen(false);
-                showToast(`Updated product: ${selectedProduct.name}`);
-              }}
-            >
-              <div className="admin-modal-body">
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="admin-form-group">
-                    <label className="admin-form-label">Price (₹)</label>
-                    <input name="editPrice" defaultValue={selectedProduct.price} required type="number" className="admin-form-input" />
+                      }}
+                    >
+                      <div className="admin-gallery-dropzone-icon">
+                        {isUploadingGallery ? <Loader2 size={22} className="animate-spin" /> : <Upload size={22} />}
+                      </div>
+                      <div className="admin-gallery-dropzone-title">
+                        {isUploadingGallery ? 'Uploading files to backend...' : 'Choose or Drag & Drop Product Images'}
+                      </div>
+                      <div className="admin-gallery-dropzone-subtitle">
+                        Direct upload to <code>backend/uploads/products/gallery/</code> (PNG, JPG, WebP, SVG up to 10MB)
+                      </div>
+                      <button
+                        type="button"
+                        className="admin-primary-btn"
+                        style={{ marginTop: '0.35rem', padding: '0.45rem 1rem', fontSize: '0.8rem', pointerEvents: 'none' }}
+                      >
+                        <Plus size={14} /> Browse from Computer
+                      </button>
+                    </div>
+
+                    {/* Hidden Native File Inputs */}
+                    <input
+                      type="file"
+                      ref={galleryFileInputRef}
+                      multiple
+                      accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files.length > 0) {
+                          handleUploadGalleryFiles(e.target.files);
+                        }
+                      }}
+                      style={{ display: 'none' }}
+                    />
+
+                    <input
+                      type="file"
+                      ref={replaceFileInputRef}
+                      accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0] && activeReplaceTargetIndex !== null) {
+                          handleReplaceGalleryImage(activeReplaceTargetIndex, e.target.files[0]);
+                        }
+                      }}
+                      style={{ display: 'none' }}
+                    />
                   </div>
-                  <div className="admin-form-group">
-                    <label className="admin-form-label">Discount Price (₹)</label>
-                    <input name="editDiscount" defaultValue={selectedProduct.discountPrice} required type="number" className="admin-form-input" />
+                )}
+
+                {/* 3. OVERVIEW & HIGHLIGHTS TAB */}
+                {cmsTab === 'highlights' && (
+                  <div className="admin-cms-section">
+                    <div className="admin-form-group">
+                      <label className="admin-form-label">Full Product Overview Description *</label>
+                      <textarea
+                        rows={4}
+                        required
+                        value={cmsForm.description}
+                        onChange={(e) => setCmsForm({ ...cmsForm, description: e.target.value })}
+                        placeholder="Detailed agronomic description..."
+                        className="admin-form-textarea"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="admin-form-label">Top Feature Checkmark Bullets (Right Panel)</label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.35rem' }}>
+                        {cmsForm.features.map((feat: string, idx: number) => (
+                          <div key={idx} className="admin-dynamic-item">
+                            <input
+                              value={feat}
+                              onChange={(e) => {
+                                const newFeats = [...cmsForm.features];
+                                newFeats[idx] = e.target.value;
+                                setCmsForm({ ...cmsForm, features: newFeats });
+                              }}
+                              placeholder="e.g. Promotes faster and healthier root growth"
+                              className="admin-form-input"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newFeats = cmsForm.features.filter((_: any, i: number) => i !== idx);
+                                setCmsForm({ ...cmsForm, features: newFeats });
+                              }}
+                              className="admin-btn-remove-row"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => setCmsForm({ ...cmsForm, features: [...cmsForm.features, ''] })}
+                          className="admin-btn-add-row"
+                        >
+                          <Plus size={14} /> Add Feature Bullet
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="admin-form-label">Available Pack Sizes (e.g. 500 g, 1 kg, 5 kg)</label>
+                      <input
+                        value={cmsForm.packSizes.join(', ')}
+                        onChange={(e) =>
+                          setCmsForm({
+                            ...cmsForm,
+                            packSizes: e.target.value.split(',').map((s) => s.trim()).filter(Boolean),
+                          })
+                        }
+                        placeholder="500 g, 1 kg, 5 kg"
+                        className="admin-form-input"
+                      />
+                    </div>
                   </div>
-                </div>
-                <div className="admin-form-group">
-                  <label className="admin-form-label">Stock Quantity</label>
-                  <input name="editStock" defaultValue={selectedProduct.stock} required type="number" className="admin-form-input" />
-                </div>
+                )}
+
+                {/* 4. BENEFITS & STEPS TAB */}
+                {cmsTab === 'steps' && (
+                  <div className="admin-cms-section">
+                    <div>
+                      <label className="admin-form-label">Key Agricultural Benefits List (Benefits Tab)</label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.35rem' }}>
+                        {cmsForm.benefits.map((b: string, idx: number) => (
+                          <div key={idx} className="admin-dynamic-item">
+                            <input
+                              value={b}
+                              onChange={(e) => {
+                                const newBenefits = [...cmsForm.benefits];
+                                newBenefits[idx] = e.target.value;
+                                setCmsForm({ ...cmsForm, benefits: newBenefits });
+                              }}
+                              placeholder="e.g. Accelerates nodal tillering and root elongation..."
+                              className="admin-form-input"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newBenefits = cmsForm.benefits.filter((_: any, i: number) => i !== idx);
+                                setCmsForm({ ...cmsForm, benefits: newBenefits });
+                              }}
+                              className="admin-btn-remove-row"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() => setCmsForm({ ...cmsForm, benefits: [...cmsForm.benefits, ''] })}
+                          className="admin-btn-add-row"
+                        >
+                          <Plus size={14} /> Add Benefit
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ marginTop: '1rem' }}>
+                      <label className="admin-form-label">How to Use Workflow Steps (Step Cards)</label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.35rem' }}>
+                        {cmsForm.usageSteps.map((step: any, idx: number) => (
+                          <div key={idx} style={{ padding: '0.75rem', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#15803D' }}>
+                                Step #{step.stepNumber || idx + 1}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newSteps = cmsForm.usageSteps.filter((_: any, i: number) => i !== idx);
+                                  setCmsForm({ ...cmsForm, usageSteps: newSteps });
+                                }}
+                                className="admin-btn-remove-row"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
+                            <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '0.5rem' }}>
+                              <input
+                                value={step.title}
+                                onChange={(e) => {
+                                  const newSteps = [...cmsForm.usageSteps];
+                                  newSteps[idx] = { ...newSteps[idx], title: e.target.value };
+                                  setCmsForm({ ...cmsForm, usageSteps: newSteps });
+                                }}
+                                placeholder="Title (e.g. Mix)"
+                                className="admin-form-input"
+                              />
+                              <input
+                                value={step.description}
+                                onChange={(e) => {
+                                  const newSteps = [...cmsForm.usageSteps];
+                                  newSteps[idx] = { ...newSteps[idx], description: e.target.value };
+                                  setCmsForm({ ...cmsForm, usageSteps: newSteps });
+                                }}
+                                placeholder="Description (e.g. Dissolve 2ml per litre of water)"
+                                className="admin-form-input"
+                              />
+                            </div>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setCmsForm({
+                              ...cmsForm,
+                              usageSteps: [
+                                ...cmsForm.usageSteps,
+                                { stepNumber: cmsForm.usageSteps.length + 1, title: 'Apply', description: 'Spray evenly over foliage.' },
+                              ],
+                            })
+                          }
+                          className="admin-btn-add-row"
+                        >
+                          <Plus size={14} /> Add Usage Step
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 5. DOSAGE & INGREDIENTS TAB */}
+                {cmsTab === 'dosage' && (
+                  <div className="admin-cms-section">
+                    <div>
+                      <label className="admin-form-label">Crop Dosage Table Rows (Dosage Tab)</label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.35rem' }}>
+                        {cmsForm.dosageTable.map((row: any, idx: number) => (
+                          <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 36px', gap: '0.5rem', alignItems: 'center' }}>
+                            <input
+                              value={row.crop}
+                              onChange={(e) => {
+                                const newDosage = [...cmsForm.dosageTable];
+                                newDosage[idx] = { ...newDosage[idx], crop: e.target.value };
+                                setCmsForm({ ...cmsForm, dosageTable: newDosage });
+                              }}
+                              placeholder="Crop (e.g. Paddy)"
+                              className="admin-form-input"
+                            />
+                            <input
+                              value={row.foliarSpray}
+                              onChange={(e) => {
+                                const newDosage = [...cmsForm.dosageTable];
+                                newDosage[idx] = { ...newDosage[idx], foliarSpray: e.target.value };
+                                setCmsForm({ ...cmsForm, dosageTable: newDosage });
+                              }}
+                              placeholder="Foliar (2.5 ml / L)"
+                              className="admin-form-input"
+                            />
+                            <input
+                              value={row.dripIrrigation}
+                              onChange={(e) => {
+                                const newDosage = [...cmsForm.dosageTable];
+                                newDosage[idx] = { ...newDosage[idx], dripIrrigation: e.target.value };
+                                setCmsForm({ ...cmsForm, dosageTable: newDosage });
+                              }}
+                              placeholder="Drip (500 ml / Acre)"
+                              className="admin-form-input"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newDosage = cmsForm.dosageTable.filter((_: any, i: number) => i !== idx);
+                                setCmsForm({ ...cmsForm, dosageTable: newDosage });
+                              }}
+                              className="admin-btn-remove-row"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setCmsForm({
+                              ...cmsForm,
+                              dosageTable: [
+                                ...cmsForm.dosageTable,
+                                { crop: 'Vegetables', foliarSpray: '2 ml / L', dripIrrigation: '500 ml / Acre' },
+                              ],
+                            })
+                          }
+                          className="admin-btn-add-row"
+                        >
+                          <Plus size={14} /> Add Dosage Row
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="admin-form-group" style={{ marginTop: '1rem' }}>
+                      <label className="admin-form-label">Active Bio-Ingredients & Chemical Composition</label>
+                      <textarea
+                        rows={3}
+                        value={cmsForm.ingredients}
+                        onChange={(e) => setCmsForm({ ...cmsForm, ingredients: e.target.value })}
+                        placeholder="e.g. Cold fermented Ascophyllum nodosum marine extract (28%), amino acids..."
+                        className="admin-form-textarea"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 6. SPECS, FAQS & BEFORE/AFTER TAB */}
+                {cmsTab === 'specs' && (
+                  <div className="admin-cms-section">
+                    <div>
+                      <label className="admin-form-label">Product Details Specifications (Right Card)</label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.35rem' }}>
+                        {cmsForm.specifications.map((spec: any, idx: number) => (
+                          <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 36px', gap: '0.5rem', alignItems: 'center' }}>
+                            <input
+                              value={spec.label}
+                              onChange={(e) => {
+                                const newSpecs = [...cmsForm.specifications];
+                                newSpecs[idx] = { ...newSpecs[idx], label: e.target.value };
+                                setCmsForm({ ...cmsForm, specifications: newSpecs });
+                              }}
+                              placeholder="Label (e.g. Shelf Life)"
+                              className="admin-form-input"
+                            />
+                            <input
+                              value={spec.value}
+                              onChange={(e) => {
+                                const newSpecs = [...cmsForm.specifications];
+                                newSpecs[idx] = { ...newSpecs[idx], value: e.target.value };
+                                setCmsForm({ ...cmsForm, specifications: newSpecs });
+                              }}
+                              placeholder="Value (e.g. 24 Months)"
+                              className="admin-form-input"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newSpecs = cmsForm.specifications.filter((_: any, i: number) => i !== idx);
+                                setCmsForm({ ...cmsForm, specifications: newSpecs });
+                              }}
+                              className="admin-btn-remove-row"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setCmsForm({
+                              ...cmsForm,
+                              specifications: [
+                                ...cmsForm.specifications,
+                                { label: 'Manufacturer', value: 'FarmerBench Agri Solutions' },
+                              ],
+                            })
+                          }
+                          className="admin-btn-add-row"
+                        >
+                          <Plus size={14} /> Add Specification
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ marginTop: '1rem' }}>
+                      <label className="admin-form-label">Product FAQs</label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.35rem' }}>
+                        {cmsForm.faqs.map((faq: any, idx: number) => (
+                          <div key={idx} style={{ padding: '0.75rem', background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <input
+                                value={faq.question}
+                                onChange={(e) => {
+                                  const newFaqs = [...cmsForm.faqs];
+                                  newFaqs[idx] = { ...newFaqs[idx], question: e.target.value };
+                                  setCmsForm({ ...cmsForm, faqs: newFaqs });
+                                }}
+                                placeholder="Question (e.g. Is it safe for organic crops?)"
+                                className="admin-form-input"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const newFaqs = cmsForm.faqs.filter((_: any, i: number) => i !== idx);
+                                  setCmsForm({ ...cmsForm, faqs: newFaqs });
+                                }}
+                                className="admin-btn-remove-row"
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
+                            <textarea
+                              rows={2}
+                              value={faq.answer}
+                              onChange={(e) => {
+                                const newFaqs = [...cmsForm.faqs];
+                                newFaqs[idx] = { ...newFaqs[idx], answer: e.target.value };
+                                setCmsForm({ ...cmsForm, faqs: newFaqs });
+                              }}
+                              placeholder="Answer..."
+                              className="admin-form-textarea"
+                            />
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setCmsForm({
+                              ...cmsForm,
+                              faqs: [...cmsForm.faqs, { question: '', answer: '' }],
+                            })
+                          }
+                          className="admin-btn-add-row"
+                        >
+                          <Plus size={14} /> Add FAQ
+                        </button>
+                      </div>
+                    </div>
+
+                    <div style={{ marginTop: '1rem' }}>
+                      <label className="admin-form-label">Before / After Field Results (See the Difference)</label>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.35rem' }}>
+                        <div className="admin-form-group">
+                          <label className="admin-form-label" style={{ fontSize: '0.75rem' }}>Before Image URL</label>
+                          <input
+                            value={cmsForm.beforeAfter?.beforeImage || ''}
+                            onChange={(e) =>
+                              setCmsForm({
+                                ...cmsForm,
+                                beforeAfter: { ...cmsForm.beforeAfter, beforeImage: e.target.value },
+                              })
+                            }
+                            placeholder="https://..."
+                            className="admin-form-input"
+                          />
+                        </div>
+                        <div className="admin-form-group">
+                          <label className="admin-form-label" style={{ fontSize: '0.75rem' }}>After Image URL</label>
+                          <input
+                            value={cmsForm.beforeAfter?.afterImage || ''}
+                            onChange={(e) =>
+                              setCmsForm({
+                                ...cmsForm,
+                                beforeAfter: { ...cmsForm.beforeAfter, afterImage: e.target.value },
+                              })
+                            }
+                            placeholder="https://..."
+                            className="admin-form-input"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
+
               <div className="admin-modal-footer">
-                <button type="button" onClick={() => setIsEditProductOpen(false)} className="admin-quick-btn">
+                <button
+                  type="button"
+                  onClick={() => { setIsAddProductOpen(false); setIsEditProductOpen(false); }}
+                  className="admin-quick-btn"
+                >
                   Cancel
                 </button>
                 <button type="submit" className="admin-primary-btn">
-                  Save Changes
+                  {isAddProductOpen ? '🚀 Publish Product to PostgreSQL' : '💾 Save Product Content to PostgreSQL'}
                 </button>
               </div>
             </form>
@@ -2954,21 +3962,27 @@ export const AdminPage: React.FC = () => {
               </button>
             </div>
             <form
-              onSubmit={(e: any) => {
+              onSubmit={async (e: any) => {
                 e.preventDefault();
-                const name = e.target.catName.value;
-                const desc = e.target.catDesc.value;
-                const newCat = {
-                  id: `cat-${categories.length + 1}`,
-                  name,
-                  slug: name.toLowerCase().replace(/\s+/g, '-'),
-                  count: 0,
-                  description: desc,
-                  icon: '🌾',
-                };
-                setCategories([...categories, newCat]);
-                setIsAddCategoryOpen(false);
-                showToast(`Category "${name}" created!`);
+                const name = e.target.catName.value.trim();
+                const desc = e.target.catDesc.value.trim();
+                const slug = name
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, '-')
+                  .replace(/(^-|-$)+/g, '');
+
+                try {
+                  await createCategory({
+                    name,
+                    slug,
+                    description: desc || 'Certified sustainable agricultural category.',
+                    imageUrl: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800',
+                  });
+                  setIsAddCategoryOpen(false);
+                  showToast(`Category "${name}" created and saved to PostgreSQL!`);
+                } catch (err: any) {
+                  showToast(err.message || 'Failed to create category');
+                }
               }}
             >
               <div className="admin-modal-body">
@@ -3163,62 +4177,688 @@ export const AdminPage: React.FC = () => {
         </div>
       )}
 
-      {/* Modal: Add Blog */}
+      {/* Modal: Full Blog CMS Editor */}
       {isBlogModalOpen && (
         <div className="admin-modal-overlay" onClick={() => setIsBlogModalOpen(false)}>
+          <div
+            className="admin-modal-card"
+            style={{ maxWidth: '850px', width: '95%', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div className="admin-modal-header" style={{ padding: '1.25rem 1.75rem', borderBottom: '1px solid #E2E8F0' }}>
+              <div>
+                <h3 className="admin-modal-title" style={{ fontSize: '1.25rem', fontWeight: 800, color: '#17251E' }}>
+                  {editingBlog ? '✏️ Edit Agricultural Article' : '📝 Create New Agricultural Article'}
+                </h3>
+                <p style={{ fontSize: '0.775rem', color: '#64748B', margin: '0.2rem 0 0 0' }}>
+                  {editingBlog ? `Editing ID: ${editingBlog.id}` : 'Draft or publish live agricultural insights for farmers.'}
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                {/* Editor Tabs */}
+                <div style={{ display: 'flex', background: '#F1F5F9', padding: '3px', borderRadius: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setBlogEditorTab('content')}
+                    style={{
+                      padding: '0.35rem 0.75rem',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '0.775rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      background: blogEditorTab === 'content' ? '#FFFFFF' : 'transparent',
+                      color: blogEditorTab === 'content' ? '#166534' : '#64748B',
+                      boxShadow: blogEditorTab === 'content' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                    }}
+                  >
+                    📝 Editor
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBlogEditorTab('preview')}
+                    style={{
+                      padding: '0.35rem 0.75rem',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '0.775rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      background: blogEditorTab === 'preview' ? '#FFFFFF' : 'transparent',
+                      color: blogEditorTab === 'preview' ? '#166534' : '#64748B',
+                      boxShadow: blogEditorTab === 'preview' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                    }}
+                  >
+                    👁️ Preview
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBlogEditorTab('seo')}
+                    style={{
+                      padding: '0.35rem 0.75rem',
+                      border: 'none',
+                      borderRadius: '6px',
+                      fontSize: '0.775rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      background: blogEditorTab === 'seo' ? '#FFFFFF' : 'transparent',
+                      color: blogEditorTab === 'seo' ? '#166534' : '#64748B',
+                      boxShadow: blogEditorTab === 'seo' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                    }}
+                  >
+                    🔍 SEO & Meta
+                  </button>
+                </div>
+
+                <button onClick={() => setIsBlogModalOpen(false)} className="admin-modal-close-btn" aria-label="Close modal">
+                  <X size={20} />
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Body */}
+            <div className="admin-modal-body" style={{ flex: 1, overflowY: 'auto', padding: '1.5rem 1.75rem' }}>
+              {/* TAB 1: CONTENT EDITOR */}
+              {blogEditorTab === 'content' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  {/* Article Title */}
+                  <div className="admin-form-group">
+                    <label className="admin-form-label" style={{ fontWeight: 700 }}>
+                      Article Title *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. How to Choose the Right Fertilizer for Your Crop?"
+                      value={blogForm.title}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const autoSlug = val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                        setBlogForm((prev) => ({
+                          ...prev,
+                          title: val,
+                          slug: prev.slug ? prev.slug : autoSlug,
+                          metaTitle: prev.metaTitle ? prev.metaTitle : `${val} | FarmerBench`,
+                        }));
+                      }}
+                      className="admin-form-input"
+                      style={{ fontSize: '1rem', fontWeight: 600 }}
+                    />
+                    <div style={{ fontSize: '0.75rem', color: '#64748B', marginTop: '0.25rem' }}>
+                      URL Slug: <span style={{ color: '#166534', fontWeight: 600 }}>/blog/{blogForm.slug || 'your-article-slug'}</span>
+                    </div>
+                  </div>
+
+                  {/* 3 Columns: Category, Author, Reading Time */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+                    <div className="admin-form-group">
+                      <label className="admin-form-label">Category *</label>
+                      <select
+                        value={blogForm.category}
+                        onChange={(e) => setBlogForm({ ...blogForm, category: e.target.value })}
+                        className="admin-form-select"
+                      >
+                        <option value="Crop Nutrition">Crop Nutrition</option>
+                        <option value="Soil Health">Soil Health</option>
+                        <option value="Plant Protection">Plant Protection</option>
+                        <option value="Irrigation">Irrigation</option>
+                        <option value="Sustainable Farming">Sustainable Farming</option>
+                        <option value="Farming Tips">Farming Tips</option>
+                        <option value="Organic Methods">Organic Methods</option>
+                        <option value="General Agriculture">General Agriculture</option>
+                      </select>
+                    </div>
+
+                    <div className="admin-form-group">
+                      <label className="admin-form-label">Author Name</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. Dr. Ramesh Kumar"
+                        value={blogForm.author}
+                        onChange={(e) => setBlogForm({ ...blogForm, author: e.target.value })}
+                        className="admin-form-input"
+                      />
+                    </div>
+
+                    <div className="admin-form-group">
+                      <label className="admin-form-label">Reading Time</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. 6 min read"
+                        value={blogForm.readingTime}
+                        onChange={(e) => setBlogForm({ ...blogForm, readingTime: e.target.value })}
+                        className="admin-form-input"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Excerpt / Summary */}
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Short Excerpt / Summary *</label>
+                    <textarea
+                      rows={2}
+                      placeholder="Brief 1-2 sentence overview shown in blog cards and search results..."
+                      value={blogForm.excerpt}
+                      onChange={(e) => setBlogForm({ ...blogForm, excerpt: e.target.value })}
+                      className="admin-form-textarea"
+                    />
+                  </div>
+
+                  {/* Featured Image Uploader */}
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Featured Cover Image</label>
+                    <div
+                      style={{
+                        border: '2px dashed #CBD5E1',
+                        borderRadius: '12px',
+                        padding: '1.25rem',
+                        textAlign: 'center',
+                        backgroundColor: '#F8FAFC',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '0.75rem',
+                      }}
+                    >
+                      {blogForm.featuredImage ? (
+                        <div style={{ position: 'relative', width: '100%', maxWidth: '360px' }}>
+                          <img
+                            src={getUploadUrl(blogForm.featuredImage)}
+                            alt="Cover Preview"
+                            style={{ width: '100%', height: '160px', objectFit: 'cover', borderRadius: '8px' }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setBlogForm({ ...blogForm, featuredImage: '' })}
+                            style={{
+                              position: 'absolute',
+                              top: '8px',
+                              right: '8px',
+                              backgroundColor: 'rgba(0,0,0,0.7)',
+                              color: '#fff',
+                              border: 'none',
+                              borderRadius: '50%',
+                              width: '26px',
+                              height: '26px',
+                              cursor: 'pointer',
+                            }}
+                            title="Remove image"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          <div style={{ fontSize: '1.75rem', marginBottom: '0.35rem' }}>🖼️</div>
+                          <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#334155' }}>
+                            Upload High-Resolution Cover Image
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: '#94A3B8', marginTop: '0.15rem' }}>
+                            Supports WebP, JPEG, PNG up to 10MB
+                          </div>
+                        </div>
+                      )}
+
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                        <label
+                          className="admin-primary-btn"
+                          style={{
+                            fontSize: '0.8rem',
+                            padding: '0.45rem 0.85rem',
+                            cursor: isUploadingFeatured ? 'wait' : 'pointer',
+                          }}
+                        >
+                          {isUploadingFeatured ? 'Uploading...' : 'Browse Image File'}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            disabled={isUploadingFeatured}
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleFeaturedImageChange(file);
+                            }}
+                          />
+                        </label>
+                        <span style={{ fontSize: '0.75rem', color: '#94A3B8' }}>or paste URL:</span>
+                        <input
+                          type="text"
+                          placeholder="https://..."
+                          value={blogForm.featuredImage}
+                          onChange={(e) => setBlogForm({ ...blogForm, featuredImage: e.target.value })}
+                          className="admin-form-input"
+                          style={{ width: '220px', padding: '0.35rem 0.6rem', fontSize: '0.75rem' }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Rich Content Editor with Formatting Toolbar */}
+                  <div className="admin-form-group">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                      <label className="admin-form-label" style={{ fontWeight: 700, margin: 0 }}>
+                        Article Body Content (HTML / Rich Text) *
+                      </label>
+                      <span style={{ fontSize: '0.75rem', color: '#64748B' }}>
+                        {blogForm.content.replace(/<[^>]*>?/gm, '').trim().split(/\s+/).filter(Boolean).length} words
+                      </span>
+                    </div>
+
+                    {/* Toolbar */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: '0.3rem',
+                        padding: '0.45rem',
+                        backgroundColor: '#F1F5F9',
+                        border: '1px solid #CBD5E1',
+                        borderBottom: 'none',
+                        borderRadius: '8px 8px 0 0',
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => insertFormattingTag('<h2 class="blog-section-heading">', '</h2>\n')}
+                        className="admin-mini-btn"
+                        title="Section Heading H2"
+                      >
+                        <strong>H2</strong>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => insertFormattingTag('<h3>', '</h3>\n')}
+                        className="admin-mini-btn"
+                        title="Subheading H3"
+                      >
+                        <strong>H3</strong>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => insertFormattingTag('<p>', '</p>\n')}
+                        className="admin-mini-btn"
+                        title="Paragraph"
+                      >
+                        P
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => insertFormattingTag('<strong>', '</strong>')}
+                        className="admin-mini-btn"
+                        title="Bold"
+                      >
+                        <strong>B</strong>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => insertFormattingTag('<em>', '</em>')}
+                        className="admin-mini-btn"
+                        title="Italic"
+                      >
+                        <em>I</em>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => insertFormattingTag('<ul class="blog-article-list">\n  <li>', '</li>\n  <li>Second item</li>\n</ul>\n')}
+                        className="admin-mini-btn"
+                        title="Bullet List"
+                      >
+                        • List
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => insertFormattingTag('<ol>\n  <li>', '</li>\n  <li>Step two</li>\n</ol>\n')}
+                        className="admin-mini-btn"
+                        title="Numbered List"
+                      >
+                        1. List
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => insertFormattingTag('<div class="blog-expert-tip-box">\n  <div class="blog-tip-icon">💡</div>\n  <div>\n    <h4 class="blog-tip-title">Expert Agronomist Tip</h4>\n    <p class="blog-tip-text">', '</p>\n  </div>\n</div>\n')}
+                        className="admin-mini-btn"
+                        title="Expert Tip Callout Box"
+                        style={{ color: '#166534', fontWeight: 700 }}
+                      >
+                        💡 Expert Tip Box
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => insertFormattingTag('<blockquote>', '</blockquote>\n')}
+                        className="admin-mini-btn"
+                        title="Blockquote"
+                      >
+                        “ Quote
+                      </button>
+
+                      {/* Content Image Upload Trigger */}
+                      <label
+                        className="admin-mini-btn"
+                        style={{ cursor: isUploadingContentImg ? 'wait' : 'pointer', color: '#0284C7' }}
+                        title="Upload Inline Photo"
+                      >
+                        📷 {isUploadingContentImg ? 'Uploading...' : 'Insert Photo'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          style={{ display: 'none' }}
+                          disabled={isUploadingContentImg}
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) handleContentImageInsert(file);
+                          }}
+                        />
+                      </label>
+                    </div>
+
+                    <textarea
+                      ref={blogContentTextareaRef}
+                      rows={12}
+                      required
+                      placeholder="Write your detailed farming article content here using headings, paragraphs, and lists..."
+                      value={blogForm.content}
+                      onChange={(e) => setBlogForm({ ...blogForm, content: e.target.value })}
+                      className="admin-form-textarea"
+                      style={{
+                        borderRadius: '0 0 8px 8px',
+                        borderTop: 'none',
+                        fontFamily: 'monospace',
+                        fontSize: '0.875rem',
+                        lineHeight: 1.6,
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: LIVE PREVIEW */}
+              {blogEditorTab === 'preview' && (
+                <div style={{ backgroundColor: '#ffffff', padding: '1rem', borderRadius: '12px', border: '1px solid #E2E8F0' }}>
+                  <div className="blog-article-header">
+                    <span className="blog-article-cat-tag">{blogForm.category}</span>
+                    <h1 className="blog-article-main-title">{blogForm.title || 'Untitled Article'}</h1>
+                    <div className="blog-article-meta-row">
+                      <span>{blogForm.author || 'Author'}</span>
+                      <span>•</span>
+                      <span>{blogForm.readingTime || '5 min read'}</span>
+                      <span>•</span>
+                      <span style={{ color: '#166534', fontWeight: 700 }}>
+                        {blogForm.status === 'PUBLISHED' ? 'Status: Published' : 'Status: Draft'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {blogForm.featuredImage && (
+                    <img
+                      src={getUploadUrl(blogForm.featuredImage)}
+                      alt="Cover Preview"
+                      style={{ width: '100%', height: '320px', objectFit: 'cover', borderRadius: '14px', marginBottom: '1.5rem' }}
+                    />
+                  )}
+
+                  <div
+                    className="blog-article-body"
+                    dangerouslySetInnerHTML={{ __html: blogForm.content || '<p><em>No content written yet...</em></p>' }}
+                  />
+                </div>
+              )}
+
+              {/* TAB 3: SEO & TAGS */}
+              {blogEditorTab === 'seo' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Article Tags (Comma-separated)</label>
+                    <input
+                      type="text"
+                      placeholder="Fertilizers, Soil Health, NPK, Crop Yield"
+                      value={blogForm.tags}
+                      onChange={(e) => setBlogForm({ ...blogForm, tags: e.target.value })}
+                      className="admin-form-input"
+                    />
+                  </div>
+
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Meta Title (SEO)</label>
+                    <input
+                      type="text"
+                      placeholder="Best Fertilizer Practices for Paddy | FarmerBench"
+                      value={blogForm.metaTitle}
+                      onChange={(e) => setBlogForm({ ...blogForm, metaTitle: e.target.value })}
+                      className="admin-form-input"
+                    />
+                  </div>
+
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Meta Description (Search Snippet)</label>
+                    <textarea
+                      rows={3}
+                      placeholder="Learn how to choose the right fertilizer and apply precision NPK nutrients for higher crop yield..."
+                      value={blogForm.metaDescription}
+                      onChange={(e) => setBlogForm({ ...blogForm, metaDescription: e.target.value })}
+                      className="admin-form-textarea"
+                    />
+                  </div>
+
+                  {/* Google Search Snippet Preview */}
+                  <div style={{ backgroundColor: '#F8FAFC', padding: '1rem 1.25rem', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                    <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
+                      Search Result Preview
+                    </div>
+                    <div style={{ color: '#1A0DAB', fontSize: '1.1rem', fontWeight: 600, textDecoration: 'underline' }}>
+                      {blogForm.metaTitle || blogForm.title || 'Article Title'}
+                    </div>
+                    <div style={{ color: '#006621', fontSize: '0.8rem', marginTop: '0.15rem' }}>
+                      https://farmerbench.agri/blog/{blogForm.slug || 'how-to-choose-fertilizer'}
+                    </div>
+                    <div style={{ color: '#4D5156', fontSize: '0.85rem', marginTop: '0.25rem', lineHeight: 1.4 }}>
+                      {blogForm.metaDescription || blogForm.excerpt || 'Article summary description...'}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer with Actions */}
+            <div
+              className="admin-modal-footer"
+              style={{
+                padding: '1rem 1.75rem',
+                borderTop: '1px solid #E2E8F0',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setIsBlogModalOpen(false)}
+                className="admin-quick-btn"
+              >
+                Cancel
+              </button>
+
+              <div style={{ display: 'flex', gap: '0.65rem' }}>
+                <button
+                  type="button"
+                  onClick={() => handleSaveBlogCMS('DRAFT')}
+                  className="admin-quick-btn"
+                  style={{ fontWeight: 700 }}
+                >
+                  Save as Draft
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSaveBlogCMS('PUBLISHED')}
+                  className="admin-primary-btn"
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                >
+                  <CheckCircle2 size={16} />
+                  {editingBlog ? 'Update & Publish' : 'Publish Article Live'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Add New Farmer / Customer */}
+      {isAddCustomerOpen && (
+        <div className="admin-modal-overlay" onClick={() => setIsAddCustomerOpen(false)}>
           <div className="admin-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="admin-modal-header">
-              <h3 className="admin-modal-title">Publish Farming Blog Article</h3>
-              <button onClick={() => setIsBlogModalOpen(false)} className="admin-modal-close-btn">
+              <h3 className="admin-modal-title">➕ Register New Farmer / Customer</h3>
+              <button onClick={() => setIsAddCustomerOpen(false)} className="admin-modal-close-btn">
                 <X size={20} />
               </button>
             </div>
             <form
-              onSubmit={(e: any) => {
+              onSubmit={async (e: any) => {
                 e.preventDefault();
-                const title = e.target.blogTitle.value;
-                const cat = e.target.blogCat.value;
-                const newB = {
-                  id: `blog-${blogs.length + 1}`,
-                  title,
-                  slug: title.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
-                  category: cat,
-                  author: user?.name || 'Arun Admin',
-                  date: 'Just now',
-                  views: '1 read',
-                  image: farmingPracticesImg,
-                  status: 'Published',
-                };
-                setBlogs([newB, ...blogs]);
-                setIsBlogModalOpen(false);
-                showToast(`Article "${title}" published!`);
+                const name = e.target.custName.value.trim();
+                const email = e.target.custEmail.value.trim().toLowerCase();
+                const phone = e.target.custPhone.value.trim();
+                const location = e.target.custLocation.value.trim();
+                const crops = e.target.custCrops.value.trim();
+                const status = e.target.custStatus.value;
+
+                try {
+                  await createCustomer({
+                    name,
+                    email,
+                    phone,
+                    location,
+                    crops,
+                    status,
+                  });
+                  setIsAddCustomerOpen(false);
+                  showToast(`Farmer "${name}" successfully registered in PostgreSQL database!`);
+                } catch (err: any) {
+                  showToast(err.message || 'Failed to create customer');
+                }
               }}
             >
               <div className="admin-modal-body">
                 <div className="admin-form-group">
-                  <label className="admin-form-label">Article Title</label>
-                  <input name="blogTitle" required placeholder="e.g. Organic Methods for Soil Enrichment" className="admin-form-input" />
+                  <label className="admin-form-label">Farmer Full Name *</label>
+                  <input name="custName" required placeholder="e.g. Senthil Nathan" className="admin-form-input" />
                 </div>
                 <div className="admin-form-group">
-                  <label className="admin-form-label">Category</label>
-                  <select name="blogCat" className="admin-form-select">
-                    <option>Farming Techniques</option>
-                    <option>Pest Control</option>
-                    <option>Soil Nutrition</option>
-                    <option>Organic Certification</option>
-                  </select>
+                  <label className="admin-form-label">Email Address *</label>
+                  <input name="custEmail" type="email" required placeholder="farmer@gmail.com" className="admin-form-input" />
                 </div>
-                <div className="admin-form-group">
-                  <label className="admin-form-label">Article Content</label>
-                  <textarea rows={4} required placeholder="Write article content & recommendations..." className="admin-form-textarea" />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Mobile Number *</label>
+                    <input name="custPhone" required placeholder="+91 98421 99210" className="admin-form-input" />
+                  </div>
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Location / Region *</label>
+                    <input name="custLocation" required placeholder="e.g. Thanjavur, Tamil Nadu" className="admin-form-input" />
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Crops & Acreage *</label>
+                    <input name="custCrops" required placeholder="e.g. Paddy / 15 Acres" className="admin-form-input" />
+                  </div>
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Verification Status</label>
+                    <select name="custStatus" defaultValue="Verified" className="admin-form-select">
+                      <option value="Verified">Verified</option>
+                      <option value="Active">Active</option>
+                      <option value="Pending">Pending</option>
+                    </select>
+                  </div>
                 </div>
               </div>
               <div className="admin-modal-footer">
-                <button type="button" onClick={() => setIsBlogModalOpen(false)} className="admin-quick-btn">
+                <button type="button" onClick={() => setIsAddCustomerOpen(false)} className="admin-quick-btn">
                   Cancel
                 </button>
                 <button type="submit" className="admin-primary-btn">
-                  Publish Article
+                  Save & Register Farmer
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Edit Farmer / Customer */}
+      {isEditCustomerOpen && selectedCustomer && (
+        <div className="admin-modal-overlay" onClick={() => setIsEditCustomerOpen(false)}>
+          <div className="admin-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal-header">
+              <h3 className="admin-modal-title">✏️ Edit Farmer Profile — {selectedCustomer.name}</h3>
+              <button onClick={() => setIsEditCustomerOpen(false)} className="admin-modal-close-btn">
+                <X size={20} />
+              </button>
+            </div>
+            <form
+              onSubmit={async (e: any) => {
+                e.preventDefault();
+                const name = e.target.editCustName.value.trim();
+                const phone = e.target.editCustPhone.value.trim();
+                const location = e.target.editCustLocation.value.trim();
+                const crops = e.target.editCustCrops.value.trim();
+                const status = e.target.editCustStatus.value;
+
+                try {
+                  await updateCustomer({
+                    id: selectedCustomer.id,
+                    data: {
+                      name,
+                      phone,
+                      location,
+                      crops,
+                      status,
+                    },
+                  });
+                  setIsEditCustomerOpen(false);
+                  showToast(`Farmer "${name}" profile updated in PostgreSQL!`);
+                } catch (err: any) {
+                  showToast(err.message || 'Failed to update customer');
+                }
+              }}
+            >
+              <div className="admin-modal-body">
+                <div className="admin-form-group">
+                  <label className="admin-form-label">Farmer Full Name</label>
+                  <input name="editCustName" defaultValue={selectedCustomer.name} required className="admin-form-input" />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Phone</label>
+                    <input name="editCustPhone" defaultValue={selectedCustomer.phone} required className="admin-form-input" />
+                  </div>
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Location / Region</label>
+                    <input name="editCustLocation" defaultValue={selectedCustomer.location} required className="admin-form-input" />
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Crops & Acreage</label>
+                    <input name="editCustCrops" defaultValue={selectedCustomer.crops} required className="admin-form-input" />
+                  </div>
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Status</label>
+                    <select name="editCustStatus" defaultValue={selectedCustomer.status || 'Verified'} className="admin-form-select">
+                      <option value="Verified">Verified</option>
+                      <option value="Active">Active</option>
+                      <option value="Pending">Pending</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div className="admin-modal-footer">
+                <button type="button" onClick={() => setIsEditCustomerOpen(false)} className="admin-quick-btn">
+                  Cancel
+                </button>
+                <button type="submit" className="admin-primary-btn">
+                  Save Changes
                 </button>
               </div>
             </form>

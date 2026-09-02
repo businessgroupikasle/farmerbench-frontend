@@ -11,8 +11,9 @@ import {
   Headphones,
   ShieldCheck,
   Truck,
-  Sparkles,
   CheckCircle2,
+  Navigation,
+  ExternalLink,
 } from 'lucide-react';
 import './ContactPage.css';
 
@@ -279,37 +280,34 @@ export const ContactPage: React.FC = () => {
 
         {/* Bottom Grid: Map + Visit Us */}
         <div className="contact-bottom-grid">
-          {/* Left: Map Preview */}
+          {/* Left: Real Google Map */}
           <div className="contact-map-wrapper">
-            <svg width="100%" height="260" viewBox="0 0 600 260" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ display: 'block' }}>
-              {/* Map background tiles */}
-              <rect width="600" height="260" fill="#E8ECE4" />
-              {/* Major Roads */}
-              <path d="M0 60 Q 200 80 340 140 T 600 180" stroke="#F6D585" strokeWidth="12" fill="none" />
-              <path d="M80 0 L 160 260" stroke="#FFFFFF" strokeWidth="8" fill="none" />
-              <path d="M300 0 L 360 260" stroke="#FFFFFF" strokeWidth="10" fill="none" />
-              <path d="M0 160 Q 300 150 600 90" stroke="#FFFFFF" strokeWidth="8" fill="none" />
-              <path d="M220 0 Q 300 120 450 260" stroke="#F6D585" strokeWidth="8" fill="none" />
-              {/* Waterway */}
-              <path d="M480 0 Q 520 80 500 160 T 540 260" stroke="#B8DCEF" strokeWidth="16" fill="none" />
-              {/* City Labels */}
-              <text x="310" y="190" fill="#6B7280" fontSize="11" fontWeight="700">Gandhipuram</text>
-              <text x="240" y="70" fill="#9CA3AF" fontSize="10">Peelamedu</text>
-              <text x="380" y="90" fill="#374151" fontSize="13" fontWeight="800">Coimbatore</text>
-              <text x="80" y="180" fill="#9CA3AF" fontSize="10">Solur</text>
-              <text x="440" y="210" fill="#9CA3AF" fontSize="10">Thudiyalur</text>
-            </svg>
+            <iframe
+              title="FarmerBench HQ Location"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d125322.4416952899!2d76.89718428670868!3d11.014126294711822!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ba859af2f971cb5%3A0x2fc1c81e183ed282!2sCoimbatore%2C%20Tamil%20Nadu!5e0!3m2!1sen!2sin!4v1710000000000!5m2!1sen!2sin"
+              width="100%"
+              height="100%"
+              style={{ border: 0, minHeight: '300px', display: 'block' }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
 
-            {/* Custom Location Pin Marker */}
-            <div className="contact-map-pin-overlay">
+            {/* Location floating badge overlay */}
+            <div className="contact-map-floating-badge">
               <div className="contact-pin-badge">
                 <Sprout size={14} style={{ color: '#88CF3A' }} />
-                <span>FarmerBench HQ</span>
+                <span>FarmerBench HQ • Coimbatore</span>
               </div>
-              <svg width="24" height="32" viewBox="0 0 24 32" fill="none">
-                <path d="M12 0C5.37 0 0 5.37 0 12C0 21 12 32 12 32C12 32 24 21 24 12C24 5.37 18.63 0 12 0Z" fill="#164627" />
-                <circle cx="12" cy="11" r="5" fill="#88CF3A" />
-              </svg>
+              <a
+                href="https://maps.google.com/?q=Coimbatore,+Tamil+Nadu,+India"
+                target="_blank"
+                rel="noreferrer"
+                className="contact-map-directions-btn"
+              >
+                <Navigation size={13} />
+                <span>Directions</span>
+              </a>
             </div>
           </div>
 
@@ -332,6 +330,19 @@ export const ContactPage: React.FC = () => {
                   Sunday: Closed
                 </p>
               </div>
+            </div>
+
+            <div className="contact-visit-actions">
+              <a
+                href="https://maps.google.com/?q=Coimbatore,+Tamil+Nadu,+India"
+                target="_blank"
+                rel="noreferrer"
+                className="contact-directions-link"
+              >
+                <MapPin size={16} />
+                <span>Open in Google Maps</span>
+                <ExternalLink size={14} />
+              </a>
             </div>
           </div>
         </div>
