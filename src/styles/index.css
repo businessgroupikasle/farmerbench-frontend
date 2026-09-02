@@ -158,14 +158,51 @@ button, input, select, textarea {
   max-width: 1280px;
   margin-left: auto;
   margin-right: auto;
-  padding-left: 1.5rem;
-  padding-right: 1.5rem;
+  padding-left: clamp(1rem, 3vw, 1.5rem);
+  padding-right: clamp(1rem, 3vw, 1.5rem);
 }
 
 .main-content {
   flex: 1 1 0%;
   padding-top: 1.5rem;
   padding-bottom: 4rem;
+}
+
+/* Safe image & media constraints */
+img, video {
+  max-width: 100%;
+}
+
+/* Responsive Table Wrapper */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Visibility Utilities */
+@media (max-width: 900px) {
+  .hide-mobile {
+    display: none !important;
+  }
+  .show-mobile-flex {
+    display: flex !important;
+  }
+  .show-mobile-block {
+    display: block !important;
+  }
+}
+
+@media (min-width: 901px) {
+  .hide-desktop {
+    display: none !important;
+  }
+  .show-desktop {
+    display: block !important;
+  }
+  .show-desktop-flex {
+    display: flex !important;
+  }
 }
 
 /* Buttons */
