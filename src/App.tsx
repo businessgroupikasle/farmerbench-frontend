@@ -74,7 +74,7 @@ const AppContent: React.FC = () => {
           <Route path="/signin" element={<LoginPage />} />
           <Route path="/signup" element={<LoginPage />} />
           <Route path="/register" element={<LoginPage />} />
-          <Route path="*" element={<div className="container" style={{ padding: '2rem 1.5rem' }}><NotFoundPage /></div>} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </main>
 

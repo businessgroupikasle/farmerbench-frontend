@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   Sprout,
+  Leaf,
   Send,
   Lock,
   Phone,
@@ -40,34 +41,13 @@ export const ContactPage: React.FC = () => {
         <div className="contact-hero-container">
           <div className="contact-hero-text">
             <h1 className="contact-hero-title">
-              Contact Us <Sprout size={36} style={{ color: '#78B833' }} />
+              Contact Us <Leaf className="contact-hero-leaf" aria-hidden="true" />
             </h1>
             <p className="contact-hero-desc">
               We are here to help you with the best agricultural solutions for your farm.
             </p>
           </div>
 
-          {/* Hands holding seedling illustration/graphic */}
-          <div className="contact-hero-img-wrap">
-            <svg width="400" height="200" viewBox="0 0 400 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path
-                d="M40 200C90 170 140 160 200 170C260 180 310 160 360 200H40Z"
-                fill="#2E1C11"
-              />
-              <ellipse cx="200" cy="180" rx="160" ry="18" fill="#3D2617" />
-              {/* Healthy Green Sprout */}
-              <path
-                d="M198 180V120M198 120C198 90 160 95 160 95C160 95 165 130 198 120ZM198 110C198 80 236 85 236 85C236 85 231 120 198 110ZM198 100C198 60 180 50 180 50C180 50 216 60 198 100Z"
-                fill="#78B833"
-                stroke="#5A9620"
-                strokeWidth="2"
-              />
-              <circle cx="200" cy="85" r="4" fill="#A4DE5B" />
-              {/* Background field leaves */}
-              <path d="M120 180C120 150 100 140 100 140C100 140 110 170 120 180Z" fill="#588D23" />
-              <path d="M280 180C280 150 300 140 300 140C300 140 290 170 280 180Z" fill="#588D23" />
-            </svg>
-          </div>
         </div>
       </section>
 

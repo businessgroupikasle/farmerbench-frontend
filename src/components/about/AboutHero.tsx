@@ -11,7 +11,8 @@ export const AboutHero: React.FC = () => {
 
           {/* Heading */}
           <h1 className="about-hero-title">
-            Growing Better,<br />Together
+            <span>Growing Better,</span>
+            <span>Together</span>
           </h1>
 
           {/* Subtitle */}

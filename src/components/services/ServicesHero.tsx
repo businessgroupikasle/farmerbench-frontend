@@ -1,6 +1,6 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { UserCheck, Sprout, ClipboardCheck } from 'lucide-react';
-import sproutImg from '../../assets/services-sprout-left.jpg';
 
 interface ServicesHeroProps {
   onBookConsultation?: () => void;
@@ -13,19 +13,12 @@ export const ServicesHero: React.FC<ServicesHeroProps> = ({
 }) => {
   return (
     <section className="services-hero-section">
-      {/* Background with blend overlay */}
-      <div className="services-hero-bg-overlay" />
-
-      {/* Decorative Bottom-Left Sprout */}
-      <div className="services-hero-sprout-decor">
-        <img
-          src={sproutImg}
-          alt="Sprouting plant in rich soil"
-          className="services-hero-sprout-img"
-        />
-      </div>
-
       <div className="services-hero-container">
+        <nav className="services-hero-breadcrumb" aria-label="Breadcrumb">
+          <Link to="/">Home</Link>
+          <span aria-hidden="true">/</span>
+          <span aria-current="page">Services</span>
+        </nav>
         <div className="services-hero-content animate-fade-in">
           {/* Tag / Category Badge */}
           <div className="services-hero-badge-tag">
@@ -90,9 +83,6 @@ export const ServicesHero: React.FC<ServicesHeroProps> = ({
           </div>
         </div>
       </div>
-
-      {/* Rich Soil Strip Bottom Border */}
-      <div className="services-hero-soil-bar" />
     </section>
   );
 };

@@ -15,20 +15,19 @@
 .about-hero-section {
   position: relative;
   width: 100%;
-  min-height: 480px;
-  background: linear-gradient(90deg, #FFFFFF 0%, #FFFFFF 38%, rgba(255, 255, 255, 0.85) 55%, rgba(255, 255, 255, 0) 75%),
-              url('https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=1600&auto=format&fit=crop&q=80') right center / cover no-repeat;
+  min-height: 440px;
+  background: url('../assets/about-hero-farmer-plant.png') center center / cover no-repeat;
   display: flex;
   align-items: center;
   overflow: hidden;
-  border-bottom: 8px solid #3A2518;
+  border-bottom: 0;
 }
 
 .about-hero-container {
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
-  padding: 4rem 1.5rem 5.5rem;
+  padding: 3.2rem 1.5rem 3.8rem;
   position: relative;
   z-index: 2;
   display: flex;
@@ -37,7 +36,7 @@
 }
 
 .about-hero-content {
-  max-width: 540px;
+  max-width: 475px;
 }
 
 .about-hero-tag {
@@ -47,24 +46,31 @@
   color: #165B2E;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin-bottom: 1rem;
+  margin-bottom: 0.8rem;
 }
 
 .about-hero-title {
-  font-size: clamp(2.6rem, 5.2vw, 3.8rem);
+  display: flex;
+  flex-direction: column;
+  font-size: clamp(2.55rem, 4.6vw, 3.55rem);
   font-weight: 800;
-  color: #162E20;
-  line-height: 1.12;
+  color: #111713;
+  line-height: 1.08;
   letter-spacing: -0.03em;
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.2rem;
+}
+
+.about-hero-title span:last-child {
+  color: #176332;
 }
 
 .about-hero-desc {
-  font-size: 1.05rem;
-  color: #4A5B52;
-  line-height: 1.65;
-  margin-bottom: 2rem;
-  font-weight: 500;
+  max-width: 455px;
+  font-size: 1rem;
+  color: #39443d;
+  line-height: 1.58;
+  margin-bottom: 1.65rem;
+  font-weight: 600;
 }
 
 .about-hero-cta {
@@ -73,9 +79,9 @@
   justify-content: center;
   background-color: #165B2E;
   color: #ffffff;
-  padding: 0.9rem 2.2rem;
-  border-radius: 8px;
-  font-size: 1rem;
+  padding: 0.82rem 1.65rem;
+  border-radius: 7px;
+  font-size: 0.94rem;
   font-weight: 700;
   text-decoration: none;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -89,22 +95,33 @@
 }
 
 .about-hero-soil-strip {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 24px;
-  background: radial-gradient(circle at 10px 10px, #422B1D 3px, transparent 3px),
-              radial-gradient(circle at 25px 20px, #331F14 4px, transparent 4px),
-              linear-gradient(180deg, #3D2619 0%, #2A180E 100%);
-  background-size: 30px 30px, 40px 40px, 100% 100%;
-  border-top: 2px solid #5A3924;
+  display: none;
 }
 
 @media (max-width: 900px) {
   .about-hero-section {
-    background: linear-gradient(180deg, #FFFFFF 0%, #FFFFFF 55%, rgba(255, 255, 255, 0.9) 100%),
-                url('https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?w=1200&auto=format&fit=crop&q=80') center center / cover no-repeat;
+    min-height: 420px;
+    background-position: 57% center;
+  }
+  .about-hero-content {
+    max-width: 48%;
+  }
+}
+
+@media (max-width: 620px) {
+  .about-hero-section {
+    min-height: 650px;
+    align-items: flex-start;
+    background-position: 69% bottom;
+  }
+  .about-hero-container {
+    padding: 2.5rem 1rem;
+  }
+  .about-hero-content {
+    max-width: 100%;
+  }
+  .about-hero-desc {
+    max-width: 390px;
   }
 }
 

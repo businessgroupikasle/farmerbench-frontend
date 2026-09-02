@@ -1,31 +1,30 @@
 import React from 'react';
-import heroBg from '../../assets/hero-bg.jpg';
+import { Headphones, PackageCheck, Truck } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import heroBg from '../../assets/home-hero-farmer-products.png';
 
-interface HomeHeroProps {
-  onDiscoverClick?: () => void;
-}
-
-export const HomeHero: React.FC<HomeHeroProps> = ({ onDiscoverClick }) => {
-  const handleScrollToStore = () => {
-    if (onDiscoverClick) {
-      onDiscoverClick();
-    } else {
-      const el = document.getElementById('store-catalog');
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
-  };
-
+export const HomeHero: React.FC = () => {
   return (
     <section className="agriflow-hero" style={{ backgroundImage: `url(${heroBg})` }}>
-      <div className="agriflow-hero-overlay" />
       <div className="container agriflow-hero-content animate-fade-in">
-        <h1 className="agriflow-hero-title">Natural</h1>
-        <h2 className="agriflow-hero-subtitle">Organic Products</h2>
-        <button onClick={handleScrollToStore} className="agriflow-hero-btn">
-          Discover More
-        </button>
+        <h1 className="agriflow-hero-title">
+          <span>Better Farming</span>
+          <span>Starts Here</span>
+        </h1>
+        <p className="agriflow-hero-description">
+          Quality agricultural products and trusted farming solutions – all in one place.
+        </p>
+
+        <div className="agriflow-hero-actions">
+          <Link to="/products" className="agriflow-hero-btn agriflow-hero-btn-primary">Shop Products</Link>
+          <Link to="/services" className="agriflow-hero-btn agriflow-hero-btn-secondary">Explore Services</Link>
+        </div>
+
+        <div className="agriflow-hero-trust" aria-label="FarmerBench benefits">
+          <div><PackageCheck size={22} /><span>100% Original<br />Products</span></div>
+          <div><Headphones size={22} /><span>Expert<br />Support</span></div>
+          <div><Truck size={22} /><span>Fast &amp; Safe<br />Delivery</span></div>
+        </div>
       </div>
     </section>
   );
