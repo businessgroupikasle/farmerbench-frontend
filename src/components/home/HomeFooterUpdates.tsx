@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MessageSquare, CloudRain, Package, ArrowRight, ShieldAlert, BadgeCheck } from 'lucide-react';
+import { MessageSquare, CloudRain, Package, ArrowRight } from 'lucide-react';
 import './HomeFooterUpdates.css';
 
 export const HomeFooterUpdates: React.FC = () => {

@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    AUTHENTICATION PAGE (Ultra-Premium Card Style + Modern Segmented Controls)
    ========================================================================== */
 
@@ -879,6 +879,23 @@
 
   .auth-form-card {
     padding: 1.85rem 1.35rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .auth-form-card {
+    padding: 1.25rem 1rem;
+    border-radius: 16px;
+  }
+  .auth-role-selector {
+    gap: 0.35rem;
+  }
+  .auth-role-btn {
+    padding: 0.45rem 0.5rem;
+    font-size: 0.78rem;
+  }
+  .auth-demo-actions {
+    flex-direction: column;
   }
 }
 

@@ -436,3 +436,21 @@
     justify-content: center;
   }
 }
+
+@media (max-width: 480px) {
+  .checkout-page-container {
+    padding: 1rem 0.75rem 3.5rem;
+  }
+  .checkout-step-line {
+    margin: 0 4px 1.4rem;
+    min-width: 15px;
+  }
+  .checkout-step-circle {
+    width: 30px;
+    height: 30px;
+    font-size: 0.78rem;
+  }
+  .checkout-step-label {
+    font-size: 0.725rem;
+  }
+}

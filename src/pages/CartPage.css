@@ -1091,3 +1091,22 @@
     justify-content: flex-start;
   }
 }
+
+@media (max-width: 480px) {
+  .cart-page-layout {
+    padding: 1rem 0.75rem 4rem;
+  }
+  .cart-coupon-form {
+    flex-direction: column;
+  }
+  .cart-coupon-btn {
+    width: 100%;
+  }
+  .cart-step-line {
+    margin: 0 0.4rem 1.4rem;
+    min-width: 20px;
+  }
+  .cart-step-label {
+    font-size: 0.75rem;
+  }
+}

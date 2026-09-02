@@ -8,8 +8,6 @@ import localIrrigation from '../../assets/smart-irrigation.jpg';
 import localFarmMaintenance from '../../assets/farming-practices.jpg';
 import localCropSupport from '../../assets/services-sprout-left.jpg';
 import localCropMonitoring from '../../assets/crop-monitoring.jpg';
-import localFertilizer from '../../assets/bio-power-promoter.jpg';
-import localFarmerVisit from '../../assets/farm-visit-inspection.jpg';
 
 // Photography image sources
 const wellImg = 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=400&q=80';

@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../hooks/useCart';
 import { useUIStore } from '../../store/uiStore';
@@ -7,10 +7,6 @@ import {
   ShoppingCart,
   ChevronDown,
   User as UserIcon,
-  LogOut,
-  LayoutDashboard,
-  ShieldCheck,
-  PackageCheck,
   Menu,
   X,
   Send,
@@ -26,28 +22,14 @@ import farmerLogo from '../../assets/farmerbench-logo.png';
 import './Navbar.css';
 
 export const Navbar: React.FC = () => {
-  const { user, isAuthenticated, isAdmin, logout } = useAuth();
+  const { isAuthenticated, logout } = useAuth();
   const { totalItems } = useCart();
   const { openAuthModal } = useUIStore();
-  const navigate = useNavigate();
   const location = useLocation();
 
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [contactSubmitted, setContactSubmitted] = useState(false);
-
-  const userMenuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
-        setIsUserMenuOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   const isHome = location.pathname === '/';
   const isAbout = location.pathname === '/about';
