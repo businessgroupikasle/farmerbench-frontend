@@ -24,6 +24,7 @@ import { useProducts } from '../hooks/useProducts';
 import { useWishlistStore } from '../store/wishlistStore';
 import { useUIStore } from '../store/uiStore';
 import { Product } from '@formerbench/shared';
+import { couponService } from '../services/coupon.service';
 import './CartPage.css';
 
 interface SavedItemData {
@@ -138,26 +139,28 @@ export const CartPage: React.FC = () => {
     addToast({ type: 'info', message: 'Cart has been cleared' });
   };
 
-  const handleApplyCoupon = (e: React.FormEvent) => {
+  const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     const code = couponCode.trim().toUpperCase();
-    if (code === 'FARMERBENCH120' || code === 'FARMER120' || code === 'AGRI120') {
-      setAppliedCoupon(code);
-      setDiscountAmount(120);
-      addToast({ type: 'success', message: `Coupon ${code} applied! You saved ₹120.00` });
-    } else if (code === 'FARMERBENCH20') {
-      const discount = Math.round(subtotal * 0.2);
-      setAppliedCoupon(code);
-      setDiscountAmount(discount);
-      addToast({ type: 'success', message: `Coupon ${code} applied! 20% discount (₹${discount})` });
-    } else {
-      addToast({ type: 'error', message: 'Invalid coupon code. Try FARMERBENCH120' });
+    try {
+      const response = await couponService.validate(code, subtotal);
+      if (!response.success || !response.data) throw new Error(response.message || 'Invalid coupon code');
+      setAppliedCoupon(response.data.code);
+      setDiscountAmount(response.data.discountAmount);
+      sessionStorage.setItem('farmerbench_applied_coupon', JSON.stringify(response.data));
+      addToast({ type: 'success', message: `Coupon ${response.data.code} applied! You saved ₹${response.data.discountAmount.toFixed(2)}` });
+    } catch (error: any) {
+      setAppliedCoupon(null);
+      setDiscountAmount(0);
+      sessionStorage.removeItem('farmerbench_applied_coupon');
+      addToast({ type: 'error', message: error.message || 'Invalid coupon code' });
     }
   };
 
   const handleRemoveCoupon = () => {
     setAppliedCoupon(null);
     setDiscountAmount(0);
+    sessionStorage.removeItem('farmerbench_applied_coupon');
     addToast({ type: 'info', message: 'Coupon removed' });
   };
 
@@ -637,7 +640,7 @@ export const CartPage: React.FC = () => {
               <form onSubmit={handleApplyCoupon} className="cart-coupon-form">
                 <input
                   type="text"
-                  placeholder="Promo code (e.g. FARMERBENCH120)"
+                  placeholder="Promo code (e.g. AgriEra120)"
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value)}
                   className="cart-coupon-input"
@@ -648,7 +651,7 @@ export const CartPage: React.FC = () => {
               </form>
               <p className="cart-coupon-hint">
                 <Sparkles size={13} />
-                <span>Tip: Use code <strong>FARMERBENCH120</strong> for ₹120 off orders</span>
+                <span>Enter an active coupon code created by the store admin</span>
               </p>
             </div>
 

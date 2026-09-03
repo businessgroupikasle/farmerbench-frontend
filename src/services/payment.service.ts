@@ -24,4 +24,8 @@ export const paymentService = {
   }): Promise<ApiResponse<any>> {
     return apiClient.post('/payments/verify', data);
   },
+
+  async cancelAttempt(orderId: string): Promise<ApiResponse<{ cancelled: boolean }>> {
+    return apiClient.post('/payments/cancel', { orderId });
+  },
 };

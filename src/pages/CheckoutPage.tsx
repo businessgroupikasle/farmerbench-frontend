@@ -5,6 +5,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useUIStore } from '../store/uiStore';
 import { orderService } from '../services/order.service';
 import { paymentService } from '../services/payment.service';
+import { AppliedCoupon } from '../services/coupon.service';
 import { ShippingAddress, PaymentMethod } from '@formerbench/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -55,6 +56,9 @@ export const CheckoutPage: React.FC = () => {
   const [step, setStep] = useState<1 | 2>(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [coupon] = useState<AppliedCoupon | null>(() => {
+    try { return JSON.parse(sessionStorage.getItem('farmerbench_applied_coupon') || 'null'); } catch { return null; }
+  });
 
   // Address State
   const [fullName, setFullName] = useState(user?.name || '');
@@ -73,7 +77,8 @@ export const CheckoutPage: React.FC = () => {
   const freeDeliveryThreshold = 999;
   const isFreeDelivery = subtotal >= freeDeliveryThreshold;
   const deliveryFee = isFreeDelivery || items.length === 0 ? 0 : 80;
-  const grandTotal = subtotal + deliveryFee;
+  const discountAmount = coupon ? Math.min(subtotal, coupon.discountAmount) : 0;
+  const grandTotal = Math.max(0, subtotal - discountAmount + deliveryFee);
 
   // Load Razorpay script dynamically
   useEffect(() => {
@@ -179,9 +184,14 @@ export const CheckoutPage: React.FC = () => {
       const orderRes = await orderService.createOrder({
         shippingAddress,
         paymentMethod,
+        couponCode: coupon?.code,
         items: items.map((it) => ({
           productId: it.productId,
           quantity: it.quantity,
+          variantId: it.selectedAttributes?.variantId || it.selectedAttributes?.sku,
+          selectedAttributes: it.selectedAttributes
+            ? { packSize: it.selectedAttributes.packSize }
+            : undefined,
         })),
       });
 
@@ -204,13 +214,12 @@ export const CheckoutPage: React.FC = () => {
         }
 
         const rzpData = rzpRes.data;
-        const targetAmountPaise = Math.round(grandTotal * 100);
-
         const options: any = {
           key: rzpData.keyId,
-          amount: targetAmountPaise,
+          amount: rzpData.amount,
           currency: rzpData.currency || 'INR',
-          name: 'FarmerBench Agri Commerce',
+          order_id: rzpData.razorpayOrderId,
+          name: 'AgriEra Agri Commerce',
           description: `Payment for Order #${createdOrder.id.slice(0, 8)}`,
           prefill: {
             name: fullName.trim(),
@@ -235,6 +244,7 @@ export const CheckoutPage: React.FC = () => {
               });
 
               clearCart();
+              sessionStorage.removeItem('farmerbench_applied_coupon');
               queryClient.invalidateQueries({ queryKey: ['orders'] });
               queryClient.invalidateQueries({ queryKey: ['cart'] });
               queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
@@ -253,10 +263,7 @@ export const CheckoutPage: React.FC = () => {
             ondismiss: async () => {
               setIsProcessing(false);
               try {
-                await orderService.updateOrderStatus(createdOrder.id, {
-                  orderStatus: 'CANCELLED',
-                  paymentStatus: 'FAILED',
-                });
+                await paymentService.cancelAttempt(createdOrder.id);
                 queryClient.invalidateQueries({ queryKey: ['orders'] });
                 queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
               } catch {
@@ -277,10 +284,7 @@ export const CheckoutPage: React.FC = () => {
           addToast({ type: 'error', message: errorDescription });
           setIsProcessing(false);
           try {
-            await orderService.updateOrderStatus(createdOrder.id, {
-              orderStatus: 'CANCELLED',
-              paymentStatus: 'FAILED',
-            });
+            await paymentService.cancelAttempt(createdOrder.id);
             queryClient.invalidateQueries({ queryKey: ['orders'] });
             queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
           } catch {
@@ -292,6 +296,7 @@ export const CheckoutPage: React.FC = () => {
       } else {
         // Cash on Delivery
         clearCart();
+        sessionStorage.removeItem('farmerbench_applied_coupon');
         queryClient.invalidateQueries({ queryKey: ['orders'] });
         queryClient.invalidateQueries({ queryKey: ['cart'] });
         queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
@@ -701,6 +706,13 @@ export const CheckoutPage: React.FC = () => {
                   {isFreeDelivery ? 'FREE' : `₹${deliveryFee.toFixed(2)}`}
                 </span>
               </div>
+
+              {coupon && discountAmount > 0 && (
+                <div className="cart-summary-row discount">
+                  <span className="cart-summary-label">Coupon ({coupon.code})</span>
+                  <span className="cart-summary-val discount">- ₹{discountAmount.toFixed(2)}</span>
+                </div>
+              )}
 
               <div className="cart-summary-row total">
                 <span className="cart-summary-total-label">Total Payable</span>

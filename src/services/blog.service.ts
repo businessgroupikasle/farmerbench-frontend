@@ -2,7 +2,7 @@ import { apiClient } from './api';
 import { ApiResponse } from '@formerbench/shared';
 import { BlogPost, CreateBlogInput, UpdateBlogInput, BlogQueryParams, BlogCategory, BlogStatus } from '../types/blog';
 
-const STORAGE_KEY = 'farmerbench_blogs_cms_data';
+const STORAGE_KEY = 'AgriEra_blogs_cms_data';
 
 // Pre-seeded high quality database articles
 const SEED_BLOGS: BlogPost[] = [
@@ -49,7 +49,7 @@ const SEED_BLOGS: BlogPost[] = [
 <h2 class="blog-section-heading">6. Final Recommendations</h2>
 <p>Adhering to split application schedules tailored to soil texture ensures steady nutrient availability without risking root burn. Monitor leaf color variations weekly and adjust irrigation schedules in tandem with fertigation cycles.</p>`,
     featuredImage: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800&auto=format&fit=crop&q=80',
-    author: 'FarmerBench Agri Expert',
+    author: 'AgriEra Agri Expert',
     authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80',
     authorBio: 'Senior agronomist with 12+ years of on-field experience in crop nutrition, precision fertigation, and sustainable soil stewardship across diverse agricultural zones.',
     category: 'Crop Nutrition',
@@ -60,7 +60,7 @@ const SEED_BLOGS: BlogPost[] = [
     publishedAt: '2024-05-20T10:00:00.000Z',
     createdAt: '2024-05-20T09:30:00.000Z',
     updatedAt: '2024-05-20T10:00:00.000Z',
-    metaTitle: 'How to Choose the Right Fertilizer for Your Crop | FarmerBench',
+    metaTitle: 'How to Choose the Right Fertilizer for Your Crop | AgriEra',
     metaDescription: 'Learn how to analyze NPK ratios, select between organic and mineral fertilizers, and implement precision fertigation for higher crop yields.',
   },
   {
@@ -98,7 +98,7 @@ const SEED_BLOGS: BlogPost[] = [
     publishedAt: '2024-05-12T10:00:00.000Z',
     createdAt: '2024-05-12T09:30:00.000Z',
     updatedAt: '2024-05-12T10:00:00.000Z',
-    metaTitle: 'Simple Ways to Improve Soil Health Naturally | FarmerBench',
+    metaTitle: 'Simple Ways to Improve Soil Health Naturally | AgriEra',
     metaDescription: 'Explore regenerative soil enrichment techniques, microbial inoculants, and cover cropping to rebuild topsoil vitality.',
   },
   {
@@ -128,7 +128,7 @@ const SEED_BLOGS: BlogPost[] = [
     publishedAt: '2024-05-10T10:00:00.000Z',
     createdAt: '2024-05-10T09:30:00.000Z',
     updatedAt: '2024-05-10T10:00:00.000Z',
-    metaTitle: 'Common Crop Pests & Biological Control Guide | FarmerBench',
+    metaTitle: 'Common Crop Pests & Biological Control Guide | AgriEra',
     metaDescription: 'Complete guide to identifying agricultural pests and deploying botanical extracts and bio-fungicides.',
   },
   {
@@ -155,7 +155,7 @@ const SEED_BLOGS: BlogPost[] = [
     publishedAt: '2024-05-02T10:00:00.000Z',
     createdAt: '2024-05-02T09:30:00.000Z',
     updatedAt: '2024-05-02T10:00:00.000Z',
-    metaTitle: 'Smart Drip Irrigation & Water Efficiency | FarmerBench',
+    metaTitle: 'Smart Drip Irrigation & Water Efficiency | AgriEra',
     metaDescription: 'Maximize water productivity with automated drip irrigation, soil moisture sensing, and root-zone fertigation.',
   },
   {
@@ -171,7 +171,7 @@ const SEED_BLOGS: BlogPost[] = [
 <h2 class="blog-section-heading">2. Direct-to-Consumer & Agri-FPO Marketing</h2>
 <p>Forming Farmer Producer Organizations (FPOs) eliminates middleman margins and empowers farmers with collective bargaining for wholesale bulk inputs.</p>`,
     featuredImage: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=1200&auto=format&fit=crop&q=80',
-    author: 'FarmerBench Agri Expert',
+    author: 'AgriEra Agri Expert',
     authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80',
     authorBio: 'Senior agronomist with 12+ years of on-field experience.',
     category: 'Farming Tips',
@@ -182,7 +182,7 @@ const SEED_BLOGS: BlogPost[] = [
     publishedAt: '2024-04-28T10:00:00.000Z',
     createdAt: '2024-04-28T09:30:00.000Z',
     updatedAt: '2024-04-28T10:00:00.000Z',
-    metaTitle: 'Practices and Economics of Sustainable Agriculture | FarmerBench',
+    metaTitle: 'Practices and Economics of Sustainable Agriculture | AgriEra',
     metaDescription: 'Explore actionable sustainable farming models that cut input costs and increase farm revenue.',
   },
 ];
@@ -399,9 +399,9 @@ export const blogService = {
       excerpt: data.excerpt || data.content.replace(/<[^>]*>?/gm, '').slice(0, 150) + '...',
       content: data.content,
       featuredImage: data.featuredImage || 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=800&auto=format&fit=crop&q=80',
-      author: data.author || 'FarmerBench Agri Expert',
+      author: data.author || 'AgriEra Agri Expert',
       authorAvatar: data.authorAvatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120',
-      authorBio: data.authorBio || 'Agricultural specialist at FarmerBench.',
+      authorBio: data.authorBio || 'Agricultural specialist at AgriEra.',
       category: data.category || 'General',
       tags: data.tags || ['Agriculture', 'Farming'],
       status: data.status || 'PUBLISHED',

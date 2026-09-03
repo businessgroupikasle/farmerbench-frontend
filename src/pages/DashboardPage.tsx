@@ -474,7 +474,7 @@ export const DashboardPage: React.FC = () => {
                 </h2>
               </div>
               <p style={{ color: 'var(--fb-text-muted)', marginBottom: '1.5rem', fontSize: '0.9rem' }}>
-                Enter your FarmerBench Order Number or AWB tracking ID to see real-time updates.
+                Enter your AgriEra Order Number or AWB tracking ID to see real-time updates.
               </p>
 
               <div style={{ maxWidth: '540px', display: 'flex', gap: '0.75rem', marginBottom: '2rem' }}>

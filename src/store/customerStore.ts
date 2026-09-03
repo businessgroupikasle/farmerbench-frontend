@@ -85,7 +85,7 @@ const DEFAULT_CUSTOMERS: CustomerRecord[] = [
 
 const getInitialCustomers = (): CustomerRecord[] => {
   try {
-    const saved = localStorage.getItem('farmerbench_registered_customers');
+    const saved = localStorage.getItem('AgriEra_registered_customers');
     if (saved) {
       const parsed = JSON.parse(saved);
       if (Array.isArray(parsed) && parsed.length > 0) {
@@ -126,7 +126,7 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
     set({ customers: updated });
 
     try {
-      localStorage.setItem('farmerbench_registered_customers', JSON.stringify(updated));
+      localStorage.setItem('AgriEra_registered_customers', JSON.stringify(updated));
     } catch (e) {
       console.error('Failed to persist customer to storage', e);
     }

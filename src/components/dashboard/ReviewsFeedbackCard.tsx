@@ -91,7 +91,7 @@ export const ReviewsFeedbackCard: React.FC<ReviewsFeedbackCardProps> = ({
             <button
               className="fb-btn-outline"
               style={{ fontSize: '0.825rem' }}
-              onClick={() => onWriteReview({ title: 'FarmerBench Bio Input' })}
+              onClick={() => onWriteReview({ title: 'AgriEra Bio Input' })}
             >
               Share Farming Experience
             </button>

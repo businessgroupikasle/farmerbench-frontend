@@ -805,7 +805,7 @@ export const WellDevelopmentPage: React.FC = () => {
                         className="well-dev-checkbox"
                       />
                       <span>
-                        I confirm that the above information is correct and I agree to be contacted by <strong>FARMERBENCH</strong> for this service.
+                        I confirm that the above information is correct and I agree to be contacted by <strong>AgriEra</strong> for this service.
                       </span>
                     </label>
                   </div>

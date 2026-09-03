@@ -40,7 +40,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
     {
       title: 'Order Confirmed & Payment Verified',
       date: '28 Aug 2026, 10:15 AM',
-      location: 'FarmerBench Processing Hub',
+      location: 'AgriEra Processing Hub',
       done: true,
     },
     {
@@ -734,7 +734,7 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
           <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #0F4726', paddingBottom: '0.75rem', gap: '1rem' }}>
             <div>
               <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0F4726' }}>
-                FarmerBench Agro Pvt Ltd
+                AgriEra Agro Pvt Ltd
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--fb-text-muted)' }}>
                 GSTIN: 33AAACF4921L1Z9 • CIN: U01111TN2026PTC104928

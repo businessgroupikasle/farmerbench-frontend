@@ -20,7 +20,7 @@ export const HomeHero: React.FC = () => {
           <Link to="/services" className="agriflow-hero-btn agriflow-hero-btn-secondary">Explore Services</Link>
         </div>
 
-        <div className="agriflow-hero-trust" aria-label="FarmerBench benefits">
+        <div className="agriflow-hero-trust" aria-label="AgriEra benefits">
           <div><PackageCheck size={22} /><span>100% Original<br />Products</span></div>
           <div><Headphones size={22} /><span>Expert<br />Support</span></div>
           <div><Truck size={22} /><span>Fast &amp; Safe<br />Delivery</span></div>

@@ -1,5 +1,5 @@
-/* FarmerBench / AgriFlow Footer Component Styles */
-.farmerbench-footer {
+/* AgriEra / AgriFlow Footer Component Styles */
+.AgriEra-footer {
   background-color: #123C22;
   background: linear-gradient(180deg, #164627 0%, #0F331C 100%);
   border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -10,13 +10,13 @@
   font-family: inherit;
 }
 
-.farmerbench-footer-container {
+.AgriEra-footer-container {
   max-width: 1280px;
   margin: 0 auto;
   padding: 0 1.5rem;
 }
 
-.farmerbench-footer-grid {
+.AgriEra-footer-grid {
   display: grid;
   grid-template-columns: 1.5fr 1fr 1fr 1.1fr 1fr 1.5fr;
   gap: 2.25rem;
@@ -24,52 +24,52 @@
 }
 
 @media (max-width: 1100px) {
-  .farmerbench-footer-grid {
+  .AgriEra-footer-grid {
     grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
   }
 }
 
 @media (max-width: 768px) {
-  .farmerbench-footer-grid {
+  .AgriEra-footer-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 2rem;
   }
 }
 
 @media (max-width: 520px) {
-  .farmerbench-footer-grid {
+  .AgriEra-footer-grid {
     grid-template-columns: 1fr;
     gap: 2.25rem;
   }
 }
 
 /* Brand Column */
-.farmerbench-brand-col {
+.AgriEra-brand-col {
   display: flex;
   flex-direction: column;
   gap: 1.15rem;
 }
 
-.farmerbench-brand-logo {
+.AgriEra-brand-logo {
   display: flex;
   align-items: center;
   gap: 0.65rem;
   text-decoration: none;
 }
 
-.farmerbench-brand-icon-wrapper {
+.AgriEra-brand-icon-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.farmerbench-brand-name-group {
+.AgriEra-brand-name-group {
   display: flex;
   flex-direction: column;
 }
 
-.farmerbench-brand-title {
+.AgriEra-brand-title {
   font-size: 1.6rem;
   font-weight: 800;
   color: #ffffff;
@@ -78,7 +78,7 @@
   font-family: var(--font-display, "Outfit", sans-serif);
 }
 
-.farmerbench-brand-tagline {
+.AgriEra-brand-tagline {
   font-size: 0.65rem;
   color: #D1E5D7;
   font-weight: 500;
@@ -86,21 +86,21 @@
   margin-top: 0.15rem;
 }
 
-.farmerbench-brand-desc {
+.AgriEra-brand-desc {
   font-size: 0.875rem;
   line-height: 1.55;
   color: #D1E5D7;
   max-width: 250px;
 }
 
-.farmerbench-social-links {
+.AgriEra-social-links {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   margin-top: 0.25rem;
 }
 
-.farmerbench-social-icon {
+.AgriEra-social-icon {
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -113,14 +113,14 @@
   text-decoration: none;
 }
 
-.farmerbench-social-icon:hover {
+.AgriEra-social-icon:hover {
   background-color: rgba(255, 255, 255, 0.15);
   transform: translateY(-2px);
   color: #88CF3A;
 }
 
 /* Nav Columns */
-.farmerbench-footer-col-title {
+.AgriEra-footer-col-title {
   font-size: 1.05rem;
   font-weight: 700;
   color: #ffffff;
@@ -128,7 +128,7 @@
   letter-spacing: -0.01em;
 }
 
-.farmerbench-footer-links-list {
+.AgriEra-footer-links-list {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -137,7 +137,7 @@
   gap: 0.75rem;
 }
 
-.farmerbench-footer-link {
+.AgriEra-footer-link {
   font-size: 0.875rem;
   color: #D1E5D7;
   text-decoration: none;
@@ -145,13 +145,13 @@
   display: inline-block;
 }
 
-.farmerbench-footer-link:hover {
+.AgriEra-footer-link:hover {
   color: #ffffff;
   transform: translateX(2px);
 }
 
 /* Contact Column */
-.farmerbench-contact-list {
+.AgriEra-contact-list {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -160,7 +160,7 @@
   gap: 0.95rem;
 }
 
-.farmerbench-contact-item {
+.AgriEra-contact-item {
   display: flex;
   align-items: flex-start;
   gap: 0.65rem;
@@ -169,24 +169,24 @@
   line-height: 1.45;
 }
 
-.farmerbench-contact-icon {
+.AgriEra-contact-icon {
   color: #ffffff;
   flex-shrink: 0;
   margin-top: 2px;
 }
 
-.farmerbench-contact-item a {
+.AgriEra-contact-item a {
   color: #D1E5D7;
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
-.farmerbench-contact-item a:hover {
+.AgriEra-contact-item a:hover {
   color: #ffffff;
 }
 
 /* Bottom Bar */
-.farmerbench-footer-bottom-bar {
+.AgriEra-footer-bottom-bar {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   padding-top: 1.35rem;
   display: flex;
@@ -196,20 +196,20 @@
   gap: 1.25rem;
 }
 
-.farmerbench-copyright {
+.AgriEra-copyright {
   font-size: 0.85rem;
   color: #CBD5E1;
   margin: 0;
 }
 
-.farmerbench-payment-badges {
+.AgriEra-payment-badges {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
 }
 
-.farmerbench-payment-badge {
+.AgriEra-payment-badge {
   background-color: #ffffff;
   border-radius: 4px;
   padding: 0.25rem 0.55rem;
@@ -220,8 +220,8 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
-.farmerbench-payment-badge img,
-.farmerbench-payment-badge svg {
+.AgriEra-payment-badge img,
+.AgriEra-payment-badge svg {
   height: 16px;
   width: auto;
 }

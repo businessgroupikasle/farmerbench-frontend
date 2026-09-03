@@ -30,7 +30,7 @@ import { authService } from '../services/auth.service';
 import slideImg1 from '../assets/services-hero-banner.jpg';
 import slideImg2 from '../assets/sustainable-farm.jpg';
 import slideImg3 from '../assets/farm-visit-inspection.jpg';
-import farmerLogo from '../assets/farmerbench-logo.png';
+import farmerLogo from '../assets/AgriEra-logo.png';
 
 import './LoginPage.css';
 
@@ -318,7 +318,7 @@ export const LoginPage: React.FC = () => {
       }
 
       setAuthSession(data.data.user, data.data.token);
-      addToast({ type: 'success', message: 'Welcome to FarmerBench! Your account is active.' });
+      addToast({ type: 'success', message: 'Welcome to AgriEra! Your account is active.' });
       navigate('/dashboard');
     } catch (err: any) {
       setError(err.message || 'Signup failed.');
@@ -346,7 +346,7 @@ export const LoginPage: React.FC = () => {
     try {
       const res = await login({ email: emailOrPhone.trim(), password });
       if (res?.user?.role === 'ADMIN' || emailOrPhone.trim().toLowerCase().includes('admin')) {
-        addToast({ type: 'success', message: 'Welcome to FarmerBench Admin Panel!' });
+        addToast({ type: 'success', message: 'Welcome to AgriEra Admin Panel!' });
         navigate('/admin');
       } else {
         addToast({ type: 'success', message: 'Welcome back! Logged in successfully.' });
@@ -657,7 +657,7 @@ export const LoginPage: React.FC = () => {
 
             {/* SIGNUP HERO VIEW */}
             <div className={`auth-hero-content-view ${mode === 'signup' ? 'active' : 'inactive'}`}>
-              <span className="auth-hero-tag">JOIN FARMERBENCH</span>
+              <span className="auth-hero-tag">JOIN AgriEra</span>
               <h1 className="auth-hero-title">
                 Empowering{`\n`}
                 every farm,{`\n`}
@@ -742,10 +742,10 @@ export const LoginPage: React.FC = () => {
             <div className="auth-brand-group">
               <img
                 src={farmerLogo}
-                alt="FarmerBench Logo"
+                alt="AgriEra Logo"
                 style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'contain', margin: '0 auto 0.4rem', display: 'block' }}
               />
-              <h2 className="auth-brand-name">FarmerBench</h2>
+              <h2 className="auth-brand-name">AgriEra</h2>
               <p className="auth-brand-tagline">Grow Better, Live Better</p>
               <div className="auth-brand-divider-bar" />
             </div>
@@ -1065,7 +1065,7 @@ export const LoginPage: React.FC = () => {
                       Password Reset Successfully!
                     </h3>
                     <p className="auth-welcome-sub" style={{ marginBottom: '1.5rem', lineHeight: '1.5' }}>
-                      Your FarmerBench account password has been updated. You can now log in with your new password.
+                      Your AgriEra account password has been updated. You can now log in with your new password.
                     </p>
 
                     <button

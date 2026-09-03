@@ -108,7 +108,7 @@ export const LogoutModal: React.FC<LogoutModalProps> = ({
         </div>
 
         <h3 style={{ fontSize: '1.35rem', fontWeight: 800, color: '#1E293B', margin: 0 }}>
-          Sign Out of FarmerBench?
+          Sign Out of AgriEra?
         </h3>
 
         <p style={{ fontSize: '0.925rem', color: '#64748B', margin: 0, lineHeight: 1.5 }}>

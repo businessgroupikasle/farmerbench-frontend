@@ -146,7 +146,7 @@ export const useAuth = () => {
   const logout = () => {
     localStorage.removeItem('formerbench_auth_token');
     localStorage.removeItem('formerbench_auth_user');
-    localStorage.removeItem('farmerbench_demo_admin');
+    localStorage.removeItem('AgriEra_demo_admin');
     queryClient.setQueryData(AUTH_QUERY_KEY, null);
     queryClient.removeQueries({ queryKey: ['cart'] });
     queryClient.removeQueries({ queryKey: ['orders'] });

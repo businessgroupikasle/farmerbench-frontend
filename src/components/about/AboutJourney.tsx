@@ -11,7 +11,7 @@ export const AboutJourney: React.FC = () => {
   const milestones: JourneyMilestone[] = [
     {
       year: '2020',
-      title: 'FarmerBench Founded',
+      title: 'AgriEra Founded',
       description: 'Started with a vision to support farmers better.',
     },
     {

@@ -47,7 +47,7 @@ export const NotFoundPage: React.FC = () => {
           </p>
 
           <form className="not-found-search" onSubmit={handleSearch} role="search">
-            <label className="sr-only" htmlFor="not-found-search-input">Search FarmerBench</label>
+            <label className="sr-only" htmlFor="not-found-search-input">Search AgriEra</label>
             <input
               id="not-found-search-input"
               value={query}
@@ -84,7 +84,7 @@ export const NotFoundPage: React.FC = () => {
         </div>
       </section>
 
-      <section className="not-found-trust" aria-label="FarmerBench service benefits">
+      <section className="not-found-trust" aria-label="AgriEra service benefits">
         <div><Headphones size={21} /><span>Expert Support</span></div>
         <div><ShieldCheck size={21} /><span>Quality Products</span></div>
         <div><Truck size={21} /><span>Fast Delivery</span></div>

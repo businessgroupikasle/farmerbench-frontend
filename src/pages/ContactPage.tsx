@@ -86,7 +86,7 @@ export const ContactPage: React.FC = () => {
                   Message Sent Successfully!
                 </h3>
                 <p style={{ color: '#64748B', fontSize: '0.95rem', marginBottom: '1.75rem', maxWidth: '420px', margin: '0 auto 1.75rem' }}>
-                  Thank you for contacting FarmerBench. Our agronomy team will respond to your inquiry within 24 hours.
+                  Thank you for contacting AgriEra. Our agronomy team will respond to your inquiry within 24 hours.
                 </p>
                 <button
                   type="button"
@@ -209,7 +209,7 @@ export const ContactPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="contact-info-heading">Email Us</p>
-                  <a href="mailto:support@farmerbench.in" className="contact-info-value">support@farmerbench.in</a>
+                  <a href="mailto:support@AgriEra.in" className="contact-info-value">support@AgriEra.in</a>
                   <p className="contact-info-subtext">We reply within 24 hours</p>
                 </div>
               </div>
@@ -263,7 +263,7 @@ export const ContactPage: React.FC = () => {
           {/* Left: Real Google Map */}
           <div className="contact-map-wrapper">
             <iframe
-              title="FarmerBench HQ Location"
+              title="AgriEra HQ Location"
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d125322.4416952899!2d76.89718428670868!3d11.014126294711822!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3ba859af2f971cb5%3A0x2fc1c81e183ed282!2sCoimbatore%2C%20Tamil%20Nadu!5e0!3m2!1sen!2sin!4v1710000000000!5m2!1sen!2sin"
               width="100%"
               height="100%"
@@ -277,7 +277,7 @@ export const ContactPage: React.FC = () => {
             <div className="contact-map-floating-badge">
               <div className="contact-pin-badge">
                 <Sprout size={14} style={{ color: '#88CF3A' }} />
-                <span>FarmerBench HQ • Coimbatore</span>
+                <span>AgriEra HQ • Coimbatore</span>
               </div>
               <a
                 href="https://maps.google.com/?q=Coimbatore,+Tamil+Nadu,+India"

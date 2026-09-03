@@ -26,6 +26,18 @@ export interface CustomersResponseData {
   totalPages: number;
 }
 
+export interface CouponRecord {
+  id: string;
+  code: string;
+  discountType: 'PERCENTAGE' | 'FIXED';
+  discountValue: number;
+  minimumSpend: number;
+  usageLimit?: number | null;
+  usageCount: number;
+  validUntil?: string | null;
+  active: boolean;
+}
+
 export const adminService = {
   async getDashboardAnalytics(): Promise<ApiResponse<DashboardStats>> {
     return apiClient.get('/admin/analytics');
@@ -62,5 +74,16 @@ export const adminService = {
   ): Promise<ApiResponse<CustomerRecord>> {
     return apiClient.patch(`/admin/customers/${id}`, data);
   },
-};
 
+  async getCoupons(): Promise<ApiResponse<CouponRecord[]>> {
+    return apiClient.get('/admin/coupons');
+  },
+
+  async createCoupon(data: Omit<CouponRecord, 'id' | 'usageCount' | 'active'>): Promise<ApiResponse<CouponRecord>> {
+    return apiClient.post('/admin/coupons', data);
+  },
+
+  async deleteCoupon(id: string): Promise<ApiResponse<null>> {
+    return apiClient.delete(`/admin/coupons/${id}`);
+  },
+};

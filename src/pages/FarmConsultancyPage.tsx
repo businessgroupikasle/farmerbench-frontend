@@ -306,7 +306,7 @@ export const FarmConsultancyPage: React.FC = () => {
   const handleSubmitConsultation = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.termsAgreed) {
-      alert('Please agree to share information with FARMERBENCH experts to continue.');
+      alert('Please agree to share information with AgriEra experts to continue.');
       return;
     }
     setIsSubmitting(true);
@@ -1038,7 +1038,7 @@ export const FarmConsultancyPage: React.FC = () => {
                         className="consult-dev-checkbox"
                       />
                       <span>
-                        I agree to share the provided information with <strong>FARMERBENCH</strong> experts for consultation and follow-up.
+                        I agree to share the provided information with <strong>AgriEra</strong> experts for consultation and follow-up.
                       </span>
                     </label>
                   </div>

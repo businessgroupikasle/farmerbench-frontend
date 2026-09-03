@@ -42,7 +42,7 @@ export const useWishlistStore = create<WishlistState>()(
       },
     }),
     {
-      name: 'farmerbench_wishlist',
+      name: 'AgriEra_wishlist',
     }
   )
 );

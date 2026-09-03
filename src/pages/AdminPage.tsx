@@ -53,11 +53,12 @@ import { uploadService } from '../services/upload.service';
 import './AdminPage.css';
 
 // Assets
-import farmerLogo from '../assets/farmerbench-logo.png';
+import farmerLogo from '../assets/AgriEra-logo.png';
 import { useCustomers, useCustomerMutations } from '../hooks/useCustomers';
 import { useAdminOrders, useOrderMutations } from '../hooks/useOrders';
 import { useBlogs, useBlogMutations } from '../hooks/useBlogs';
 import { BlogPost } from '../types/blog';
+import { adminService, CouponRecord } from '../services/admin.service';
 
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
@@ -70,7 +71,7 @@ export const AdminPage: React.FC = () => {
     logout();
     localStorage.removeItem('formerbench_auth_token');
     localStorage.removeItem('formerbench_auth_user');
-    localStorage.removeItem('farmerbench_demo_admin');
+    localStorage.removeItem('AgriEra_demo_admin');
     navigate('/login');
   };
 
@@ -274,7 +275,7 @@ export const AdminPage: React.FC = () => {
       { label: 'Suitable Crops', value: 'All Crops' },
       { label: 'Application Method', value: 'Soil Application / Foliar Spray' },
       { label: 'Shelf Life', value: '24 Months' },
-      { label: 'Manufacturer', value: 'FarmerBench Agri Solutions' },
+      { label: 'Manufacturer', value: 'AgriEra Agri Solutions' },
     ],
     faqs: [
       { question: 'Can I use this product in drip irrigation?', answer: 'Yes, 100% water soluble and does not clog emitters.' },
@@ -324,7 +325,7 @@ export const AdminPage: React.FC = () => {
         { label: 'Suitable Crops', value: 'All Crops' },
         { label: 'Application Method', value: 'Soil Application / Foliar Spray' },
         { label: 'Shelf Life', value: '24 Months' },
-        { label: 'Manufacturer', value: 'FarmerBench Agri Solutions' },
+        { label: 'Manufacturer', value: 'AgriEra Agri Solutions' },
       ],
       faqs: [
         { question: 'Can I use this product in drip irrigation?', answer: 'Yes, 100% water soluble and does not clog emitters.' },
@@ -501,7 +502,14 @@ export const AdminPage: React.FC = () => {
   }));
 
   // 4. Coupons
-  const [coupons, setCoupons] = useState<any[]>([]);
+  const [coupons, setCoupons] = useState<CouponRecord[]>([]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    adminService.getCoupons().then((response) => {
+      if (response.success && response.data) setCoupons(response.data);
+    }).catch(() => undefined);
+  }, [isAdmin]);
 
   // 5. Service Bookings
   const [serviceBookings, setServiceBookings] = useState<any[]>([]);
@@ -533,8 +541,8 @@ export const AdminPage: React.FC = () => {
     title: '',
     slug: '',
     category: 'Crop Nutrition',
-    author: user?.name || 'FarmerBench Agri Expert',
-    authorBio: 'Senior agricultural specialist and agronomist at FarmerBench.',
+    author: user?.name || 'AgriEra Agri Expert',
+    authorBio: 'Senior agricultural specialist and agronomist at AgriEra.',
     readingTime: '5 min read',
     excerpt: '',
     content: '',
@@ -551,7 +559,7 @@ export const AdminPage: React.FC = () => {
     setEditingBlog(null);
     setBlogForm({
       ...initialBlogForm,
-      author: user?.name || 'FarmerBench Agri Expert',
+      author: user?.name || 'AgriEra Agri Expert',
     });
     setBlogEditorTab('content');
     setIsBlogModalOpen(true);
@@ -564,7 +572,7 @@ export const AdminPage: React.FC = () => {
       slug: b.slug,
       category: b.category,
       author: b.author,
-      authorBio: b.authorBio || 'Senior agricultural specialist and agronomist at FarmerBench.',
+      authorBio: b.authorBio || 'Senior agricultural specialist and agronomist at AgriEra.',
       readingTime: b.readingTime || '5 min read',
       excerpt: b.excerpt,
       content: b.content,
@@ -661,7 +669,7 @@ export const AdminPage: React.FC = () => {
       title: blogForm.title.trim(),
       slug: blogForm.slug.trim() || undefined,
       category: blogForm.category,
-      author: blogForm.author.trim() || 'FarmerBench Agri Expert',
+      author: blogForm.author.trim() || 'AgriEra Agri Expert',
       authorBio: blogForm.authorBio.trim(),
       readingTime: blogForm.readingTime.trim() || autoReadingTime,
       excerpt: blogForm.excerpt.trim() || blogForm.content.replace(/<[^>]*>?/gm, '').slice(0, 150) + '...',
@@ -709,7 +717,7 @@ export const AdminPage: React.FC = () => {
   const [banners] = useState([
     {
       id: 'ban-1',
-      title: 'FarmerBench Pure Organic Bio Products',
+      title: 'AgriEra Pure Organic Bio Products',
       placement: 'Homepage Hero Carousel',
       status: 'Active',
       link: '/products',
@@ -735,10 +743,10 @@ export const AdminPage: React.FC = () => {
 
   // 12. Settings State
   const [storeSettings, setStoreSettings] = useState({
-    storeName: 'FarmerBench Agricultural Commerce & Services',
-    supportEmail: 'support@farmerbench.agri',
+    storeName: 'AgriEra Agricultural Commerce & Services',
+    supportEmail: 'support@AgriEra.agri',
     supportPhone: '+91 98400 12345',
-    address: 'FarmerBench Agro Towers, Delta Zone, Thanjavur, Tamil Nadu',
+    address: 'AgriEra Agro Towers, Delta Zone, Thanjavur, Tamil Nadu',
     currency: 'INR (₹)',
     taxRate: '5%',
     freeShippingThreshold: '₹999',
@@ -755,7 +763,7 @@ export const AdminPage: React.FC = () => {
     }
   })();
 
-  const isDemoAdmin = localStorage.getItem('farmerbench_demo_admin') === 'true';
+  const isDemoAdmin = localStorage.getItem('AgriEra_demo_admin') === 'true';
   const isAuthorized =
     (isAuthenticated && (isAdmin || user?.role === 'ADMIN')) ||
     (storedUser && (storedUser.role === 'ADMIN' || storedUser.email?.includes('admin'))) ||
@@ -879,7 +887,7 @@ export const AdminPage: React.FC = () => {
             Admin Access Restricted
           </h2>
           <p style={{ color: '#B7D9C3', fontSize: '0.92rem', lineHeight: 1.6, marginBottom: '2rem' }}>
-            This FarmerBench Admin Portal is restricted to authorized administrators and managers. Non-admin users and customers use the standard dashboard view.
+            This AgriEra Admin Portal is restricted to authorized administrators and managers. Non-admin users and customers use the standard dashboard view.
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
@@ -901,7 +909,7 @@ export const AdminPage: React.FC = () => {
 
             <button
               onClick={() => {
-                localStorage.setItem('farmerbench_demo_admin', 'true');
+                localStorage.setItem('AgriEra_demo_admin', 'true');
                 window.location.reload();
               }}
               style={{
@@ -981,11 +989,11 @@ export const AdminPage: React.FC = () => {
         <div className="admin-sidebar-logo">
           <img
             src={farmerLogo}
-            alt="FarmerBench Logo"
+            alt="AgriEra Logo"
             style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'contain', backgroundColor: '#FFFFFF', padding: '2px' }}
           />
           <div className="admin-logo-text-wrap">
-            <span className="admin-logo-title">FarmerBench</span>
+            <span className="admin-logo-title">AgriEra</span>
             <span className="admin-logo-subtitle">Admin Panel</span>
           </div>
         </div>
@@ -1230,7 +1238,7 @@ export const AdminPage: React.FC = () => {
             <button
               className="admin-icon-btn"
               title="Help & Support"
-              onClick={() => showToast('Help documentation available at docs.farmerbench.agri')}
+              onClick={() => showToast('Help documentation available at docs.AgriEra.agri')}
             >
               <HelpCircle size={18} />
             </button>
@@ -1306,7 +1314,7 @@ export const AdminPage: React.FC = () => {
               <div className="admin-welcome-strip">
                 <div>
                   <h1 className="admin-welcome-title">Good morning, {user?.name?.split(' ')[0] || 'Arun'}</h1>
-                  <p className="admin-welcome-sub">Here's what's happening with FarmerBench today.</p>
+                  <p className="admin-welcome-sub">Here's what's happening with AgriEra today.</p>
                 </div>
                 <div className="admin-welcome-controls">
                   <select
@@ -2259,19 +2267,22 @@ export const AdminPage: React.FC = () => {
                             {coup.code}
                           </span>
                         </td>
-                        <td style={{ fontWeight: 800, color: '#16A34A' }}>{coup.discount}</td>
-                        <td style={{ color: '#475569' }}>{coup.minOrder}</td>
-                        <td style={{ fontWeight: 600 }}>{coup.usage}</td>
-                        <td style={{ color: '#64748B' }}>{coup.validUntil}</td>
+                        <td style={{ fontWeight: 800, color: '#16A34A' }}>{coup.discountType === 'PERCENTAGE' ? `${coup.discountValue}% OFF` : `₹${coup.discountValue} OFF`}</td>
+                        <td style={{ color: '#475569' }}>₹{coup.minimumSpend}</td>
+                        <td style={{ fontWeight: 600 }}>{coup.usageCount} / {coup.usageLimit || '∞'}</td>
+                        <td style={{ color: '#64748B' }}>{coup.validUntil ? new Date(coup.validUntil).toLocaleDateString() : 'No expiry'}</td>
                         <td>
-                          <span className="admin-status-badge active-badge">{coup.status}</span>
+                          <span className="admin-status-badge active-badge">{coup.active ? 'Active' : 'Inactive'}</span>
                         </td>
                         <td style={{ textAlign: 'center' }}>
                           <button
                             className="admin-mini-btn btn-danger"
-                            onClick={() => {
-                              setCoupons((prev) => prev.filter((c) => c.id !== coup.id));
-                              showToast(`Coupon ${coup.code} removed`);
+                            onClick={async () => {
+                              try {
+                                await adminService.deleteCoupon(coup.id);
+                                setCoupons((prev) => prev.filter((c) => c.id !== coup.id));
+                                showToast(`Coupon ${coup.code} removed`);
+                              } catch (error: any) { showToast(error.message || 'Failed to remove coupon'); }
                             }}
                           >
                             <Trash2 size={13} /> Remove
@@ -2941,7 +2952,7 @@ export const AdminPage: React.FC = () => {
                           </div>
                         </div>
                       </td>
-                      <td>arun.admin@farmerbench.agri</td>
+                      <td>arun.admin@AgriEra.agri</td>
                       <td><span className="admin-status-badge paid">SUPER ADMIN</span></td>
                       <td style={{ color: '#475569' }}>Full System & Financial Access</td>
                       <td style={{ color: '#64748B' }}>Just now</td>
@@ -2957,7 +2968,7 @@ export const AdminPage: React.FC = () => {
                           </div>
                         </div>
                       </td>
-                      <td>priya.agri@farmerbench.agri</td>
+                      <td>priya.agri@AgriEra.agri</td>
                       <td><span className="admin-status-badge cod">AGRONOMIST</span></td>
                       <td style={{ color: '#475569' }}>Crop Doctor, Service Bookings & Blog</td>
                       <td style={{ color: '#64748B' }}>2 hours ago</td>
@@ -3057,7 +3068,7 @@ export const AdminPage: React.FC = () => {
 
           {/* Footer Bar */}
           <footer className="admin-footer-bar">
-            <div>© 2026 FarmerBench Admin Panel</div>
+            <div>© 2026 AgriEra Admin Panel</div>
             <div className="admin-footer-status">
               <span>System Status:</span>
               <span className="admin-status-dot-pulse" />
@@ -3881,7 +3892,7 @@ export const AdminPage: React.FC = () => {
                               ...cmsForm,
                               specifications: [
                                 ...cmsForm.specifications,
-                                { label: 'Manufacturer', value: 'FarmerBench Agri Solutions' },
+                                { label: 'Manufacturer', value: 'AgriEra Agri Solutions' },
                               ],
                             })
                           }
@@ -4174,22 +4185,23 @@ export const AdminPage: React.FC = () => {
               </button>
             </div>
             <form
-              onSubmit={(e: any) => {
+              onSubmit={async (e: any) => {
                 e.preventDefault();
                 const code = e.target.coupCode.value.toUpperCase();
-                const discount = e.target.coupDisc.value;
-                const newC = {
-                  id: `c${coupons.length + 1}`,
-                  code,
-                  discount: `${discount}% OFF`,
-                  minOrder: '₹500',
-                  usage: '0 / 500',
-                  validUntil: '31 Dec 2026',
-                  status: 'Active',
-                };
-                setCoupons([newC, ...coupons]);
-                setIsCouponModalOpen(false);
-                showToast(`Coupon ${code} created & active!`);
+                try {
+                  const response = await adminService.createCoupon({
+                    code,
+                    discountType: e.target.coupType.value,
+                    discountValue: Number(e.target.coupDisc.value),
+                    minimumSpend: Number(e.target.coupMin.value) || 0,
+                    usageLimit: Number(e.target.coupLimit.value) || null,
+                    validUntil: e.target.coupExpiry.value || null,
+                  });
+                  if (!response.success || !response.data) throw new Error(response.message || 'Failed to create coupon');
+                  setCoupons([response.data, ...coupons]);
+                  setIsCouponModalOpen(false);
+                  showToast(`Coupon ${code} created & active!`);
+                } catch (error: any) { showToast(error.message || 'Failed to create coupon'); }
               }}
             >
               <div className="admin-modal-body">
@@ -4198,8 +4210,27 @@ export const AdminPage: React.FC = () => {
                   <input name="coupCode" required placeholder="e.g. MONSOON25" className="admin-form-input" style={{ textTransform: 'uppercase' }} />
                 </div>
                 <div className="admin-form-group">
-                  <label className="admin-form-label">Discount (%)</label>
-                  <input name="coupDisc" required type="number" placeholder="25" className="admin-form-input" />
+                  <label className="admin-form-label">Discount Type</label>
+                  <select name="coupType" className="admin-form-select" defaultValue="PERCENTAGE">
+                    <option value="PERCENTAGE">Percentage (%)</option>
+                    <option value="FIXED">Fixed Amount (₹)</option>
+                  </select>
+                </div>
+                <div className="admin-form-group">
+                  <label className="admin-form-label">Discount Value</label>
+                  <input name="coupDisc" required type="number" min="1" step="0.01" placeholder="25" className="admin-form-input" />
+                </div>
+                <div className="admin-form-group">
+                  <label className="admin-form-label">Minimum Spend (₹)</label>
+                  <input name="coupMin" type="number" min="0" step="0.01" defaultValue="0" className="admin-form-input" />
+                </div>
+                <div className="admin-form-group">
+                  <label className="admin-form-label">Usage Limit (optional)</label>
+                  <input name="coupLimit" type="number" min="1" placeholder="500" className="admin-form-input" />
+                </div>
+                <div className="admin-form-group">
+                  <label className="admin-form-label">Valid Until (optional)</label>
+                  <input name="coupExpiry" type="date" className="admin-form-input" />
                 </div>
               </div>
               <div className="admin-modal-footer">
@@ -4435,7 +4466,7 @@ export const AdminPage: React.FC = () => {
                           ...prev,
                           title: val,
                           slug: prev.slug ? prev.slug : autoSlug,
-                          metaTitle: prev.metaTitle ? prev.metaTitle : `${val} | FarmerBench`,
+                          metaTitle: prev.metaTitle ? prev.metaTitle : `${val} | AgriEra`,
                         }));
                       }}
                       className="admin-form-input"
@@ -4778,7 +4809,7 @@ export const AdminPage: React.FC = () => {
                     <label className="admin-form-label">Meta Title (SEO)</label>
                     <input
                       type="text"
-                      placeholder="Best Fertilizer Practices for Paddy | FarmerBench"
+                      placeholder="Best Fertilizer Practices for Paddy | AgriEra"
                       value={blogForm.metaTitle}
                       onChange={(e) => setBlogForm({ ...blogForm, metaTitle: e.target.value })}
                       className="admin-form-input"
@@ -4805,7 +4836,7 @@ export const AdminPage: React.FC = () => {
                       {blogForm.metaTitle || blogForm.title || 'Article Title'}
                     </div>
                     <div style={{ color: '#006621', fontSize: '0.8rem', marginTop: '0.15rem' }}>
-                      https://farmerbench.agri/blog/{blogForm.slug || 'how-to-choose-fertilizer'}
+                      https://AgriEra.agri/blog/{blogForm.slug || 'how-to-choose-fertilizer'}
                     </div>
                     <div style={{ color: '#4D5156', fontSize: '0.85rem', marginTop: '0.25rem', lineHeight: 1.4 }}>
                       {blogForm.metaDescription || blogForm.excerpt || 'Article summary description...'}

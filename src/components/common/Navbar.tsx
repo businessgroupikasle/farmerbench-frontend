@@ -22,7 +22,7 @@ import {
   Stethoscope,
   CalendarDays,
 } from 'lucide-react';
-import farmerLogo from '../../assets/farmerbench-logo.png';
+import farmerLogo from '../../assets/AgriEra-logo.png';
 import { LogoutModal } from './LogoutModal';
 import './Navbar.css';
 
@@ -63,15 +63,15 @@ export const Navbar: React.FC = () => {
     <>
       <header className="agriflow-header">
         <div className="container agriflow-nav-container">
-          {/* Brand Logo - FarmerBench */}
+          {/* Brand Logo - AgriEra */}
           <Link to="/" className="agriflow-brand" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', textDecoration: 'none' }}>
             <img
               src={farmerLogo}
-              alt="FarmerBench Logo"
+              alt="AgriEra Logo"
               style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'contain' }}
             />
             <span className="agriflow-brand-text" style={{ fontSize: '1.45rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#165B33' }}>
-              FarmerBench
+              AgriEra
             </span>
           </Link>
 

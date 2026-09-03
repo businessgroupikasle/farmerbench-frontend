@@ -41,7 +41,7 @@ export const BlogDetailPage: React.FC = () => {
   // Dynamic SEO management
   useEffect(() => {
     if (blog) {
-      document.title = `${blog.metaTitle || blog.title} | FarmerBench Agri Insights`;
+      document.title = `${blog.metaTitle || blog.title} | AgriEra Agri Insights`;
 
       // Update meta description
       let metaDesc = document.querySelector('meta[name="description"]');
@@ -64,7 +64,7 @@ export const BlogDetailPage: React.FC = () => {
     }
 
     return () => {
-      document.title = 'FarmerBench — Sustainable Agriculture & Commercial Inputs';
+      document.title = 'AgriEra — Sustainable Agriculture & Commercial Inputs';
     };
   }, [blog]);
 
@@ -204,7 +204,7 @@ export const BlogDetailPage: React.FC = () => {
                   }}
                 />
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span className="blog-author-name">By {blog.author || 'FarmerBench Agri Expert'}</span>
+                  <span className="blog-author-name">By {blog.author || 'AgriEra Agri Expert'}</span>
                   <span className="blog-author-role">Certified Agricultural Specialist</span>
                 </div>
               </div>
@@ -280,7 +280,7 @@ export const BlogDetailPage: React.FC = () => {
             {/* Author Bio Card */}
             <div className="blog-author-bio-card">
               <div>
-                <h4 className="blog-bio-name">{blog.author || 'FarmerBench Agri Expert'}</h4>
+                <h4 className="blog-bio-name">{blog.author || 'AgriEra Agri Expert'}</h4>
                 <p className="blog-bio-text">
                   {blog.authorBio ||
                     'Agricultural expert with 10+ years of experience in sustainable farming, soil health, and crop management.'}

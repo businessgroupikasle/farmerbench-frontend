@@ -262,7 +262,7 @@ export const DripIrrigationPage: React.FC = () => {
   const handleSubmitPlan = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.termsAgreed) {
-      alert('Please agree to share information with FARMERBENCH to continue.');
+      alert('Please agree to share information with AgriEra to continue.');
       return;
     }
     setIsSubmitting(true);
@@ -854,7 +854,7 @@ export const DripIrrigationPage: React.FC = () => {
                         className="drip-dev-checkbox"
                       />
                       <span>
-                        I agree to share the above information with <strong>FARMERBENCH</strong> for the purpose of providing irrigation solutions.
+                        I agree to share the above information with <strong>AgriEra</strong> for the purpose of providing irrigation solutions.
                       </span>
                     </label>
                   </div>

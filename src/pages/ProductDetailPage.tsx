@@ -85,7 +85,7 @@ export const ProductDetailPage: React.FC = () => {
   const [expertSubmitted, setExpertSubmitted] = useState(false);
 
   if (isLoading) {
-    return <LoadingSpinner fullPage message="Loading FarmerBench catalog product..." />;
+    return <LoadingSpinner fullPage message="Loading AgriEra catalog product..." />;
   }
 
   if (isError || !product) {
@@ -112,7 +112,7 @@ export const ProductDetailPage: React.FC = () => {
       const sku = found.sku || (product.slug
         ? `GL-GB-${product.slug.slice(0, 6).toUpperCase().replace(/[^A-Z0-9]/g, '')}-${size.replace(/[^A-Z0-9]/g, '').toUpperCase()}`
         : `GL-GB-${product.id.slice(0, 6).toUpperCase()}-${size.replace(/[^A-Z0-9]/g, '').toUpperCase()}`);
-      return { label: size, mrp, sellingPrice, stock, sku };
+      return { label: size, mrp, sellingPrice, stock, sku, variantId: found.id || found.variantId || sku };
     }
 
     // 2. Intelligent proportional fallback pricing based on size string
@@ -145,7 +145,7 @@ export const ProductDetailPage: React.FC = () => {
       ? `GL-GB-${product.slug.slice(0, 6).toUpperCase().replace(/[^A-Z0-9]/g, '')}-${size.replace(/[^A-Z0-9]/g, '').toUpperCase()}`
       : `GL-GB-${product.id.slice(0, 6).toUpperCase()}-${size.replace(/[^A-Z0-9]/g, '').toUpperCase()}`;
 
-    return { label: size, mrp, sellingPrice, stock: stockCount, sku };
+    return { label: size, mrp, sellingPrice, stock: stockCount, sku, variantId: sku };
   };
 
   const selectedVariant = getPackSizeVariant(selectedPackSize);
@@ -186,6 +186,7 @@ export const ProductDetailPage: React.FC = () => {
       quantity,
       {
         packSize: selectedPackSize,
+        variantId: selectedVariant.variantId,
         price: currentPrice,
         mrp: currentMrp,
         sku: skuCode,
@@ -208,6 +209,7 @@ export const ProductDetailPage: React.FC = () => {
       quantity,
       {
         packSize: selectedPackSize,
+        variantId: selectedVariant.variantId,
         price: currentPrice,
         mrp: currentMrp,
         sku: skuCode,

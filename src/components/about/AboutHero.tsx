@@ -7,7 +7,7 @@ export const AboutHero: React.FC = () => {
       <div className="about-hero-container">
         <div className="about-hero-content animate-fade-in">
           {/* Badge Tag */}
-          <span className="about-hero-tag">ABOUT FARMERBENCH</span>
+          <span className="about-hero-tag">ABOUT AgriEra</span>
 
           {/* Heading */}
           <h1 className="about-hero-title">
