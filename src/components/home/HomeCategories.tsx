@@ -33,7 +33,7 @@ export const HomeCategories: React.FC = () => {
   return (
     <section className="home-hot-categories" id="categories" aria-labelledby="hot-categories-title">
       <div className="home-hot-categories-heading">
-        <h2 id="hot-categories-title">Hot Categories</h2>
+        <h2 id="hot-categories-title">Shop by Categories</h2>
         <span aria-hidden="true" />
       </div>
 

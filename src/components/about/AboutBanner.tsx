@@ -10,7 +10,7 @@ export const AboutBanner: React.FC = () => {
         <div className="about-banner-left">
           <div className="about-banner-bar" />
           <h2 className="about-banner-title">
-            Cultivating healthy food for<br />
+            Cultivating healthy food for<br className="about-banner-br" />
             you and your family.
           </h2>
         </div>

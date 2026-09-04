@@ -454,12 +454,74 @@
 
 /* Content-Based Navigation Responsive Rules */
 @media (max-width: 980px) {
+  .agriflow-nav-container {
+    height: 60px;
+    padding-inline: 14px;
+  }
+  .agriflow-brand { gap: .45rem !important; }
+  .agriflow-brand img { width: 34px !important; height: 34px !important; }
+  .agriflow-brand-text { font-size: 1.2rem !important; }
   .agriflow-nav-wrapper {
     display: none !important;
   }
   .show-mobile-flex {
     display: flex !important;
+    gap: .35rem !important;
   }
+  .show-mobile-flex > button {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 1px solid #DCE5DF !important;
+    border-radius: 8px;
+    background: #F8FAF8 !important;
+  }
+  .show-mobile-flex .agriflow-cart-widget-btn { padding: 0; }
+  .show-mobile-flex .agriflow-cart-icon-box { width: 40px; height: 40px; }
+  .agriflow-mobile-menu {
+    max-height: calc(100dvh - 60px);
+    padding: .75rem 1rem 1rem;
+    gap: .25rem;
+    border-top-color: #E2E8E3;
+    box-shadow: 0 14px 30px rgba(23, 55, 34, .12);
+  }
+  .agriflow-mobile-menu > .agriflow-nav-link,
+  .agriflow-mobile-menu > div > .agriflow-nav-link {
+    min-height: 43px;
+    padding: .7rem .65rem;
+    border-radius: 7px;
+    color: #24362B;
+  }
+  .agriflow-mobile-menu .agriflow-nav-link.active-text {
+    background: #EDF6EF;
+    color: #166534;
+  }
+  .agriflow-mobile-menu > div > div a {
+    min-height: 36px;
+    color: #52645A !important;
+  }
+  .agriflow-mobile-menu .agriflow-btn-contact { width: 100%; min-height: 44px; }
+  .agriflow-auth-btn {
+    width: 100%;
+    min-height: 44px;
+    background-color: #166534;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+  }
+  .agriflow-auth-btn:hover {
+    background-color: #14532d;
+  }
+  body:has(.agriflow-mobile-menu) { overflow: hidden; }
 }
 
 @media (min-width: 981px) {
@@ -478,7 +540,5 @@
   .agriflow-brand-text {
     font-size: 1.2rem;
   }
-  .agriflow-nav-container {
-    height: 64px;
-  }
+  .agriflow-nav-container { height: 58px; }
 }

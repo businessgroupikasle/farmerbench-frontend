@@ -18,6 +18,12 @@ const cropImages: Array<[string[], string]> = [
   [['cucumber', 'kheera'], 'https://images.unsplash.com/photo-1449300079323-02e209d9d3a6?w=120&h=120&fit=crop'],
   [['coriander', 'mint', 'pudina'], 'https://images.unsplash.com/photo-1588879460618-9249e7d947d1?w=120&h=120&fit=crop'],
   [['rice', 'paddy', 'wheat'], 'https://images.unsplash.com/photo-1536050302835-a7e3f2a3ac2f?w=120&h=120&fit=crop'],
+  [['carrot'], 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=120&h=120&fit=crop'],
+  [['coconut'], 'https://images.unsplash.com/photo-1544378730-8b5104b18790?w=120&h=120&fit=crop'],
+  [['brinjal', 'eggplant', 'aubergine'], 'https://images.unsplash.com/photo-1628773822503-930a84d95229?w=120&h=120&fit=crop'],
+  [['garlic'], 'https://images.unsplash.com/photo-1615477032219-b12da2a30c4b?w=120&h=120&fit=crop'],
+  [['cabbage'], 'https://images.unsplash.com/photo-1594282486552-05b4d80fbb9f?w=120&h=120&fit=crop'],
+  [['bhendi', 'bhindi', 'okra', 'ladies finger'], 'https://images.unsplash.com/photo-1425543103986-22abb7d7e8d2?w=120&h=120&fit=crop'],
 ];
 
 const imageFor = (commodity: string) => {
@@ -34,14 +40,14 @@ const formatPrice = (price: number) =>
 
 export const HomeMarketPrices: React.FC = () => {
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['market-prices', 18],
-    queryFn: async () => (await marketPriceService.getLatest(18)).data,
+    queryKey: ['market-prices', 24],
+    queryFn: async () => (await marketPriceService.getLatest(24)).data,
     staleTime: 30 * 60 * 1000,
     refetchInterval: 30 * 60 * 1000,
     retry: 2,
   });
 
-  const marketItems = data ?? [];
+  const marketItems = (data ?? []).slice(0, 16);
 
   return (
     <section className="home-market-section" aria-labelledby="home-market-title">

@@ -13,7 +13,15 @@
   display: flex;
   flex-direction: column;
   gap: 4.5rem;
-  padding-bottom: 5.5rem;
+  padding: 0 1rem 5.5rem;
+}
+
+@media (max-width: 520px) {
+  .homepage-sections-container {
+    gap: 3.5rem;
+    padding-inline: 0;
+    padding-bottom: 4rem;
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -75,12 +83,12 @@
 .home-market-header span { color: #6d7c72; font-size: .66rem; font-weight: 700; }
 .home-market-header > a { display: inline-flex; align-items: center; gap: 5px; color: #185f33; font-size: .72rem; font-weight: 800; white-space: nowrap; }
 .home-market-header > a:hover { color: #288c49; }
-.home-market-list { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: .8rem; }
-.home-market-item { display: flex; min-width: 0; min-height: 70px; align-items: center; gap: 11px; padding: 10px 14px; border: 1px solid #d9e3dc; border-radius: 11px; background: #fff; }
+.home-market-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .9rem; }
+.home-market-item { display: flex; min-width: 0; min-height: 70px; align-items: center; gap: 11px; padding: 10px 14px; border: 1px solid #d9e3dc; border-radius: 11px; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.02); }
 .home-market-icon { display: block; width: 39px; height: 39px; flex: none; overflow: hidden; border: 1px solid #e1e8e2; border-radius: 8px; background: #eff4f0; }
 .home-market-icon img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .home-market-copy { min-width: 0; }
-.home-market-copy h3 { overflow: hidden; margin: 0 0 5px; color: #3c5044; font-size: .65rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.home-market-copy h3 { overflow: hidden; margin: 0 0 5px; color: #3c5044; font-size: .68rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 .home-market-copy > div { display: flex; align-items: center; gap: 8px; }
 .home-market-copy strong { color: #182b20; font-size: 1.05rem; font-weight: 800; white-space: nowrap; }
 .home-market-copy > div span { display: inline-flex; align-items: center; gap: 2px; font-size: .58rem; font-weight: 800; }
@@ -90,22 +98,138 @@
 .home-market-status--error { color: #b42318; }
 
 @media (max-width: 1050px) {
-  .home-market-list { grid-template-columns: repeat(3, 1fr); }
+  .home-market-list { grid-template-columns: repeat(4, 1fr); gap: .8rem; }
+}
+@media (max-width: 800px) {
+  .home-market-list { grid-template-columns: repeat(2, 1fr); gap: 10px; }
 }
 @media (max-width: 620px) {
-  .home-market-section { padding-inline: 1rem; }
-  .home-market-list { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 5px; }
-  .home-market-item { flex: 0 0 175px; scroll-snap-align: start; }
-  .home-market-header > div { display: block; }
-  .home-market-header span { display: block; margin-top: 2px; }
+  .home-market-section { padding: 1.2rem 1rem 1.4rem; }
+  .home-market-header { gap: .8rem; margin-bottom: 1rem; flex-wrap: wrap; }
+  .home-market-header h2 { font-size: 1.02rem; }
+  .home-market-header span { font-size: .65rem; }
+  .home-market-header > a { font-size: .72rem; }
+  .home-market-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    overflow-x: visible;
+    margin-inline: 0;
+    padding-inline: 0;
+  }
+  .home-market-item {
+    min-height: 62px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    gap: 9px;
+  }
+  .home-market-icon { width: 35px; height: 35px; border-radius: 7px; }
+  .home-market-copy h3 { font-size: .64rem; margin-bottom: 3px; }
+  .home-market-copy strong { font-size: .95rem; }
+  .home-market-copy > div { gap: 6px; }
+  .home-market-header > div { display: flex; align-items: baseline; gap: 6px; }
+  .home-market-header span { display: inline; margin-top: 0; }
+}
+@media (max-width: 380px) {
+  .home-market-list { gap: 8px; }
+  .home-market-item { padding: 7px 8px; gap: 7px; }
+  .home-market-icon { width: 30px; height: 30px; }
+  .home-market-copy h3 { font-size: .58rem; }
+  .home-market-copy strong { font-size: .88rem; }
 }
 
 @media (max-width: 1050px) { .smart-hub-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 590px) {
-  .smart-hub-section { padding-top: 2.8rem; }
-  .smart-hub-grid { grid-template-columns: 1fr; }
-  .smart-hub-card { min-height: 240px; }
-  .smart-hub-header h2 { line-height: 1.08; }
+  .smart-hub-section { padding-top: 2.4rem; padding-inline: 0; }
+  .smart-hub-header { margin-bottom: 1rem; }
+  .smart-hub-header h2 { font-size: 1.4rem; line-height: 1.1; margin-bottom: .35rem; }
+  .smart-hub-header p { font-size: .82rem; line-height: 1.45; }
+  .smart-hub-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .smart-hub-card {
+    display: flex;
+    flex-direction: column;
+    min-height: 195px;
+    padding: 14px 12px 13px;
+    border-radius: 14px;
+    position: relative;
+    overflow: hidden;
+  }
+  .smart-hub-card-title {
+    margin-bottom: 6px;
+    gap: 6px;
+  }
+  .smart-hub-card-title svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+  .smart-hub-card-title h3 {
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+  .smart-hub-card h4 {
+    font-size: 0.82rem;
+    line-height: 1.25;
+    margin: 0 0 5px;
+    max-width: 100%;
+    font-weight: 800;
+  }
+  .smart-hub-card > p {
+    font-size: 0.68rem;
+    line-height: 1.35;
+    max-width: 100%;
+    margin: 0 0 10px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .smart-hub-card > .smart-hub-weather-copy {
+    max-width: 100%;
+  }
+  .smart-hub-action {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    margin-top: auto;
+    padding: 6px 10px;
+    font-size: 0.7rem;
+    min-height: 29px;
+    border-radius: 7px;
+    gap: 4px;
+    width: fit-content;
+    max-width: 100%;
+    white-space: nowrap;
+    z-index: 2;
+  }
+  .smart-hub-action svg {
+    width: 13px;
+    height: 13px;
+  }
+  .smart-hub-phone,
+  .smart-hub-calendar-art,
+  .smart-hub-weather-art,
+  .smart-hub-market-art {
+    right: -4px;
+    top: auto;
+    bottom: -4px;
+    opacity: 0.18;
+    transform: scale(0.62);
+    transform-origin: bottom right;
+    pointer-events: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .smart-hub-grid { gap: 8px; }
+  .smart-hub-card {
+    padding: 12px 10px 11px;
+    min-height: 185px;
+  }
+  .smart-hub-card-title h3 { font-size: 0.76rem; }
+  .smart-hub-card h4 { font-size: 0.76rem; }
+  .smart-hub-card > p { font-size: 0.64rem; }
+  .smart-hub-action { font-size: 0.65rem; padding: 5px 8px; min-height: 27px; }
 }
 
 /* --------------------------------------------------------------------------
@@ -125,6 +249,14 @@
   text-align: left;
   color: #17251e;
   overflow: hidden;
+}
+
+@media (max-width: 500px) {
+  .agriflow-hero {
+    min-height: 280px;
+    background-position: center;
+    background-attachment: fixed;
+  }
 }
 
 .agriflow-hero-content {
@@ -216,6 +348,7 @@
 .agriflow-hero-trust div:first-child { padding-left: 0; }
 .agriflow-hero-trust div:last-child { border-right: 0; }
 .agriflow-hero-trust svg { flex: 0 0 auto; color: #66aa42; }
+.agriflow-hero-trust-mobile { display: none; }
 
 @media (max-width: 900px) {
   .agriflow-hero { min-height: 510px; background-position: 57% center; }
@@ -226,18 +359,32 @@
 }
 
 @media (max-width: 650px) {
-  .agriflow-hero { min-height: 700px; align-items: flex-start; background-position: 69% bottom; }
-  .agriflow-hero-content { padding-top: 2.4rem; }
-  .agriflow-hero-description { max-width: 380px; }
-  .agriflow-hero-actions { width: 100%; margin-bottom: 1.8rem; }
-  .agriflow-hero-btn { min-width: 0; flex: 1; padding-inline: .8rem; }
-  .agriflow-hero-trust { width: 100%; align-items: stretch; }
-  .agriflow-hero-trust div { flex: 1; flex-direction: column; align-items: flex-start; padding: 0 .55rem; font-size: .72rem; }
+  .home-hero-wrap { background: #fff; display: flex; flex-direction: column; width: 100%; }
+  .agriflow-hero { min-height: 250px; width: 100%; align-items: center; background-image: linear-gradient(90deg, rgba(0,0,0,.55), rgba(0,0,0,.1)), var(--mobile-hero-image) !important; background-position: center; background-size: cover; background-repeat: no-repeat; background-attachment: scroll; }
+  .agriflow-hero-content { min-height: 250px; width: 100%; justify-content: center; padding: 20px 16px 20px; box-sizing: border-box; }
+  .agriflow-hero-content > span { font-size: .56rem; color: #F5A623; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; }
+  .agriflow-hero-title { width: 100%; max-width: 100%; font-size: 1.68rem; line-height: 1.12; margin: 6px 0 8px; color: #fff; word-break: break-word; }
+  .agriflow-hero-title span:first-child { display: block; }
+  .agriflow-hero-title span:last-child { display: block; color: #88CF3A; }
+  .agriflow-hero-description { width: 100%; max-width: 100%; margin-top: .4rem; color: rgba(255,255,255,.93); font-size: .7rem; line-height: 1.45; font-weight: 500; }
+  .agriflow-hero-actions { width: auto; margin: 10px 0 0; gap: 6px; flex-wrap: wrap; }
+  .agriflow-hero-btn { min-height: 34px; min-width: auto; padding: .48rem .85rem; font-size: .66rem; border-radius: 5px; white-space: nowrap; }
+  .agriflow-hero-btn-primary { background: #176332; color: #fff; border-color: #176332; }
+  .agriflow-hero-btn-secondary { background: rgba(255,255,255,.12); color: #fff; border-color: rgba(255,255,255,.25); }
+  .agriflow-hero-content > .agriflow-hero-trust { display: none !important; }
+  .agriflow-hero-trust-mobile { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(150px, 1fr); width: 100%; margin: 14px 0 0; padding: 0 16px 8px; box-sizing: border-box; gap: 8px; overflow-x: auto; scroll-behavior: smooth; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .agriflow-hero-trust-mobile::-webkit-scrollbar { display: none; }
+  .agriflow-hero-trust-mobile div { min-height: 64px; padding: 10px 11px; gap: 9px; border: 1px solid #E2E8E3; border-radius: 9px; background: #F9FAFB; scroll-snap-align: start; flex-shrink: 0; }
+  .agriflow-hero-trust-mobile div:first-child { margin-left: 0; }
+  .agriflow-hero-trust-mobile div svg { box-sizing: content-box; padding: 7px; border-radius: 8px; background: #19C968; color: #fff; font-size: 17px; flex-shrink: 0; }
+  .agriflow-hero-trust-mobile span { display: flex; flex-direction: column; gap: 2px; color: #1D2420; font-size: .72rem; line-height: 1.2; }
+  .agriflow-hero-trust-mobile strong { font-weight: 700; font-size: .72rem; display: block; }
+  .agriflow-hero-trust-mobile small { color: #6B7A72; font-size: .63rem; display: block; }
 }
 
 @media (max-width: 410px) {
-  .agriflow-hero-actions { flex-direction: column; }
-  .agriflow-hero-btn { width: 100%; }
+  .agriflow-hero-actions { flex-direction: row; }
+  .agriflow-hero-btn { width: auto; }
 }
 
 /* --------------------------------------------------------------------------
@@ -548,10 +695,17 @@
 }
 
 @media (max-width: 600px) {
+  .agriflow-services-section { padding: 3rem 0 3.5rem; }
+  .agriflow-services-header { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+  .agriflow-service-title { font-size: 1.5rem; }
+  .agriflow-carousel-controls { display: none; }
   .agriflow-services-grid {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 1.2rem;
   }
+  .agriflow-service-card { padding: 1.8rem 1.5rem 1.6rem; }
+  .agriflow-service-img-wrapper { width: 140px; height: 140px; margin-bottom: 1.2rem; }
+  .agriflow-service-card-title { font-size: 1.05rem; }
 }
 
 .agriflow-service-card {
@@ -708,16 +862,127 @@
   }
 }
 
+@media (max-width: 768px) {
+  .agriflow-practice-section { padding: 3rem 0; gap: 2.5rem; }
+  .agriflow-practice-collage { max-width: 100%; height: 450px; }
+  .agriflow-pill-main { width: 280px; height: 420px; border-radius: 140px; }
+  .agriflow-pill-top-left { width: 120px; height: 180px; border-radius: 60px; }
+  .agriflow-pill-bottom-left { width: 130px; height: 200px; border-radius: 65px; left: 8%; }
+  .agriflow-practice-heading { font-size: 2rem; margin-bottom: 1rem; }
+  .agriflow-practice-desc { font-size: 1rem; }
+}
+
 @media (max-width: 680px) {
+  .agriflow-news-section { padding: 2.5rem 0 3rem; }
+  .agriflow-news-header {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    gap: 0.75rem;
+  }
+  .agriflow-news-title { font-size: 1.35rem; font-weight: 800; }
+  .agriflow-news-btn-more { padding: .45rem 1rem; font-size: .75rem; border-radius: 6px; }
   .agriflow-news-grid {
-    grid-template-columns: 1fr;
-    gap: 2.5rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
   }
-  .agriflow-news-loading { grid-template-columns: 1fr; }
-  .agriflow-news-loading span:not(:first-child) { display: none; }
+  .agriflow-news-loading {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .agriflow-news-loading span:nth-child(3) { display: none; }
+  
+  /* Row 1 of 2x2: Featured Cards */
+  .agriflow-featured-news-card {
+    gap: 0.45rem;
+  }
+  .agriflow-news-img-box {
+    border-radius: 12px;
+    padding-top: 65%;
+  }
+  .agriflow-news-badge {
+    font-size: 0.58rem;
+    padding: 0.2rem 0.5rem;
+    bottom: 0.5rem;
+    left: 0.5rem;
+    border-radius: 4px;
+  }
+  .agriflow-news-meta {
+    font-size: 0.62rem;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    margin-top: 2px;
+  }
+  .agriflow-news-meta-item svg {
+    width: 12px;
+    height: 12px;
+  }
+  .agriflow-news-heading {
+    font-size: 0.82rem;
+    font-weight: 750;
+    line-height: 1.25;
+    margin: 2px 0 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.5em;
+  }
+  .agriflow-news-btn-read {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.7rem;
+    border-radius: 6px;
+    margin-top: 0;
+  }
+
+  /* Row 2 of 2x2: Compact Cards matching the 2-column grid */
   .agriflow-news-column-stacked {
-    grid-column: span 1;
+    grid-column: span 2;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-top: 0;
   }
+  .agriflow-news-compact-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    grid-template-columns: none;
+  }
+  .agriflow-news-compact-img-wrap {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 10.4;
+    border-radius: 12px;
+  }
+  .agriflow-news-compact-content {
+    gap: 0.25rem;
+  }
+  .agriflow-news-compact-heading {
+    font-size: 0.82rem;
+    font-weight: 750;
+    line-height: 1.25;
+    margin: 2px 0 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    min-height: 2.5em;
+  }
+  .agriflow-news-compact-item:nth-child(n+3) {
+    display: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .agriflow-news-grid { gap: 8px; }
+  .agriflow-news-column-stacked { gap: 8px; }
+  .agriflow-news-heading,
+  .agriflow-news-compact-heading { font-size: 0.76rem; }
+  .agriflow-news-meta { font-size: 0.58rem; }
+  .agriflow-news-btn-read { font-size: 0.65rem; padding: 0.3rem 0.6rem; }
 }
 
 .agriflow-featured-news-card {
@@ -995,9 +1260,24 @@
   .agriflow-product-img-box { height: 180px; }
 }
 @media (max-width: 520px) {
-  .agriflow-our-products-section { padding: 2.7rem 0; }
-  .agriflow-products-grid { grid-template-columns: 1fr; gap: 1rem; }
-  .agriflow-product-img-box { height: 280px; }
+  .agriflow-our-products-section { padding: 2.4rem 0 2.8rem; }
+  .agriflow-products-header { margin-bottom: 1.2rem; }
+  .agriflow-products-header h2 { font-size: 1.6rem; margin: .2rem 0 .6rem; }
+  .agriflow-products-header p { max-width: 100%; line-height: 1.5; font-size: .78rem; }
+  .agriflow-product-tabs { flex-wrap: nowrap; justify-content: flex-start; margin: 0 -1rem 1.4rem; padding: 0 1rem .4rem; overflow-x: auto; scrollbar-width: none; gap: .6rem; }
+  .agriflow-product-tabs::-webkit-scrollbar { display: none; }
+  .agriflow-product-tabs button { flex: 0 0 auto; min-height: 36px; padding: .5rem .95rem; font-size: .73rem; }
+  .agriflow-products-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; padding-inline: 1rem; margin-inline: -1rem; }
+  .agriflow-product-item { border-radius: 11px; border: 1px solid #e1e8e2; }
+  .agriflow-product-img-box { width: calc(100% - 12px); height: auto; aspect-ratio: 1 / 1; margin: 6px 6px 0; border-radius: 8px; background: linear-gradient(145deg, #FAFCF9, #FFF); }
+  .agriflow-product-info { padding: 10px 10px 12px; }
+  .agriflow-product-meta { font-size: .52rem; }
+  .agriflow-product-name { min-height: 2.5em; font-size: .75rem; line-height: 1.28; }
+  .agriflow-product-pack { margin-bottom: 8px; font-size: .6rem; }
+  .agriflow-product-price { gap: 6px; padding-top: 8px; }
+  .agriflow-product-price strong { font-size: .9rem; }
+  .agriflow-product-price del { font-size: .62rem; }
+  .agriflow-products-view-all { margin-top: 1.8rem; min-height: 42px; padding: .7rem 1.5rem; font-size: .75rem; }
 }
 /* Hot Categories */
 .home-hot-categories {
@@ -1137,11 +1417,105 @@
 .home-hot-category-arrow--right { right: -52px; }
 
 @media (max-width: 767px) {
-  .home-hot-categories { padding: 28px 0 34px; }
-  .home-hot-categories-heading { margin-bottom: 28px; }
-  .home-hot-categories-carousel { width: calc(100% - 32px); }
-  .home-hot-categories-rail { grid-auto-columns: 150px; gap: 14px; padding-inline: 1px; }
-  .home-hot-category-card { height: 180px; padding: 18px 10px 14px; }
-  .home-hot-category-image { width: 88px; height: 88px; margin-bottom: 20px; }
-  .home-hot-category-arrow { display: none; }
+  .home-hot-categories {
+    padding: 24px 0 32px;
+  }
+  .home-hot-categories-heading {
+    margin-bottom: 18px;
+    padding: 0 16px;
+    text-align: center;
+  }
+  .home-hot-categories-heading h2 {
+    font-size: 1.4rem;
+    font-weight: 800;
+  }
+  .home-hot-categories-heading span {
+    display: none;
+  }
+  .home-hot-categories-carousel {
+    width: 100%;
+    margin: 0;
+  }
+  .home-hot-categories-rail {
+    display: flex;
+    flex-flow: row nowrap;
+    grid-auto-flow: unset;
+    grid-auto-columns: unset;
+    grid-template-columns: unset;
+    gap: 14px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding: 4px 16px 12px;
+    scrollbar-width: none;
+  }
+  .home-hot-categories-rail::-webkit-scrollbar {
+    display: none;
+  }
+  .home-hot-category-card {
+    flex: 0 0 142px;
+    width: 142px;
+    height: auto;
+    padding: 10px 8px 12px;
+    border: 1px solid #E8EDE9;
+    border-radius: 16px;
+    background: #FFFFFF;
+    box-shadow: 0 3px 10px rgba(15, 41, 27, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    scroll-snap-align: start;
+    box-sizing: border-box;
+    transition: transform 0.2s ease;
+  }
+  .home-hot-category-image {
+    width: 100%;
+    height: 106px;
+    margin-bottom: 9px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #EEF5EF;
+    box-shadow: 0 2px 6px rgba(15, 41, 27, 0.08);
+    flex-shrink: 0;
+  }
+  .home-hot-category-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .home-hot-category-card h3 {
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.25;
+    text-align: center;
+    color: #111A14;
+    margin: 0;
+    width: 100%;
+    word-break: break-word;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .home-hot-category-arrow {
+    display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .home-hot-category-card {
+    flex: 0 0 128px;
+    width: 128px;
+    padding: 8px 6px 10px;
+  }
+  .home-hot-category-image {
+    height: 94px;
+    border-radius: 10px;
+    margin-bottom: 7px;
+  }
+  .home-hot-category-card h3 {
+    font-size: 0.73rem;
+  }
 }

@@ -108,20 +108,71 @@
   }
 }
 
-@media (max-width: 620px) {
+@media (max-width: 650px) {
   .about-hero-section {
-    min-height: 650px;
-    align-items: flex-start;
-    background-position: 69% bottom;
+    min-height: 250px;
+    width: 100%;
+    align-items: center;
+    background-image: linear-gradient(90deg, rgba(0,0,0,.65), rgba(0,0,0,.15)), var(--mobile-about-hero-image, url('../assets/about-hero-farmer-plant.png')) !important;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
   }
   .about-hero-container {
-    padding: 2.5rem 1rem;
+    min-height: 250px;
+    width: 100%;
+    justify-content: center;
+    padding: 20px 16px 20px;
+    box-sizing: border-box;
   }
   .about-hero-content {
+    width: 100%;
     max-width: 100%;
   }
+  .about-hero-tag {
+    font-size: .56rem;
+    color: #F5A623;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    margin-bottom: 4px;
+  }
+  .about-hero-title {
+    width: 100%;
+    max-width: 100%;
+    font-size: 1.68rem;
+    line-height: 1.12;
+    margin: 6px 0 8px;
+    color: #fff;
+    word-break: break-word;
+  }
+  .about-hero-title span:first-child {
+    display: block;
+    color: #fff;
+  }
+  .about-hero-title span:last-child {
+    display: block;
+    color: #88CF3A;
+  }
   .about-hero-desc {
-    max-width: 390px;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 0 12px;
+    color: rgba(255,255,255,.93);
+    font-size: .7rem;
+    line-height: 1.45;
+    font-weight: 500;
+  }
+  .about-hero-cta {
+    min-height: 34px;
+    padding: .48rem .95rem;
+    font-size: .68rem;
+    border-radius: 6px;
+    background: #176332;
+    color: #fff;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
   }
 }
 
@@ -160,13 +211,6 @@
   gap: 2.75rem;
   max-width: 1240px;
   margin: 0 auto;
-}
-
-@media (max-width: 960px) {
-  .about-drives-us-grid {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
 }
 
 .about-drive-card {
@@ -235,6 +279,117 @@
   pointer-events: none;
 }
 
+@media (max-width: 960px) {
+  .about-drives-us-section {
+    padding: 2.25rem 0 2.5rem;
+  }
+  .about-drives-us-header {
+    margin-bottom: 1.1rem;
+  }
+  .about-drives-us-title {
+    font-size: 1.35rem;
+  }
+  .about-drives-us-line {
+    width: 32px;
+    height: 3px;
+  }
+  .about-drives-us-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .about-drive-card {
+    padding: 10px 9px 8px;
+    border-radius: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  }
+  .about-drive-icon-wrap {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+  }
+  .about-drive-icon-wrap svg {
+    width: 16px;
+    height: 16px;
+  }
+  .about-drive-heading {
+    font-size: 0.82rem;
+    font-weight: 800;
+    margin-bottom: 2px;
+  }
+  .about-drive-text {
+    font-size: 0.62rem;
+    line-height: 1.35;
+    color: #52635a;
+  }
+  .about-drive-leaf-dec {
+    width: 18px;
+    height: 18px;
+    right: 4px;
+    bottom: 4px;
+    opacity: 0.2;
+  }
+  .about-drive-leaf-dec svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .about-drives-us-section {
+    padding: 1.75rem 0 2rem;
+  }
+  .about-drives-us-header {
+    margin-bottom: 0.9rem;
+  }
+  .about-drives-us-title {
+    font-size: 1.2rem;
+  }
+  .about-drives-us-line {
+    width: 28px;
+    height: 2.5px;
+  }
+  .about-drives-us-grid {
+    gap: 6px;
+  }
+  .about-drive-card {
+    padding: 8px 7px 7px;
+    border-radius: 10px;
+    gap: 5px;
+  }
+  .about-drive-icon-wrap {
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+  }
+  .about-drive-icon-wrap svg {
+    width: 14px;
+    height: 14px;
+  }
+  .about-drive-heading {
+    font-size: 0.76rem;
+    margin-bottom: 2px;
+  }
+  .about-drive-text {
+    font-size: 0.58rem;
+    line-height: 1.3;
+  }
+  .about-drive-leaf-dec {
+    width: 15px;
+    height: 15px;
+    right: 3px;
+    bottom: 3px;
+    opacity: 0.18;
+  }
+  .about-drive-leaf-dec svg {
+    width: 15px;
+    height: 15px;
+  }
+}
+
 /* --------------------------------------------------------------------------
    3. Our Core Values
    -------------------------------------------------------------------------- */
@@ -265,20 +420,6 @@
   gap: 1.75rem;
   max-width: 1240px;
   margin: 0 auto;
-}
-
-@media (max-width: 1100px) {
-  .about-values-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.75rem;
-  }
-}
-
-@media (max-width: 600px) {
-  .about-values-grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
 }
 
 .about-value-card {
@@ -329,6 +470,97 @@
   color: #556B5C;
   font-weight: 500;
   margin: 0;
+}
+
+@media (max-width: 1100px) {
+  .about-values-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 960px) {
+  .about-values-section {
+    padding: 2.25rem 0 2.5rem;
+  }
+  .about-values-header {
+    margin-bottom: 1.1rem;
+  }
+  .about-values-title {
+    font-size: 1.35rem;
+    gap: 0.4rem;
+  }
+  .about-values-title svg {
+    width: 22px;
+    height: 22px;
+  }
+  .about-values-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .about-value-card {
+    padding: 10px 8px 8px;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  }
+  .about-value-icon-box {
+    width: 28px;
+    height: 28px;
+    margin-bottom: 5px;
+  }
+  .about-value-icon-box svg {
+    width: 20px;
+    height: 20px;
+  }
+  .about-value-heading {
+    font-size: 0.8rem;
+    font-weight: 800;
+    margin-bottom: 3px;
+  }
+  .about-value-text {
+    font-size: 0.6rem;
+    line-height: 1.3;
+  }
+}
+
+@media (max-width: 480px) {
+  .about-values-section {
+    padding: 1.5rem 0 1.75rem;
+  }
+  .about-values-header {
+    margin-bottom: 0.85rem;
+  }
+  .about-values-title {
+    font-size: 1.15rem;
+  }
+  .about-values-title svg {
+    width: 16px;
+    height: 16px;
+  }
+  .about-values-grid {
+    gap: 6px;
+  }
+  .about-value-card {
+    padding: 8px 6px 7px;
+    border-radius: 8px;
+  }
+  .about-value-icon-box {
+    width: 24px;
+    height: 24px;
+    margin-bottom: 4px;
+  }
+  .about-value-icon-box svg {
+    width: 17px;
+    height: 17px;
+  }
+  .about-value-heading {
+    font-size: 0.72rem;
+    margin-bottom: 2px;
+  }
+  .about-value-text {
+    font-size: 0.54rem;
+    line-height: 1.25;
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -659,13 +891,86 @@
 
 @media (max-width: 768px) {
   .about-banner-section {
-    padding: 3.5rem 0;
+    padding: 2.25rem 0 2.5rem;
   }
   
   .about-banner-container {
     flex-direction: column;
     align-items: flex-start;
-    gap: 2rem;
+    gap: 1.25rem;
+    padding: 0 1.1rem;
+  }
+
+  .about-banner-left {
+    gap: 0.75rem;
+    max-width: 100%;
+  }
+
+  .about-banner-bar {
+    width: 3px;
+    border-radius: 2px;
+  }
+
+  .about-banner-title {
+    font-size: 1.25rem;
+    line-height: 1.3;
+  }
+
+  .about-banner-br {
+    display: none;
+  }
+
+  .about-banner-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    flex-wrap: nowrap;
+  }
+
+  .about-banner-btn-primary {
+    padding: 0.5rem 1.05rem;
+    font-size: 0.78rem;
+    border-radius: 20px;
+    height: 36px;
+    gap: 0.35rem;
+    white-space: nowrap;
+  }
+
+  .about-banner-btn-primary svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .about-banner-btn-secondary {
+    padding: 0.5rem 1.05rem;
+    font-size: 0.78rem;
+    border-radius: 20px;
+    height: 36px;
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 400px) {
+  .about-banner-section {
+    padding: 1.85rem 0 2rem;
+  }
+
+  .about-banner-title {
+    font-size: 1.1rem;
+    line-height: 1.28;
+  }
+
+  .about-banner-actions {
+    gap: 7px;
+  }
+
+  .about-banner-btn-primary,
+  .about-banner-btn-secondary {
+    padding: 0.45rem 0.85rem;
+    font-size: 0.72rem;
+    height: 32px;
   }
 }
 
@@ -966,6 +1271,19 @@
   .about-garden-stamp-icon {
     width: 34px;
     height: 34px;
+  }
+}
+
+@media (max-width: 440px) {
+  .about-garden-arch-item.arch-left {
+    height: 280px;
+  }
+  .about-garden-arch-item.arch-right-top,
+  .about-garden-arch-item.arch-right-bottom {
+    height: 135px;
+  }
+  .about-garden-title {
+    font-size: 1.65rem;
   }
 }
 
