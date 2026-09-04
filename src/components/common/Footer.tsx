@@ -66,7 +66,7 @@ export const Footer: React.FC = () => {
             <ul className="AgriEra-footer-links-list">
               <li><Link to="/about" className="AgriEra-footer-link">About Us</Link></li>
               <li><Link to="/about#mission" className="AgriEra-footer-link">Our Mission</Link></li>
-              <li><Link to="/about#careers" className="AgriEra-footer-link">Careers</Link></li>
+              {/* <li><Link to="/about#careers" className="AgriEra-footer-link">Careers</Link></li> */}
               <li><Link to="/privacy" className="AgriEra-footer-link">Privacy Policy</Link></li>
               <li><Link to="/terms" className="AgriEra-footer-link">Terms & Conditions</Link></li>
             </ul>
@@ -101,10 +101,10 @@ export const Footer: React.FC = () => {
             <h4 className="AgriEra-footer-col-title">Resources</h4>
             <ul className="AgriEra-footer-links-list">
               <li><Link to="/about#blog" className="AgriEra-footer-link">Blog</Link></li>
-              <li><Link to="/about#faqs" className="AgriEra-footer-link">FAQs</Link></li>
+              <li><Link to="/faq" className="AgriEra-footer-link">FAQs</Link></li>
               <li><Link to="/shipping" className="AgriEra-footer-link">Shipping Policy</Link></li>
               <li><Link to="/returns" className="AgriEra-footer-link">Return Policy</Link></li>
-              <li><Link to="/dashboard?tab=orders" className="AgriEra-footer-link">Track Order</Link></li>
+              {/* <li><Link to="/dashboard?tab=orders" className="AgriEra-footer-link">Track Order</Link></li> */}
             </ul>
           </div>
 

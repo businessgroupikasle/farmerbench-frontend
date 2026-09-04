@@ -179,10 +179,10 @@ export const Navbar: React.FC = () => {
               Contact Us
             </Link>
 
-            {/* Right Action Group: My Account & Cart matching reference image */}
+            {/* Right Action Group: Cart first, then My Account */}
             <div className="agriflow-header-actions">
               {/* Account Widget */}
-              <div ref={userMenuRef} style={{ position: 'relative' }}>
+              <div ref={userMenuRef} className="agriflow-account-widget" style={{ position: 'relative' }}>
                 <button
                   onClick={() => {
                     if (isAuthenticated && user) {
@@ -274,7 +274,7 @@ export const Navbar: React.FC = () => {
             </Link>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              style={{ background: 'transparent', border: 'none', color: '#ffffff', cursor: 'pointer' }}
+              style={{ background: 'transparent', border: 'none', color: '#294337', cursor: 'pointer' }}
               aria-label="Open mobile menu"
             >
               {isMobileMenuOpen ? <X size={26} /> : <Menu size={26} />}

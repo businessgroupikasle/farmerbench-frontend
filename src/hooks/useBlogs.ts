@@ -17,8 +17,9 @@ export const useBlogs = (params?: BlogQueryParams) => {
       const res = await blogService.getBlogs(params);
       return res.data || { blogs: [], total: 0, page: 1, totalPages: 1 };
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-    refetchOnWindowFocus: false,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
     retry: false,
   });
 };

@@ -27,6 +27,10 @@ import { BlogPage } from './pages/BlogPage';
 import { BlogDetailPage } from './pages/BlogDetailPage';
 import { LoginPage } from './pages/LoginPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { TermsPage } from './pages/TermsPage';
+import { ShippingPolicyPage } from './pages/ShippingPolicyPage';
+import { ReturnPolicyPage } from './pages/ReturnPolicyPage';
+import { FaqPage } from './pages/FaqPage';
 import { useSocketSync } from './socket';
 
 const AppContent: React.FC = () => {
@@ -61,6 +65,11 @@ const AppContent: React.FC = () => {
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:idOrSlug" element={<BlogDetailPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/shipping" element={<ShippingPolicyPage />} />
+          <Route path="/returns" element={<ReturnPolicyPage />} />
+          <Route path="/faq" element={<FaqPage />} />
+          <Route path="/faqs" element={<FaqPage />} />
           <Route path="/catalog" element={<Navigate to="/products" replace />} />
           <Route path="/shop" element={<Navigate to="/products" replace />} />
           <Route path="/product/:idOrSlug" element={<div className="container" style={{ padding: '2rem 1.5rem' }}><ProductDetailPage /></div>} />

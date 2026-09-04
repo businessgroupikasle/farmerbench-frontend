@@ -1,137 +1,84 @@
 import React from 'react';
+import { Calendar, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { User, Calendar } from 'lucide-react';
-import aerialImg from '../../assets/vineyard-hills.jpg';
-import wheatImg from '../../assets/wheat-sunburst.jpg';
-import pastureImg from '../../assets/farming-practices.jpg';
+import { useBlogs } from '../../hooks/useBlogs';
+import { getUploadUrl } from '../../utils/image';
+import fallbackImage from '../../assets/wheat-sunburst.jpg';
+
+const formatBlogDate = (date: string) => {
+  if (!date) return 'Recently published';
+  return new Date(date).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+};
 
 export const HomeLatestNews: React.FC = () => {
+  const { data, isLoading } = useBlogs({ status: 'PUBLISHED', sortBy: 'newest', limit: 5 });
+  const posts = data?.blogs || [];
+  const featuredPosts = posts.slice(0, 2);
+  const compactPosts = posts.slice(2, 5);
+
+  if (!isLoading && posts.length === 0) return null;
+
   return (
-    <section id="news" className="agriflow-news-section">
+    <section id="news" className="agriflow-news-section" aria-labelledby="home-latest-news-title">
       <div className="container">
-        {/* Section Header */}
         <div className="agriflow-news-header">
-          <h2 className="agriflow-news-title">Our Latest News</h2>
-          <Link to="/blog" className="agriflow-news-btn-more">
-            More Blogs
-          </Link>
+          <h2 id="home-latest-news-title" className="agriflow-news-title">Our Latest News</h2>
+          <Link to="/blog" className="agriflow-news-btn-more">More Blogs</Link>
         </div>
 
-        {/* 3-Column News Layout */}
-        <div className="agriflow-news-grid">
-          {/* Card 1: Agricultural (Featured) */}
-          <div className="agriflow-featured-news-card">
-            <div className="agriflow-news-img-box">
-              <img src={aerialImg} alt="Crop Yields" />
-              <span className="agriflow-news-badge">AGRICULTURAL</span>
-            </div>
-
-            <div className="agriflow-news-meta">
-              <span className="agriflow-news-meta-item">
-                <User size={14} style={{ color: '#5D7A68' }} /> By Ellan John
-              </span>
-              <span className="agriflow-news-meta-item">
-                <Calendar size={14} style={{ color: '#5D7A68' }} /> April 29, 2024
-              </span>
-            </div>
-
-            <h3 className="agriflow-news-heading">
-              Expert Tips for Maximizing Crop Yields
-            </h3>
-
-            <Link to="/blog/1" className="agriflow-news-btn-read">
-              Read More
-            </Link>
+        {isLoading ? (
+          <div className="agriflow-news-loading" aria-label="Loading latest articles">
+            {Array.from({ length: 3 }).map((_, index) => <span key={index} />)}
           </div>
+        ) : (
+          <div className="agriflow-news-grid">
+            {featuredPosts.map((post) => {
+              const href = `/blog/${post.slug || post.id}`;
+              const image = getUploadUrl(post.featuredImage, fallbackImage);
+              return (
+                <article className="agriflow-featured-news-card" key={post.id}>
+                  <Link to={href} className="agriflow-news-img-box" aria-label={`Read ${post.title}`}>
+                    <img src={image} alt={post.title} loading="lazy" onError={(event) => { event.currentTarget.src = fallbackImage; }} />
+                    <span className="agriflow-news-badge">{post.category || 'Agriculture'}</span>
+                  </Link>
+                  <div className="agriflow-news-meta">
+                    <span className="agriflow-news-meta-item"><User size={14} /> By {post.author || 'Agri Expert'}</span>
+                    <span className="agriflow-news-meta-item"><Calendar size={14} /> {formatBlogDate(post.publishedAt || post.createdAt)}</span>
+                  </div>
+                  <h3 className="agriflow-news-heading"><Link to={href}>{post.title}</Link></h3>
+                  <Link to={href} className="agriflow-news-btn-read">Read More</Link>
+                </article>
+              );
+            })}
 
-          {/* Card 2: Farming (Featured) */}
-          <div className="agriflow-featured-news-card">
-            <div className="agriflow-news-img-box">
-              <img src={wheatImg} alt="Sustainable Farming" />
-              <span className="agriflow-news-badge">FARMING</span>
-            </div>
-
-            <div className="agriflow-news-meta">
-              <span className="agriflow-news-meta-item">
-                <User size={14} style={{ color: '#5D7A68' }} /> By Max Wills
-              </span>
-              <span className="agriflow-news-meta-item">
-                <Calendar size={14} style={{ color: '#5D7A68' }} /> April 29, 2024
-              </span>
-            </div>
-
-            <h3 className="agriflow-news-heading">
-              Practices and Benefits of Sustainable Farming
-            </h3>
-
-            <Link to="/blog/2" className="agriflow-news-btn-read">
-              Read More
-            </Link>
+            {compactPosts.length > 0 && (
+              <div className="agriflow-news-column-stacked">
+                {compactPosts.map((post) => {
+                  const href = `/blog/${post.slug || post.id}`;
+                  const image = getUploadUrl(post.featuredImage, fallbackImage);
+                  return (
+                    <Link to={href} className="agriflow-news-compact-item" key={post.id}>
+                      <div className="agriflow-news-compact-img-wrap">
+                        <img src={image} alt={post.title} loading="lazy" onError={(event) => { event.currentTarget.src = fallbackImage; }} />
+                      </div>
+                      <div className="agriflow-news-compact-content">
+                        <div className="agriflow-news-meta">
+                          <span className="agriflow-news-meta-item"><User size={13} /> By {post.author || 'Agri Expert'}</span>
+                          <span className="agriflow-news-meta-item"><Calendar size={13} /> {formatBlogDate(post.publishedAt || post.createdAt)}</span>
+                        </div>
+                        <h4 className="agriflow-news-compact-heading">{post.title}</h4>
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
           </div>
-
-          {/* Column 3: Stacked Compact News List */}
-          <div className="agriflow-news-column-stacked">
-            {/* Stacked Item 1 */}
-            <Link to="/blog/1" className="agriflow-news-compact-item">
-              <div className="agriflow-news-compact-img-wrap">
-                <img src={aerialImg} alt="Crop Yields" />
-              </div>
-              <div className="agriflow-news-compact-content">
-                <div className="agriflow-news-meta">
-                  <span className="agriflow-news-meta-item">
-                    <User size={13} /> By Ellan John
-                  </span>
-                  <span className="agriflow-news-meta-item">
-                    <Calendar size={13} /> April 29, 2024
-                  </span>
-                </div>
-                <h4 className="agriflow-news-compact-heading">
-                  Expert Tips for Maximizing Crop Yields
-                </h4>
-              </div>
-            </Link>
-
-            {/* Stacked Item 2 */}
-            <Link to="/blog/2" className="agriflow-news-compact-item">
-              <div className="agriflow-news-compact-img-wrap">
-                <img src={wheatImg} alt="Sustainable Farming" />
-              </div>
-              <div className="agriflow-news-compact-content">
-                <div className="agriflow-news-meta">
-                  <span className="agriflow-news-meta-item">
-                    <User size={13} /> By Max Wills
-                  </span>
-                  <span className="agriflow-news-meta-item">
-                    <Calendar size={13} /> April 29, 2024
-                  </span>
-                </div>
-                <h4 className="agriflow-news-compact-heading">
-                  Practices and Benefits of Sustainable Farming
-                </h4>
-              </div>
-            </Link>
-
-            {/* Stacked Item 3 */}
-            <Link to="/blog/3" className="agriflow-news-compact-item">
-              <div className="agriflow-news-compact-img-wrap">
-                <img src={pastureImg} alt="Livestock Health" />
-              </div>
-              <div className="agriflow-news-compact-content">
-                <div className="agriflow-news-meta">
-                  <span className="agriflow-news-meta-item">
-                    <User size={13} /> By Sam Andre
-                  </span>
-                  <span className="agriflow-news-meta-item">
-                    <Calendar size={13} /> April 29, 2024
-                  </span>
-                </div>
-                <h4 className="agriflow-news-compact-heading">
-                  Essential Guidelines for Livestock Health
-                </h4>
-              </div>
-            </Link>
-          </div>
-        </div>
+        )}
       </div>
     </section>
   );
