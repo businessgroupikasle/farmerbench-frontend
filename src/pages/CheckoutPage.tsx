@@ -188,7 +188,10 @@ export const CheckoutPage: React.FC = () => {
         items: items.map((it) => ({
           productId: it.productId,
           quantity: it.quantity,
-          variantId: it.selectedAttributes?.variantId || it.selectedAttributes?.sku,
+          // Only submit a real database variant id. `sku` can be a display-only
+          // value generated for legacy pack-size products and must not be validated
+          // by the API as a persisted variant.
+          variantId: it.selectedAttributes?.variantId,
           selectedAttributes: it.selectedAttributes
             ? { packSize: it.selectedAttributes.packSize }
             : undefined,

@@ -6,6 +6,7 @@ interface FilterState {
   inStockOnly: boolean;
   setSearch: (search: string | undefined) => void;
   setCategory: (category: string | undefined) => void;
+  setSubcategory: (subcategoryId: string | undefined) => void;
   setPriceRange: (minPrice?: number, maxPrice?: number) => void;
   setMinRating: (minRating?: number) => void;
   setSortBy: (sortBy: ProductQueryInput['sortBy']) => void;
@@ -21,6 +22,7 @@ const defaultFilters: ProductQueryInput = {
   limit: 12,
   search: '',
   category: undefined,
+  subcategoryId: undefined,
   minPrice: undefined,
   maxPrice: undefined,
   minRating: undefined,
@@ -39,8 +41,11 @@ export const useFilterStore = create<FilterState>((set) => ({
 
   setCategory: (category) =>
     set((state) => ({
-      filters: { ...state.filters, category: category || undefined, page: 1 },
+      filters: { ...state.filters, category: category || undefined, subcategoryId: undefined, page: 1 },
     })),
+
+  setSubcategory: (subcategoryId) =>
+    set((state) => ({ filters: { ...state.filters, subcategoryId, page: 1 } })),
 
   setPriceRange: (minPrice, maxPrice) =>
     set((state) => ({

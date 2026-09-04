@@ -145,7 +145,8 @@ export const ProductDetailPage: React.FC = () => {
       ? `GL-GB-${product.slug.slice(0, 6).toUpperCase().replace(/[^A-Z0-9]/g, '')}-${size.replace(/[^A-Z0-9]/g, '').toUpperCase()}`
       : `GL-GB-${product.id.slice(0, 6).toUpperCase()}-${size.replace(/[^A-Z0-9]/g, '').toUpperCase()}`;
 
-    return { label: size, mrp, sellingPrice, stock: stockCount, sku, variantId: sku };
+    // This is a legacy pack-size option, not a persisted database variant.
+    return { label: size, mrp, sellingPrice, stock: stockCount, sku, variantId: undefined };
   };
 
   const selectedVariant = getPackSizeVariant(selectedPackSize);

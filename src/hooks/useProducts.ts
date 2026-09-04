@@ -56,6 +56,13 @@ export const useProductReviews = (idOrSlug: string | undefined) => {
   });
 };
 
+export const useAdminReviews = () => useQuery({
+  queryKey: ['reviews', 'admin'],
+  queryFn: async () => (await productService.getAllReviews()).data,
+  staleTime: 15_000,
+  refetchOnMount: 'always',
+});
+
 export const useProductMutations = () => {
   const queryClient = useQueryClient();
   const { addToast } = useUIStore();
@@ -105,6 +112,7 @@ export const useProductMutations = () => {
       queryClient.invalidateQueries({ queryKey: ['product-reviews', variables.productId] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['product'] });
+      queryClient.invalidateQueries({ queryKey: ['reviews', 'admin'] });
     },
     onError: (error: Error) => {
       addToast({ type: 'error', message: error.message });
@@ -125,6 +133,7 @@ export const useProductMutations = () => {
       queryClient.invalidateQueries({ queryKey: ['product-reviews', variables.productId] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['product'] });
+      queryClient.invalidateQueries({ queryKey: ['reviews', 'admin'] });
       addToast({ type: 'success', message: 'Review updated successfully!' });
     },
     onError: (error: Error) => {
@@ -144,6 +153,7 @@ export const useProductMutations = () => {
       queryClient.invalidateQueries({ queryKey: ['product-reviews', variables.productId] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['product'] });
+      queryClient.invalidateQueries({ queryKey: ['reviews', 'admin'] });
       addToast({ type: 'success', message: 'Review deleted successfully' });
     },
     onError: (error: Error) => {

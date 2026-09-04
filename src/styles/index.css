@@ -438,3 +438,13 @@ img, video {
 .animate-pulse-subtle {
   animation: pulseSubtle 2s infinite ease-in-out;
 }
+.fb-hero-carousel { position: relative; overflow: hidden; }
+.fb-hero-slide { position: absolute; inset: 0; z-index: 0; opacity: 0; pointer-events: none; transition: opacity .55s ease; }
+.fb-hero-slide.active { position: relative; z-index: 1; opacity: 1; pointer-events: auto; }
+.fb-hero-nav { position: absolute; z-index: 5; top: 50%; display: grid; place-items: center; width: 42px; height: 42px; padding: 0; border: 1px solid rgba(255,255,255,.6); border-radius: 50%; background: rgba(255,255,255,.9); color: #17492b; cursor: pointer; transform: translateY(-50%); box-shadow: 0 4px 14px rgba(0,0,0,.12); }
+.fb-hero-nav.prev { left: 20px; } .fb-hero-nav.next { right: 20px; }
+.fb-hero-dots { position: absolute; z-index: 6; bottom: 16px; left: 50%; display: flex; gap: 7px; transform: translateX(-50%); }
+.fb-hero-dots button { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 50%; background: rgba(255,255,255,.65); cursor: pointer; }
+.fb-hero-dots button.active { width: 24px; border-radius: 999px; background: #fff; }
+@media (max-width: 700px) { .fb-hero-nav { display: none; } }
+@media (prefers-reduced-motion: reduce) { .fb-hero-slide { transition: none; } }

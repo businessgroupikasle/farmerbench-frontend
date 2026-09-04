@@ -18,10 +18,8 @@ import {
   Briefcase,
   Stethoscope,
   CloudRain,
-  CalendarDays,
 } from 'lucide-react';
 import { ServicesHero } from '../components/services/ServicesHero';
-import { ServicesHighlights } from '../components/services/ServicesHighlights';
 import { ServicesFarmVisit } from '../components/services/ServicesFarmVisit';
 import { ServicesCTA } from '../components/services/ServicesCTA';
 import './ServicesPage.css';
@@ -53,34 +51,29 @@ export const ServicesPage: React.FC = () => {
 
   const services: ServiceItem[] = [
     {
-      id: 'farm-development',
-      tag: 'Farm Engineering',
-      title: 'Farm Development',
-      description:
-        'Turnkey farm planning, precision land grading, soil enrichment, boundary fencing, road access, and structural farm layout design.',
-      icon: <Tractor size={22} />,
-      image: practicesImg,
-      benefits: ['Topography mapping & soil grading', 'Perimeter fencing & farm roads', 'Complete infrastructure setup'],
+      id: 'smart-advisory', tag: 'Advisory', title: 'Smart Advisory',
+      description: 'Practical agronomy guidance tailored to crops, soil, season, and local farm conditions.',
+      icon: <Stethoscope size={22} />, image: monitoringImg, benefits: ['Smart Advisory'],
     },
     {
       id: 'well-development',
       tag: 'Water Resources',
-      title: 'Well Development',
+      title: 'Well Services',
       description:
         'Hydro-geological survey, borewell drilling, open well deepening, groundwater recharge structures, and motor pump sizing.',
       icon: <Droplets size={22} />,
       image: heroBgImg,
-      benefits: ['Geophysical groundwater point location', 'Rainwater harvesting well recharge', 'Optimal pump efficiency calculation'],
+      benefits: ['Well Digging', 'Well Alteration Work'],
     },
     {
       id: 'drip-irrigation',
       tag: 'Water Management',
-      title: 'Drip Irrigation',
+      title: 'Irrigation',
       description:
         'Precision micro-irrigation, inline/online dripper networks, automated fertigation tanks, and sand/screen filtration systems.',
       icon: <CloudRain size={22} />,
       image: irrigationImg,
-      benefits: ['Conserves water up to 50%', 'Direct root-zone nutrient delivery', 'Automated timer & solenoid valve setup'],
+      benefits: ['Drip Irrigation Setup', 'Irrigation Automation'],
     },
     {
       id: 'farm-consultancy',
@@ -90,27 +83,17 @@ export const ServicesPage: React.FC = () => {
         'Dedicated agronomist farm visits, soil-crop suitability analysis, organic crop nutrition planning, and high-yield profit roadmaps.',
       icon: <Briefcase size={22} />,
       image: sustainableImg,
-      benefits: ['Expert crop selection & spacing', 'Cost-benefit financial modeling', 'End-to-end harvest support'],
+      benefits: ['Organic Farming Consultancy'],
     },
     {
-      id: 'crop-doctor',
-      tag: 'Crop Diagnostics',
-      title: 'Crop Doctor',
-      description:
-        'Rapid pest, insect, and fungal disease diagnosis with instant bio-pesticide and curative treatment prescriptions to save crops.',
-      icon: <Stethoscope size={22} />,
-      image: monitoringImg,
-      benefits: ['AI & Agronomist leaf pest identification', 'Immediate bio-spray dosage advice', 'Preventive fungal barrier protocols'],
+      id: 'farm-development', tag: 'Farm Engineering', title: 'Farm Development',
+      description: 'End-to-end planning and execution for productive, resilient farms.',
+      icon: <Tractor size={22} />, image: practicesImg, benefits: ['Plantation & Farm Development'],
     },
     {
-      id: 'crop-calendar',
-      tag: 'Season Planning',
-      title: 'Crop Calendar',
-      description:
-        'Custom stage-by-stage sowing, vegetative growth, flowering, irrigation, and harvest timeline tailored to your local regional climate.',
-      icon: <CalendarDays size={22} />,
-      image: organicImg,
-      benefits: ['Monthly activity schedule & alerts', 'Timely fertilizer & pesticide sprays', 'Weather-forecast aligned operations'],
+      id: 'labour', tag: 'Farm Workforce', title: 'Labour',
+      description: 'Connect with suitable agricultural workers for seasonal and field operations.',
+      icon: <Briefcase size={22} />, image: organicImg, benefits: ['Farm Labour Connect'],
     },
   ];
 
@@ -133,10 +116,7 @@ export const ServicesPage: React.FC = () => {
         onTalkToExpert={handleOpenExpertModal}
       />
 
-      {/* 2. Key Highlights & Trust Stats Strip (10,000+ Farmers, 50+ Experts, 25+ Specialities, Tamil Nadu & PAN India) */}
-      <ServicesHighlights />
-
-      {/* 3. Services Offerings Grid */}
+      {/* Services Offerings Grid */}
       <section className="services-catalog-section">
         <div className="container">
           <div className="services-section-header">
@@ -390,12 +370,9 @@ export const ServicesPage: React.FC = () => {
                       onChange={(e) => setSelectedService(e.target.value)}
                       className="services-modal-input"
                     >
-                      <option value="Soil Health & Nutrient Audit">Soil Health & Nutrient Audit</option>
-                      <option value="Precision Crop Protection & Pest Shield">Precision Crop Protection & Pest Shield</option>
-                      <option value="Smart Drip & Irrigation Optimization">Smart Drip & Irrigation Optimization</option>
-                      <option value="Organic Transition & Certification">Organic Transition & Certification</option>
-                      <option value="Yield Maximization & Seed Consulting">Yield Maximization & Seed Consulting</option>
-                      <option value="Farm Mechanization & Drone Spraying">Farm Mechanization & Drone Spraying</option>
+                      {services.flatMap((group) => group.benefits).map((service) => (
+                        <option key={service} value={service}>{service}</option>
+                      ))}
                     </select>
                   </div>
 

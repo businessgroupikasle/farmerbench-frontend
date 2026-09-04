@@ -9,6 +9,7 @@ export const ProductFilters: React.FC = () => {
     filters,
     inStockOnly,
     setCategory,
+    setSubcategory,
     setPriceRange,
     setMinRating,
     setSortBy,
@@ -35,6 +36,7 @@ export const ProductFilters: React.FC = () => {
   // Count active filters
   const activeFilterCount = [
     filters.category,
+    filters.subcategoryId,
     filters.minPrice !== undefined || filters.maxPrice !== undefined,
     filters.minRating !== undefined,
     filters.featured,
@@ -98,7 +100,7 @@ export const ProductFilters: React.FC = () => {
             <span>All Categories</span>
           </button>
 
-          {categories.map((cat) => {
+          {categories.filter((cat) => cat.isActive).map((cat) => {
             const isSelected = filters.category === cat.slug || filters.category === cat.id;
             return (
               <button
@@ -116,6 +118,24 @@ export const ProductFilters: React.FC = () => {
           })}
         </div>
       </div>
+
+      {filters.category && (() => {
+        const selected = categories.find((cat) => filters.category === cat.slug || filters.category === cat.id);
+        const children = (selected?.subcategories || []).filter((sub) => sub.isActive);
+        return children.length > 0 ? (
+          <div className="fb-filter-section">
+            <label className="fb-filter-section-title"><Layers size={15} /><span>Subcategories</span></label>
+            <div className="fb-filter-categories-list">
+              <button type="button" onClick={() => setSubcategory(undefined)} className={`fb-category-item-btn ${!filters.subcategoryId ? 'active' : ''}`}>All {selected?.name}</button>
+              {children.map((sub) => (
+                <button key={sub.id} type="button" onClick={() => setSubcategory(filters.subcategoryId === sub.id ? undefined : sub.id)} className={`fb-category-item-btn ${filters.subcategoryId === sub.id ? 'active' : ''}`}>
+                  <span className="fb-cat-name">{sub.name}</span><span className="fb-cat-count">{sub._count?.products ?? 0}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null;
+      })()}
 
       {/* 3. Price Range */}
       <div className="fb-filter-section">

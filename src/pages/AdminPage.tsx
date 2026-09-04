@@ -45,8 +45,9 @@ import {
   LogOut,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { useProducts, useProductMutations } from '../hooks/useProducts';
+import { useAdminReviews, useProducts, useProductMutations } from '../hooks/useProducts';
 import { useCategories, useCategoryMutations } from '../hooks/useCategories';
+import { useSubcategories, useSubcategoryMutations } from '../hooks/useSubcategories';
 import { useUIStore } from '../store/uiStore';
 import { getUploadUrl } from '../utils/image';
 import { uploadService } from '../services/upload.service';
@@ -59,6 +60,7 @@ import { useAdminOrders, useOrderMutations } from '../hooks/useOrders';
 import { useBlogs, useBlogMutations } from '../hooks/useBlogs';
 import { BlogPost } from '../types/blog';
 import { adminService, CouponRecord } from '../services/admin.service';
+import { HeroBannerManager } from '../components/admin/HeroBannerManager';
 
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
@@ -245,6 +247,7 @@ export const AdminPage: React.FC = () => {
     title: '',
     slug: '',
     categoryId: '',
+    subcategoryId: '',
     price: 520,
     discountPrice: 475,
     stock: 27,
@@ -295,6 +298,7 @@ export const AdminPage: React.FC = () => {
       title: '',
       slug: '',
       categoryId: dbCategories[0]?.id || '',
+      subcategoryId: '',
       price: 520,
       discountPrice: 475,
       stock: 27,
@@ -366,6 +370,7 @@ export const AdminPage: React.FC = () => {
       title: prod.title || prod.name,
       slug: prod.slug,
       categoryId: prod.categoryId || dbCategories[0]?.id || '',
+      subcategoryId: prod.subcategoryId || '',
       price: prod.price,
       discountPrice: prod.discountPrice || prod.price,
       stock: prod.stock,
@@ -466,9 +471,11 @@ export const AdminPage: React.FC = () => {
   // 2. Database-Driven Products & Categories (PostgreSQL Single Source of Truth)
   const { data: productsResponse } = useProducts({ limit: 100 });
   const { data: dbCategories = [] } = useCategories();
+  const { data: dbSubcategories = [] } = useSubcategories();
 
-  const { createProduct, updateProduct, deleteProduct } = useProductMutations();
-  const { createCategory, deleteCategory } = useCategoryMutations();
+  const { createProduct, updateProduct, deleteProduct, deleteReview } = useProductMutations();
+  const { createCategory, updateCategory } = useCategoryMutations();
+  const { createSubcategory, updateSubcategory, deleteSubcategory } = useSubcategoryMutations();
 
   const products = (productsResponse?.data || []).map((p: any) => ({
     id: p.id,
@@ -479,6 +486,8 @@ export const AdminPage: React.FC = () => {
     sku: p.slug ? ('SKU-' + p.slug.slice(0, 8).toUpperCase()) : ('SKU-' + p.id.slice(0, 6).toUpperCase()),
     category: p.category?.name || (typeof p.category === 'string' ? p.category : 'General'),
     categoryId: p.categoryId || p.category?.id,
+    subcategory: p.subcategory?.name || 'Unassigned',
+    subcategoryId: p.subcategoryId,
     price: p.price,
     discountPrice: p.discountPrice || p.price,
     stock: p.stock,
@@ -497,6 +506,9 @@ export const AdminPage: React.FC = () => {
     slug: c.slug,
     count: c._count?.products ?? 0,
     description: c.description || 'Certified biological & organic agricultural inputs.',
+    isActive: c.isActive,
+    sortOrder: c.sortOrder,
+    subcategories: c.subcategories || [],
     icon: c.name.toLowerCase().includes('pesticide') ? '🛡️' : c.name.toLowerCase().includes('fertilizer') ? '🌱' : c.name.toLowerCase().includes('seed') ? '🌾' : '🧪',
     imageUrl: c.imageUrl,
   }));
@@ -520,8 +532,9 @@ export const AdminPage: React.FC = () => {
   // 7. Experts
   const [experts, setExperts] = useState<any[]>([]);
 
-  // 8. Reviews
-  const [reviews, setReviews] = useState<any[]>([]);
+  // 8. Reviews (real user-submitted Review records only)
+  const { data: adminReviewsData } = useAdminReviews();
+  const reviews = adminReviewsData?.reviews || [];
 
   // 9. Blogs (Live Database-Driven CMS via useBlogs)
   const ADMIN_BLOGS_PARAM = { status: 'ALL' as const };
@@ -713,34 +726,6 @@ export const AdminPage: React.FC = () => {
     }
   };
 
-  // 11. Banners
-  const [banners] = useState([
-    {
-      id: 'ban-1',
-      title: 'AgriEra Pure Organic Bio Products',
-      placement: 'Homepage Hero Carousel',
-      status: 'Active',
-      link: '/products',
-      cta: 'Shop Now',
-    },
-    {
-      id: 'ban-2',
-      title: 'Expert On-Field Farm Inspection & Soil Audits',
-      placement: 'Services Page Banner',
-      status: 'Active',
-      link: '/services',
-      cta: 'Book Consultation',
-    },
-    {
-      id: 'ban-3',
-      title: 'Monsoon Crop Protection — Flat 20% OFF',
-      placement: 'Storefront Promo Bar',
-      status: 'Active',
-      link: '/products?category=bio-pesticides',
-      cta: 'Claim Discount',
-    },
-  ]);
-
   // 12. Settings State
   const [storeSettings, setStoreSettings] = useState({
     storeName: 'AgriEra Agricultural Commerce & Services',
@@ -804,16 +789,6 @@ export const AdminPage: React.FC = () => {
     } catch (err: any) {
       showToast(err.message || 'Failed to update stock');
     }
-  };
-
-  const handleApproveReview = (id: string) => {
-    setReviews((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'Approved' } : r)));
-    showToast('Review approved and published to store!');
-  };
-
-  const handleRejectReview = (id: string) => {
-    setReviews((prev) => prev.map((r) => (r.id === id ? { ...r, status: 'Rejected' } : r)));
-    showToast('Review marked as rejected.');
   };
 
   const handleDeleteProduct = async (id: string, name: string) => {
@@ -1121,7 +1096,7 @@ export const AdminPage: React.FC = () => {
                 <span>Reviews & Feedback</span>
               </div>
               <span className="admin-nav-badge badge-green">
-                {reviews.filter((r) => r.status === 'Pending').length}
+                {reviews.length}
               </span>
             </button>
             <button
@@ -1424,7 +1399,7 @@ export const AdminPage: React.FC = () => {
                 {/* Revenue Overview */}
                 <div className="admin-card">
                   <div className="admin-card-header">
-                    <div>
+                    <div className="admin-cat-content">
                       <h3 className="admin-card-title">Revenue Overview</h3>
                       <div className="admin-chart-legend-wrap" style={{ marginTop: '0.4rem' }}>
                         <div className="admin-chart-legend-item">
@@ -1576,9 +1551,9 @@ export const AdminPage: React.FC = () => {
                   <div className="admin-alert-card-item">
                     <div className="admin-alert-icon-box red"><Star size={20} /></div>
                     <div className="admin-alert-text-box">
-                      <span className="admin-alert-title">{reviews.filter((r) => r.status === 'Pending').length} Reviews Awaiting Approval</span>
+                      <span className="admin-alert-title">{reviews.length} User Product Reviews</span>
                       <button onClick={() => setActiveNav('Reviews & Feedback')} className="admin-alert-action-link" style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left' }}>
-                        Moderate Reviews →
+                        View Reviews →
                       </button>
                     </div>
                   </div>
@@ -1821,7 +1796,7 @@ export const AdminPage: React.FC = () => {
               {/* Filter Bar */}
               <div className="admin-filter-bar">
                 <div className="admin-filter-tabs">
-                  {['All', 'Fertilizers', 'Bio Stimulants', 'Bio Pesticides', 'Crop Nutrition'].map((cat) => (
+                  {['All', ...categories.map((category) => category.name)].map((cat) => (
                     <button
                       key={cat}
                       className={`admin-filter-tab-btn ${productCategoryFilter === cat ? 'active' : ''}`}
@@ -1844,6 +1819,7 @@ export const AdminPage: React.FC = () => {
                       <th>Product</th>
                       <th>SKU</th>
                       <th>Category</th>
+                      <th>Subcategory</th>
                       <th>Price</th>
                       <th>Discount</th>
                       <th>Stock Units</th>
@@ -1868,6 +1844,7 @@ export const AdminPage: React.FC = () => {
                             </div>
                           </div>
                         </td>
+                        <td style={{ color: '#475569' }}>{prod.subcategory}</td>
                         <td style={{ color: '#64748B', fontWeight: 600 }}>{prod.sku}</td>
                         <td>
                           <span style={{ backgroundColor: '#F1F5F9', color: '#334155', padding: '0.2rem 0.5rem', borderRadius: '5px', fontSize: '0.75rem', fontWeight: 600 }}>
@@ -1925,7 +1902,7 @@ export const AdminPage: React.FC = () => {
               <div className="admin-card-header">
                 <div>
                   <h2 className="admin-welcome-title" style={{ fontSize: '1.4rem' }}>Category Taxonomy</h2>
-                  <p className="admin-welcome-sub">Organize your store into agricultural inputs and crop protection segments.</p>
+                  <p className="admin-welcome-sub">Manage the database-backed Category → Subcategory hierarchy.</p>
                 </div>
                 <button onClick={() => setIsAddCategoryOpen(true)} className="admin-primary-btn">
                   <Plus size={16} /> Add Category
@@ -1944,13 +1921,44 @@ export const AdminPage: React.FC = () => {
                         /{cat.slug}
                       </div>
                       <p className="admin-cat-desc">{cat.description}</p>
+                      <div style={{ fontSize: '0.75rem', color: cat.isActive ? '#16A34A' : '#DC2626', fontWeight: 700 }}>
+                        {cat.isActive ? 'Active' : 'Inactive'} · Sort {cat.sortOrder}
+                      </div>
+                      <div className="admin-subcategory-list">
+                        {cat.subcategories.map((sub: any) => (
+                          <div key={sub.id} className="admin-subcategory-row">
+                            <span className="admin-subcategory-name" title={sub.name}>{sub.name} <small>({sub._count?.products ?? 0})</small> {sub.isActive ? '' : <em>inactive</em>}</span>
+                            <span className="admin-subcategory-actions">
+                              <button className="admin-icon-btn" title="Edit subcategory" onClick={async () => {
+                                const name = window.prompt('Subcategory name', sub.name)?.trim();
+                                if (!name) return;
+                                const sortOrder = Number(window.prompt('Sort order', String(sub.sortOrder)) ?? sub.sortOrder);
+                                await updateSubcategory({ id: sub.id, data: { name, sortOrder } });
+                              }}><Edit3 size={12} /></button>
+                              <button className="admin-icon-btn danger" title="Deactivate subcategory" onClick={() => deleteSubcategory(sub.id)}><Trash2 size={12} /></button>
+                            </span>
+                          </div>
+                        ))}
+                        <button className="admin-add-subcategory-btn" onClick={async () => {
+                          const name = window.prompt(`New subcategory under ${cat.name}`)?.trim();
+                          if (!name) return;
+                          await createSubcategory({ categoryId: cat.id, name, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''), sortOrder: cat.subcategories.length, isActive: true });
+                        }}><Plus size={12} /> Add Subcategory</button>
+                      </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '0.85rem', borderTop: '1px solid #F1F5F9' }}>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#334155' }}>
+                    <div className="admin-cat-footer">
+                      <span className="admin-cat-product-count">
                         {cat.count} Products
                       </span>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <div className="admin-cat-footer-actions">
+                        <button className="admin-mini-btn" onClick={async () => {
+                          const name = window.prompt('Category name', cat.name)?.trim();
+                          if (!name) return;
+                          const sortOrder = Number(window.prompt('Sort order', String(cat.sortOrder)) ?? cat.sortOrder);
+                          await updateCategory({ id: cat.id, data: { name, sortOrder, isActive: cat.isActive } });
+                        }}><Edit3 size={12} /> Edit</button>
+                        <button className="admin-mini-btn" onClick={() => updateCategory({ id: cat.id, data: { isActive: !cat.isActive } })}>{cat.isActive ? 'Deactivate' : 'Activate'}</button>
                         <button
                           className="admin-mini-btn"
                           onClick={() => {
@@ -1959,22 +1967,6 @@ export const AdminPage: React.FC = () => {
                           }}
                         >
                           View Items →
-                        </button>
-                        <button
-                          className="admin-action-btn delete"
-                          title="Delete Category"
-                          style={{ padding: '0.35rem 0.5rem' }}
-                          onClick={async () => {
-                            if (!window.confirm(`Are you sure you want to delete category "${cat.name}" from PostgreSQL?`)) return;
-                            try {
-                              await deleteCategory(cat.id);
-                              showToast(`Category "${cat.name}" deleted.`);
-                            } catch (err: any) {
-                              showToast(err.message || 'Failed to delete category');
-                            }
-                          }}
-                        >
-                          <Trash2 size={14} />
                         </button>
                       </div>
                     </div>
@@ -2528,61 +2520,52 @@ export const AdminPage: React.FC = () => {
                 </div>
               </div>
 
-              <div>
+              <div className="admin-review-list">
+                {reviews.length > 0 && (
+                  <div className="admin-review-table-head" aria-hidden="true">
+                    <span>Customer</span><span>Product</span><span>Rating</span><span>Review</span><span>Action</span>
+                  </div>
+                )}
                 {reviews.map((rev) => (
                   <div key={rev.id} className="admin-review-card-item">
                     {/* Reviewer */}
                     <div className="admin-reviewer-col">
-                      <img src={rev.avatar} alt={rev.reviewer} className="admin-reviewer-avatar" />
+                      <img src={getUploadUrl(rev.user?.avatarUrl, 'https://ui-avatars.com/api/?background=E8F5E9&color=166534&name=Farmer')} alt={rev.user?.name || 'Farmer'} className="admin-reviewer-avatar" />
                       <div>
-                        <div className="admin-reviewer-name">{rev.reviewer}</div>
-                        <div className="admin-reviewer-loc">{rev.location}</div>
-                        <div className="admin-reviewer-verified">✓ Verified Purchase</div>
+                        <div className="admin-reviewer-name">{rev.user?.name || 'Farmer'}</div>
+                        <div className="admin-reviewer-loc">{rev.user?.email || 'Registered customer'}</div>
+                        <div className="admin-reviewer-verified">User submitted review</div>
                       </div>
                     </div>
 
                     {/* Product */}
                     <div className="admin-review-prod-col">
-                      <img src={rev.productImg} alt={rev.product} className="admin-review-prod-thumb" />
-                      <span>{rev.product}</span>
+                      <img src={getUploadUrl(rev.product?.images?.[0], 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=200')} alt={rev.product?.title || 'Product'} className="admin-review-prod-thumb" />
+                      <span>{rev.product?.title || 'Unknown product'}</span>
                     </div>
 
                     {/* Rating & Crop info */}
                     <div>
-                      <div style={{ color: '#F59E0B', fontSize: '0.85rem', marginBottom: '0.2rem' }}>★★★★★</div>
-                      <div style={{ fontSize: '0.72rem', color: '#475569', fontWeight: 600 }}>Crop: {rev.crop}</div>
-                      <div style={{ fontSize: '0.68rem', color: '#64748B' }}>{rev.duration}</div>
+                      <span className="admin-review-mobile-label">Rating</span>
+                      <div style={{ color: '#F59E0B', fontSize: '0.85rem', marginBottom: '0.2rem' }}>{'★'.repeat(rev.rating)}{'☆'.repeat(5 - rev.rating)}</div>
+                      <div style={{ fontSize: '0.72rem', color: '#475569', fontWeight: 600 }}>{rev.rating}/5 rating</div>
+                      <div style={{ fontSize: '0.68rem', color: '#64748B' }}>{new Date(rev.createdAt).toLocaleDateString('en-IN')}</div>
                     </div>
 
                     {/* Field Photos */}
-                    <div className="admin-field-photos-wrap">
-                      {rev.photos?.map((ph: string, idx: number) => (
-                        <img key={idx} src={ph} alt="Crop proof" className="admin-field-photo-thumb" />
-                      ))}
-                    </div>
-
                     {/* Review Text */}
-                    <div className="admin-review-text-quote">"{rev.review}"</div>
+                    <div className="admin-review-text-quote"><span className="admin-review-mobile-label">Review</span>“{rev.comment}”</div>
 
                     {/* Action buttons */}
                     <div className="admin-review-actions">
-                      {rev.status === 'Approved' ? (
-                        <span style={{ color: '#15803D', fontWeight: 700, fontSize: '0.75rem' }}>✓ Approved</span>
-                      ) : rev.status === 'Rejected' ? (
-                        <span style={{ color: '#DC2626', fontWeight: 700, fontSize: '0.75rem' }}>✕ Rejected</span>
-                      ) : (
-                        <>
-                          <button onClick={() => handleApproveReview(rev.id)} className="admin-btn-approve">
-                            Approve
-                          </button>
-                          <button onClick={() => handleRejectReview(rev.id)} className="admin-btn-reject">
-                            Reject
-                          </button>
-                        </>
-                      )}
+                      <button onClick={async () => {
+                        if (!window.confirm('Delete this user review?')) return;
+                        await deleteReview({ reviewId: rev.id, productId: rev.productId });
+                      }} className="admin-btn-reject">Delete</button>
                     </div>
                   </div>
                 ))}
+                {reviews.length === 0 && <div className="admin-empty-state"><MessageSquareQuote size={28} /><p>No users have submitted product reviews yet.</p></div>}
               </div>
             </div>
           )}
@@ -2601,6 +2584,21 @@ export const AdminPage: React.FC = () => {
                   <Plus size={16} /> Write New Article
                 </button>
               </div>
+
+              <details className="hero-banner-guide blog-publishing-guide" open>
+                <summary><BookOpen size={17} /> Blog Publishing Guide</summary>
+                <div className="hero-banner-guide-grid">
+                  <div className="hero-guide-card"><strong>Featured image</strong><span>Recommended: 1200 × 630 px</span><span>Minimum: 800 × 420 px</span><small>Use a landscape WebP or JPG image under 1 MB.</small></div>
+                  <div className="hero-guide-card"><strong>Article title</strong><span>Recommended: 45–65 characters</span><span>Maximum: about 70 characters</span><small>Lead with the crop, problem, or benefit farmers search for.</small></div>
+                  <div className="hero-guide-card"><strong>Short excerpt</strong><span>Recommended: 120–160 characters</span><span>Use one or two clear sentences</span><small>This appears on blog cards and may be used in search results.</small></div>
+                  <div className="hero-guide-card"><strong>Article content</strong><span>Recommended: 800–1,500 words</span><span>Use short paragraphs and headings</span><small>Include practical steps, dosage cautions, and locally relevant advice.</small></div>
+                  <div className="hero-guide-card"><strong>Content images</strong><span>Recommended: 1200 × 800 px</span><span>Keep each image below 1 MB</span><small>Add an image only when it helps explain the farming guidance.</small></div>
+                  <div className="hero-guide-card"><strong>SEO title</strong><span>Recommended: 50–60 characters</span><span>Place the main keyword early</span><small>Example: Paddy Leaf Blast Control Guide | AgriEra.</small></div>
+                  <div className="hero-guide-card"><strong>Meta description</strong><span>Recommended: 140–160 characters</span><span>Summarize the exact reader benefit</span><small>Write a unique description for every article.</small></div>
+                  <div className="hero-guide-card"><strong>Slug and tags</strong><span>Slug: lowercase words with hyphens</span><span>Use 3–6 relevant tags</span><small>Example slug: paddy-leaf-blast-control.</small></div>
+                </div>
+                <div className="hero-guide-note"><strong>Before publishing:</strong> Check spelling, preview the complete article, verify image quality and links, add category/tags, complete SEO fields, and save as Draft when expert review is still required.</div>
+              </details>
 
               {/* Stats Strip */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
@@ -2818,33 +2816,7 @@ export const AdminPage: React.FC = () => {
               ================================================================ */}
           {activeNav === 'Banners' && (
             <div className="admin-card">
-              <div className="admin-card-header">
-                <div>
-                  <h2 className="admin-welcome-title" style={{ fontSize: '1.4rem' }}>Homepage & Promo Banners</h2>
-                  <p className="admin-welcome-sub">Control active marketing banners and promotional announcements on the consumer store.</p>
-                </div>
-                <button onClick={() => showToast('New promotional banner created!')} className="admin-primary-btn">
-                  <Plus size={16} /> Add Banner
-                </button>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                {banners.map((ban) => (
-                  <div key={ban.id} className="admin-card" style={{ border: '1px solid #E2E8F0', padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0F291B' }}>{ban.title}</div>
-                      <div style={{ fontSize: '0.8rem', color: '#64748B', marginTop: '0.2rem' }}>Placement: <strong>{ban.placement}</strong></div>
-                      <div style={{ fontSize: '0.75rem', color: '#16A34A', marginTop: '0.15rem' }}>Links to: {ban.link}</div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-                      <span className="admin-status-badge active-badge">{ban.status}</span>
-                      <button className="admin-mini-btn" onClick={() => showToast('Banner updated')}>
-                        Edit
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <HeroBannerManager />
             </div>
           )}
 
@@ -3166,6 +3138,7 @@ export const AdminPage: React.FC = () => {
                 const discountPrice = primaryVariant ? primaryVariant.sellingPrice : (Number(cmsForm.discountPrice) || price);
                 const stock = primaryVariant ? primaryVariant.stock : (Number(cmsForm.stock) || 27);
                 const categoryId = cmsForm.categoryId || dbCategories[0]?.id;
+                const subcategoryId = cmsForm.subcategoryId || null;
                 const description = cmsForm.description.trim() || 'Premium certified organic agricultural input.';
                 const images = cmsForm.images.filter((img: string) => Boolean(img.trim()));
                 const packSizes = variants.length > 0
@@ -3197,6 +3170,7 @@ export const AdminPage: React.FC = () => {
                       featured: cmsForm.featured,
                       images: images.length > 0 ? images : ['https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800'],
                       categoryId,
+                      subcategoryId,
                       attributes,
                     });
                     setIsAddProductOpen(false);
@@ -3214,6 +3188,7 @@ export const AdminPage: React.FC = () => {
                         featured: cmsForm.featured,
                         images: images.length > 0 ? images : selectedProduct.images,
                         categoryId,
+                        subcategoryId,
                         attributes,
                       },
                     });
@@ -3240,12 +3215,12 @@ export const AdminPage: React.FC = () => {
                       />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
                       <div className="admin-form-group">
                         <label className="admin-form-label">Category *</label>
                         <select
                           value={cmsForm.categoryId}
-                          onChange={(e) => setCmsForm({ ...cmsForm, categoryId: e.target.value })}
+                          onChange={(e) => setCmsForm({ ...cmsForm, categoryId: e.target.value, subcategoryId: '' })}
                           className="admin-form-select"
                           required
                         >
@@ -3254,6 +3229,14 @@ export const AdminPage: React.FC = () => {
                               {c.name}
                             </option>
                           ))}
+                        </select>
+                      </div>
+
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Subcategory</label>
+                        <select value={cmsForm.subcategoryId} onChange={(e) => setCmsForm({ ...cmsForm, subcategoryId: e.target.value })} className="admin-form-select">
+                          <option value="">Unassigned</option>
+                          {dbSubcategories.filter((sub) => sub.categoryId === cmsForm.categoryId && sub.isActive).map((sub) => <option key={sub.id} value={sub.id}>{sub.name}</option>)}
                         </select>
                       </div>
 
@@ -4143,6 +4126,8 @@ export const AdminPage: React.FC = () => {
                     slug,
                     description: desc || 'Certified sustainable agricultural category.',
                     imageUrl: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800',
+                    isActive: true,
+                    sortOrder: categories.length,
                   });
                   setIsAddCategoryOpen(false);
                   showToast(`Category "${name}" created and saved to PostgreSQL!`);

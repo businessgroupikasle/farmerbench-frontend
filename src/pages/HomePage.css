@@ -871,37 +871,57 @@
    -------------------------------------------------------------------------- */
 .agriflow-our-products-section {
   position: relative;
-  padding: 1.15rem 1.6rem 1.4rem;
-  border: 1px solid #e2e8e3;
-  border-radius: 13px;
+  padding: 3.6rem 0 3.2rem;
   background: #fff;
-  box-shadow: 0 3px 13px rgb(30 67 41 / 4%);
 }
 
 .agriflow-products-header {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  margin-bottom: .9rem;
+  margin-bottom: 1.45rem;
+  text-align: center;
+}
+.agriflow-products-header > span {
+  color: #E87722;
+  font-size: .65rem;
+  font-weight: 800;
+  letter-spacing: .08em;
 }
 .agriflow-products-header h2 {
-  margin: 0; color: #171f19; font-size: 1rem; font-weight: 700; letter-spacing: -.02em;
+  margin: .18rem 0 .55rem;
+  color: #17251E;
+  font-size: clamp(1.7rem, 2.5vw, 2.35rem);
+  font-weight: 800;
+  letter-spacing: -.045em;
 }
-.agriflow-products-header a { color: #16813c; font-size: .72rem; font-weight: 700; }
-.agriflow-products-header a:hover { text-decoration: underline; }
+.agriflow-products-header h2 strong { color: #F29B16; }
+.agriflow-products-header p { margin: 0; color: #748078; font-size: .78rem; }
 
-.agriflow-products-arrow {
-  position: absolute; z-index: 5; top: 44%; display: grid; width: 27px; height: 27px;
-  place-items: center; padding: 0; border: 1px solid #e0e7e1; border-radius: 50%;
-  background: #fff; color: #6d7870; box-shadow: 0 3px 8px rgb(26 56 36 / 8%);
+.agriflow-product-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .65rem;
+  margin-bottom: 2.15rem;
 }
-.agriflow-products-arrow--left { left: -13px; }
-.agriflow-products-arrow--right { right: -13px; }
+.agriflow-product-tabs button {
+  min-height: 34px;
+  padding: .45rem 1.05rem;
+  border: 1px solid #D9E0DA;
+  border-radius: 999px;
+  background: #fff;
+  color: #38453D;
+  font-size: .7rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+.agriflow-product-tabs button.active { border-color: #164F2B; background: #164F2B; color: #fff; }
 
 .agriflow-products-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1rem;
+  gap: 1.6rem 1.35rem;
 }
 
 .agriflow-product-item {
@@ -910,9 +930,9 @@
   min-width: 0;
   overflow: hidden;
   border: 1px solid #e1e8e2;
-  border-radius: 8px;
+  border-radius: 13px;
   background: #fff;
-  box-shadow: 0 2px 7px rgb(39 69 47 / 4%);
+  box-shadow: 0 4px 14px rgb(39 69 47 / 5%);
   cursor: pointer;
   transition: transform .2s ease, box-shadow .2s ease;
 }
@@ -921,53 +941,207 @@
 .agriflow-product-img-box {
   position: relative;
   width: 100%;
-  height: 145px;
+  height: 235px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
+  margin: 12px 12px 0;
+  width: calc(100% - 24px);
+  padding: 0;
+  overflow: hidden;
+  border-radius: 10px;
   background: linear-gradient(145deg, #fafcf9, #fff);
 }
 .agriflow-product-img-box img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 5px 6px rgb(0 0 0 / 9%));
+  object-fit: cover;
   transition: transform .25s ease;
 }
 .agriflow-product-item:hover .agriflow-product-img-box img { transform: scale(1.035); }
 .agriflow-product-discount {
-  position: absolute; top: 9px; right: 8px; padding: 3px 7px; border-radius: 3px;
-  background: #098432; color: #fff; font-size: .55rem; font-weight: 800;
+  position: absolute; top: 10px; left: 10px; padding: 4px 9px; border-radius: 999px;
+  background: #17632F; color: #fff; font-size: .58rem; font-weight: 800;
 }
-.agriflow-product-info { display: flex; flex: 1; flex-direction: column; padding: 8px 10px 10px; }
+.agriflow-product-info { display: flex; flex: 1; flex-direction: column; padding: 13px 14px 15px; }
+.agriflow-product-meta { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .45rem; color: #8A938D; font-size: .58rem; font-weight: 700; text-transform: uppercase; }
+.agriflow-product-meta span:last-child { display: inline-flex; align-items: center; gap: 2px; color: #EFAE12; }
 .agriflow-product-name {
-  min-height: 2.2em; margin: 0 0 2px; overflow: hidden; color: #17251e;
-  font-size: .74rem; font-weight: 700; line-height: 1.1;
+  min-height: 2.5em; margin: 0 0 5px; overflow: hidden; color: #17251e;
+  font-size: .82rem; font-weight: 800; line-height: 1.25;
 }
-.agriflow-product-pack { margin: 0 0 7px; color: #879087; font-size: .6rem; line-height: 1.2; }
-.agriflow-product-rating { display: flex; align-items: center; gap: 2px; min-height: 14px; margin-bottom: 6px; color: #f6b600; }
-.agriflow-product-rating span { margin-left: 3px; color: #899189; font-size: .53rem; }
+.agriflow-product-pack { margin: 0 0 10px; color: #879087; font-size: .63rem; line-height: 1.2; }
 .agriflow-product-price {
-  display: flex; align-items: baseline; gap: 6px; margin: auto 0 8px; color: #1b2820;
+  display: flex; align-items: baseline; gap: 8px; margin: auto 0 0; padding-top: 10px; border-top: 1px solid #EDF0ED; color: #164F2B;
 }
-.agriflow-product-price strong { font-size: .94rem; font-weight: 800; }
-.agriflow-product-price del { color: #8a928c; font-size: .62rem; }
-.agriflow-product-cart {
-  display: flex; width: 100%; min-height: 28px; align-items: center; justify-content: center; gap: 6px;
-  border: 1px solid #24894a; border-radius: 4px; background: #fff; color: #18733a;
-  font-family: inherit; font-size: .64rem; font-weight: 700; cursor: pointer; transition: .2s ease;
+.agriflow-product-price strong { font-size: 1rem; font-weight: 850; }
+.agriflow-product-price del { color: #A0A7A2; font-size: .68rem; }
+
+.agriflow-products-view-all {
+  display: table;
+  margin: 2.6rem auto 0;
+  padding: .68rem 1.65rem;
+  border-radius: 999px;
+  background: #164F2B;
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 750;
+  text-decoration: none;
 }
-.agriflow-product-cart:hover { background: #16743a; color: #fff; }
-.agriflow-product-cart:disabled { border-color: #bbc4bd; color: #929a94; cursor: not-allowed; }
+.agriflow-products-view-all:hover { background: #0E3F21; color: #fff; }
 
 @media (max-width: 900px) {
   .agriflow-products-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .agriflow-product-img-box { height: 180px; }
 }
 @media (max-width: 520px) {
-  .agriflow-our-products-section { padding-inline: 1rem; }
-  .agriflow-products-grid { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 4px; }
-  .agriflow-product-item { flex: 0 0 82%; scroll-snap-align: start; }
-  .agriflow-products-arrow { display: none; }
+  .agriflow-our-products-section { padding: 2.7rem 0; }
+  .agriflow-products-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .agriflow-product-img-box { height: 280px; }
+}
+/* Hot Categories */
+.home-hot-categories {
+  width: 100%;
+  padding: 48px 0 62px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.home-hot-categories-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 54px;
+}
+
+.home-hot-categories-heading h2 {
+  margin: 0;
+  color: #102315;
+  font-size: clamp(1.7rem, 2.2vw, 2.25rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+}
+
+.home-hot-categories-heading span {
+  display: block;
+  width: 54px;
+  height: 12px;
+  margin-top: 9px;
+  border-top: 3px solid #267337;
+  border-radius: 50%;
+  transform: rotate(-2deg);
+}
+
+.home-hot-categories-carousel {
+  position: relative;
+  width: min(1320px, calc(100% - 128px));
+  margin: 0 auto;
+}
+
+.home-hot-categories-rail {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 205px;
+  gap: 24px;
+  overflow-x: auto;
+  padding: 2px 2px 10px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  overscroll-behavior-inline: contain;
+}
+
+.home-hot-categories-rail::-webkit-scrollbar { display: none; }
+
+.home-hot-category-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  height: 235px;
+  padding: 25px 16px 18px;
+  border: 1px solid #E8EDE9;
+  border-radius: 13px;
+  background: #FFFFFF;
+  color: #0B130D;
+  text-align: center;
+  text-decoration: none;
+  scroll-snap-align: start;
+  box-shadow: 0 6px 18px rgba(15, 41, 27, 0.035);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.home-hot-category-card:hover {
+  transform: translateY(-4px);
+  border-color: #BFD5C4;
+  box-shadow: 0 12px 28px rgba(15, 71, 38, 0.10);
+}
+
+.home-hot-category-image {
+  width: 125px;
+  height: 125px;
+  margin-bottom: 25px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #EEF5EF;
+  box-shadow: 0 5px 12px rgba(15, 41, 27, 0.14);
+}
+
+.home-hot-category-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 220ms ease;
+}
+
+.home-hot-category-card:hover img { transform: scale(1.06); }
+
+.home-hot-category-card h3 {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  color: #090D0A;
+  font-size: 1.02rem;
+  font-weight: 750;
+  line-height: 1.25;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.home-hot-category-arrow {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid #DFE5E0;
+  border-radius: 50%;
+  background: #FFFFFF;
+  color: #4A544D;
+  cursor: pointer;
+  box-shadow: 0 3px 9px rgba(0, 0, 0, 0.08);
+  transform: translateY(-50%);
+  transition: border-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.home-hot-category-arrow:hover {
+  border-color: #267337;
+  color: #176229;
+  box-shadow: 0 5px 13px rgba(15, 71, 38, 0.15);
+}
+
+.home-hot-category-arrow--left { left: -52px; }
+.home-hot-category-arrow--right { right: -52px; }
+
+@media (max-width: 767px) {
+  .home-hot-categories { padding: 28px 0 34px; }
+  .home-hot-categories-heading { margin-bottom: 28px; }
+  .home-hot-categories-carousel { width: calc(100% - 32px); }
+  .home-hot-categories-rail { grid-auto-columns: 150px; gap: 14px; padding-inline: 1px; }
+  .home-hot-category-card { height: 180px; padding: 18px 10px 14px; }
+  .home-hot-category-image { width: 88px; height: 88px; margin-bottom: 20px; }
+  .home-hot-category-arrow { display: none; }
 }
