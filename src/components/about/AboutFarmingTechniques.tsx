@@ -1,120 +1,106 @@
 import React from 'react';
 
-export const AboutFarmingTechniques: React.FC = () => {
+type PlantIconProps = {
+  stage: 1 | 2 | 3;
+  className?: string;
+};
+
+const PlantIcon: React.FC<PlantIconProps> = ({ stage, className = '' }) => {
+  if (stage === 1) {
+    return (
+      <svg className={className} viewBox="0 0 30 38" aria-hidden="true">
+        <path d="M15 34V16" />
+        <path className="plant-leaf" d="M15 19C5 18 5 7 15 1c5 9 5 14 0 18Z" />
+      </svg>
+    );
+  }
+
+  if (stage === 2) {
+    return (
+      <svg className={className} viewBox="0 0 52 46" aria-hidden="true">
+        <path d="M26 43V19" />
+        <path className="plant-leaf" d="M25 31C11 30 5 21 5 11c12 1 20 7 20 20Z" />
+        <path className="plant-leaf" d="M27 25c2-12 10-18 21-18-1 11-8 18-21 18Z" />
+      </svg>
+    );
+  }
+
   return (
-    <section className="about-techniques-section">
-      <div className="container">
-        {/* Title */}
-        <div className="about-techniques-header">
-          <h2 className="about-techniques-title">
-            Our Farming Techniques
-          </h2>
-        </div>
-
-        {/* Stepper Roadmap Container */}
-        <div className="about-techniques-roadmap">
-          {/* Continuous Curved Green Line */}
-          <svg
-            className="about-techniques-svg-line"
-            viewBox="0 0 1100 360"
-            fill="none"
-            preserveAspectRatio="none"
-          >
-            <path
-              d="M 12 300 L 210 300 C 230 300 240 250 250 250 L 420 250 C 440 250 450 190 460 190 L 640 190 C 660 190 670 120 680 120 L 980 120"
-              stroke="#A3CF88"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-
-          {/* 4 Steps Grid */}
-          <div className="about-techniques-grid">
-            {/* Step 01 */}
-            <div className="about-technique-step step-1">
-              <span className="about-technique-num">01</span>
-              <h3 className="about-technique-heading">Strategic Farming Approach</h3>
-              
-              <div className="about-technique-node-wrap">
-                <div className="about-technique-node-dot" />
-              </div>
-
-              <p className="about-technique-desc">
-                Methodical Crop Cultivation Strategies Implemented.
-              </p>
-            </div>
-
-            {/* Step 02 */}
-            <div className="about-technique-step step-2">
-              <span className="about-technique-num">02</span>
-              <h3 className="about-technique-heading">Skilled Cultivation Expertise</h3>
-              
-              <div className="about-technique-node-wrap">
-                {/* Sprout with single leaf */}
-                <svg className="about-technique-sprout" width="18" height="18" viewBox="0 0 20 20" fill="none">
-                  <path d="M10 18V6" stroke="#78B833" strokeWidth="2" strokeLinecap="round" />
-                  <path d="M10 10C10 4 3 4 3 4C3 4 4 10 10 10Z" fill="#78B833" />
-                </svg>
-                <div className="about-technique-node-dot" />
-              </div>
-
-              <p className="about-technique-desc">
-                Experienced Farmers Ensure Optimal Growth.
-              </p>
-            </div>
-
-            {/* Step 03 */}
-            <div className="about-technique-step step-3">
-              <span className="about-technique-num">03</span>
-              <h3 className="about-technique-heading">Rigorous Quality Checking</h3>
-              
-              <div className="about-technique-node-wrap">
-                {/* Sprout with double leaves */}
-                <svg className="about-technique-sprout" width="24" height="22" viewBox="0 0 24 22" fill="none">
-                  <path d="M12 20V8" stroke="#78B833" strokeWidth="2" strokeLinecap="round" />
-                  <path d="M12 12C12 4 4 4 4 4C4 4 5 12 12 12Z" fill="#78B833" />
-                  <path d="M12 10C12 3 19 3 19 3C19 3 18 10 12 10Z" fill="#88CF3A" />
-                </svg>
-                <div className="about-technique-node-dot" />
-              </div>
-
-              <p className="about-technique-desc">
-                Thorough Inspections Maintain High Standards.
-              </p>
-            </div>
-
-            {/* Step 04 */}
-            <div className="about-technique-step step-4">
-              <span className="about-technique-num">04</span>
-              <h3 className="about-technique-heading">Timely Distribution Delivery</h3>
-              
-              <div className="about-technique-node-wrap">
-                {/* Yellow Flower Blossom */}
-                <svg className="about-technique-sprout" width="26" height="26" viewBox="0 0 28 28" fill="none">
-                  <path d="M14 26V14" stroke="#78B833" strokeWidth="2" strokeLinecap="round" />
-                  <path d="M14 18C14 14 9 14 9 14C9 14 10 18 14 18Z" fill="#78B833" />
-                  <path d="M14 16C14 12 18 12 18 12C18 12 17 16 14 16Z" fill="#78B833" />
-                  {/* Flower Petals */}
-                  <circle cx="14" cy="7" r="4" fill="#F6B748" />
-                  <circle cx="9" cy="9" r="4" fill="#F6B748" />
-                  <circle cx="19" cy="9" r="4" fill="#F6B748" />
-                  <circle cx="11" cy="14" r="4" fill="#F6B748" />
-                  <circle cx="17" cy="14" r="4" fill="#F6B748" />
-                  <circle cx="14" cy="10" r="3.5" fill="#E69822" />
-                </svg>
-                <div className="about-technique-node-dot" />
-              </div>
-
-              <p className="about-technique-desc">
-                Prompt Delivery Ensures Freshness Preserved.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    <svg className={className} viewBox="0 0 56 64" aria-hidden="true">
+      <path d="M28 61V31" />
+      <path className="plant-leaf" d="M27 48C15 48 9 41 8 32c11 0 18 6 19 16Z" />
+      <path className="plant-leaf" d="M29 44c1-10 7-16 17-17-1 10-7 16-17 17Z" />
+      <g className="plant-flower">
+        <circle cx="28" cy="13" r="7" />
+        <circle cx="17" cy="18" r="7" />
+        <circle cx="20" cy="7" r="7" />
+        <circle cx="39" cy="18" r="7" />
+        <circle cx="37" cy="7" r="7" />
+        <circle className="plant-flower-centre" cx="28" cy="13" r="5" />
+      </g>
+    </svg>
   );
 };
+
+const steps = [
+  {
+    number: '01',
+    title: 'Strategic Farming Approach',
+    description: 'Methodical Crop Cultivation Strategies Implemented.',
+  },
+  {
+    number: '02',
+    title: 'Skilled Cultivation Expertise',
+    description: 'Experienced Farmers Ensure Optimal Growth.',
+    plant: 1 as const,
+  },
+  {
+    number: '03',
+    title: 'Rigorous Quality Checking',
+    description: 'Thorough Inspections Maintain High Standards.',
+    plant: 2 as const,
+  },
+  {
+    number: '04',
+    title: 'Timely Distribution Delivery',
+    description: 'Prompt Delivery Ensures Freshness Preserved.',
+    plant: 3 as const,
+  },
+];
+
+export const AboutFarmingTechniques: React.FC = () => (
+  <section className="about-techniques-section" aria-labelledby="farming-techniques-title">
+    <div className="about-techniques-inner">
+      <h2 id="farming-techniques-title" className="about-techniques-title">
+        Our Farming<br />Techniques
+      </h2>
+
+      <div className="about-techniques-roadmap">
+        <svg className="about-techniques-line" viewBox="0 0 1200 390" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M20 350H278c18 0 26-13 26-31v-28c0-18 8-31 26-31h238c18 0 26-13 26-31v-28c0-18 8-31 26-31h238c18 0 26-13 26-31V81c0-18 8-31 26-31h270" />
+        </svg>
+
+        {steps.map((step, index) => (
+          <article className={`about-technique-step about-technique-step-${index + 1}`} key={step.number}>
+            <div className="about-technique-copy">
+              <span className="about-technique-num">{step.number}</span>
+              <h3 className="about-technique-heading">{step.title}</h3>
+            </div>
+            <div className="about-technique-marker" aria-hidden="true">
+              {step.plant && <PlantIcon stage={step.plant} className="about-technique-plant" />}
+              <span />
+            </div>
+            <p className="about-technique-desc">{step.description}</p>
+          </article>
+        ))}
+
+        <div className="about-technique-finish" aria-hidden="true">
+          <PlantIcon stage={3} className="about-technique-plant" />
+          <span className="about-technique-finish-dot" />
+        </div>
+      </div>
+    </div>
+  </section>
+);
 
 export default AboutFarmingTechniques;

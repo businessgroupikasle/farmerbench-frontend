@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, Sparkles, X } from 'lucide-react';
+import { Leaf, ShieldCheck, UserRoundCheck, X } from 'lucide-react';
 import heroProductsImg from '../../assets/product-hero-products.jpg';
 import './ProductHero.css';
 
@@ -43,7 +43,7 @@ export const ProductHero: React.FC<ProductHeroProps> = ({
           {/* Brand Tagline */}
           <div className="product-hero-brand-tag">
             <span className="product-hero-brand-text">{storeName}</span>
-            <span className="product-hero-leaf-icon" aria-hidden="true">🍃</span>
+            <Leaf className="product-hero-leaf-icon" size={13} fill="currentColor" aria-hidden="true" />
           </div>
 
           {/* Main Headline */}
@@ -95,7 +95,7 @@ export const ProductHero: React.FC<ProductHeroProps> = ({
 
             <div className="product-hero-badge">
               <div className="product-hero-badge-icon">
-                <Sparkles size={17} strokeWidth={2.2} />
+                <UserRoundCheck size={17} strokeWidth={2.2} />
               </div>
               <span className="product-hero-badge-text">Expert Recommended</span>
             </div>

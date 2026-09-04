@@ -335,147 +335,225 @@
    4. Our Farming Techniques (Ascending Roadmap)
    -------------------------------------------------------------------------- */
 .about-techniques-section {
-  padding: 5.5rem 0 6.5rem;
-  background-color: #ffffff;
+  padding: 3rem 0 3.6rem;
+  background: #fff;
   position: relative;
   overflow: hidden;
 }
 
-.about-techniques-header {
-  margin-bottom: 4.5rem;
+.about-techniques-inner {
+  position: relative;
+  width: min(100% - 4rem, 1214px);
+  min-height: 640px;
+  margin: 0 auto;
 }
 
 .about-techniques-title {
-  font-size: clamp(2.4rem, 4.5vw, 3.4rem);
+  position: absolute;
+  z-index: 3;
+  top: 22px;
+  left: 0;
+  font-size: clamp(2.75rem, 4vw, 3.15rem);
   font-weight: 800;
-  color: #233D2E;
-  letter-spacing: -0.025em;
-  line-height: 1.15;
-  max-width: 380px;
+  color: #344f42;
+  letter-spacing: -0.035em;
+  line-height: 1.04;
   margin: 0;
 }
 
 .about-techniques-roadmap {
-  position: relative;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  min-height: 440px;
+  position: absolute;
+  inset: 152px 0 0;
 }
 
-.about-techniques-svg-line {
+.about-techniques-line {
   position: absolute;
-  top: 0;
-  left: 0;
+  inset: 0;
   width: 100%;
-  height: 100%;
+  height: 390px;
   pointer-events: none;
   z-index: 1;
 }
 
-.about-techniques-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
-  position: relative;
-  z-index: 2;
-  height: 100%;
+.about-techniques-line path {
+  fill: none;
+  stroke: #9bc263;
+  stroke-width: 1.35;
+  vector-effect: non-scaling-stroke;
 }
 
 .about-technique-step {
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  transition: transform 0.25s ease;
+  --step-x: 0%;
+  --step-y: 350px;
+  position: absolute;
+  z-index: 2;
+  left: var(--step-x);
+  top: var(--step-y);
+  width: 230px;
+  height: 1px;
 }
 
-.about-technique-step:hover {
-  transform: translateY(-4px);
+.about-technique-step-1 { --step-x: 1.667%; --step-y: 350px; }
+.about-technique-step-2 { --step-x: 26.7%; --step-y: 260px; }
+.about-technique-step-3 { --step-x: 51.667%; --step-y: 170px; }
+.about-technique-step-4 { --step-x: 75.833%; --step-y: 50px; }
+
+.about-technique-copy {
+  position: absolute;
+  bottom: 38px;
+  left: -20px;
+  width: 235px;
 }
 
-.about-technique-step.step-1 { margin-top: 170px; }
-.about-technique-step.step-2 { margin-top: 100px; }
-.about-technique-step.step-3 { margin-top: 30px; }
-.about-technique-step.step-4 { margin-top: -40px; }
+.about-technique-step-4 .about-technique-copy { left: 18px; }
 
 .about-technique-num {
-  font-size: clamp(2.8rem, 4vw, 3.6rem);
+  display: block;
+  font-size: 3.85rem;
   font-weight: 800;
-  color: #78B833;
-  line-height: 1;
-  margin-bottom: 0.45rem;
-  letter-spacing: -0.03em;
+  color: #9bc263;
+  line-height: .92;
+  margin-bottom: .75rem;
+  letter-spacing: -.045em;
 }
 
 .about-technique-heading {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #233D2E;
-  line-height: 1.3;
-  margin-bottom: 1.5rem;
-  max-width: 200px;
+  max-width: 215px;
+  margin: 0;
+  color: #3d564a;
+  font-size: 1.27rem;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -.02em;
 }
 
-.about-technique-node-wrap {
-  position: relative;
-  width: 26px;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 1.25rem;
-}
-
-.about-technique-node-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background-color: #ffffff;
-  border: 3px solid #78B833;
-  box-shadow: 0 0 0 3px rgba(120, 184, 51, 0.2);
-}
-
-.about-technique-sprout {
+.about-technique-marker,
+.about-technique-finish {
   position: absolute;
-  bottom: 14px;
-  left: 50%;
-  transform: translateX(-50%);
+  width: 28px;
+  height: 28px;
+  transform: translate(-14px, -14px);
+  display: grid;
+  place-items: center;
 }
+
+.about-technique-marker > span,
+.about-technique-finish-dot {
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid #d9ddcf;
+  box-shadow: 0 2px 5px rgb(49 67 57 / 14%);
+  position: relative;
+}
+
+.about-technique-marker > span::after,
+.about-technique-finish-dot::after {
+  content: '';
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: #a4c669;
+}
+
+.about-technique-plant {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  bottom: 19px;
+  width: 42px;
+  height: 46px;
+  transform: translateX(-50%);
+  overflow: visible;
+  fill: none;
+  stroke: #98bd61;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.about-technique-step-2 .about-technique-plant { width: 27px; height: 35px; }
+.about-technique-step-3 .about-technique-plant { width: 43px; height: 42px; }
+.plant-leaf { fill: #98bd61; stroke: none; }
+.plant-flower { fill: #f6bd56; stroke: #fff; stroke-width: 1.5; }
+.plant-flower-centre { fill: #f0a92f; stroke: none; }
 
 .about-technique-desc {
-  font-size: 0.875rem;
-  line-height: 1.5;
-  color: #64748B;
-  font-weight: 500;
-  max-width: 220px;
-  margin: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 235px;
+  margin: 42px 0 0;
+  color: #858585;
+  font-size: 1.08rem;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: .005em;
+  transform: translateX(-20px);
+}
+
+.about-technique-step-4 .about-technique-desc { transform: translateX(18px); }
+
+.about-technique-finish {
+  z-index: 2;
+  top: 50px;
+  left: calc(100% - 20px);
 }
 
 @media (max-width: 900px) {
-  .about-techniques-svg-line {
-    display: none;
+  .about-techniques-section { padding: 4rem 0; }
+  .about-techniques-inner {
+    width: min(100% - 2rem, 620px);
+    min-height: auto;
   }
-  
-  .about-techniques-grid {
-    grid-template-columns: 1fr;
-    gap: 2.5rem;
+  .about-techniques-title {
+    position: relative;
+    top: auto;
+    margin-bottom: 3rem;
   }
-
-  .about-technique-step.step-1,
-  .about-technique-step.step-2,
-  .about-technique-step.step-3,
-  .about-technique-step.step-4 {
-    margin-top: 0;
-    padding-left: 2.5rem;
-    border-left: 2px solid #88CF3A;
+  .about-techniques-roadmap {
+    position: relative;
+    inset: auto;
+    margin-left: 14px;
+    padding-left: 42px;
+    border-left: 1.5px solid #9bc263;
   }
-
-  .about-technique-node-wrap {
+  .about-techniques-line,
+  .about-technique-finish { display: none; }
+  .about-technique-step {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: 100%;
+    min-height: 185px;
+    padding-bottom: 2.5rem;
+    height: auto;
+  }
+  .about-technique-step:last-of-type { min-height: 140px; padding-bottom: 0; }
+  .about-technique-copy {
+    position: static;
+  }
+  .about-technique-num { font-size: 3.2rem; margin-bottom: .55rem; }
+  .about-technique-heading { max-width: none; font-size: 1.15rem; }
+  .about-technique-marker {
     position: absolute;
-    left: -14px;
-    top: 6px;
-    margin-bottom: 0;
+    left: -56px;
+    top: 23px;
+    transform: none;
   }
+  .about-technique-desc {
+    position: static;
+    width: auto;
+    max-width: 390px;
+    margin-top: .85rem;
+    font-size: 1rem;
+    transform: none;
+  }
+  .about-technique-step-4 .about-technique-desc { transform: none; }
+}
+
+@media (max-width: 480px) {
+  .about-techniques-title { font-size: 2.55rem; }
 }
 
 /* --------------------------------------------------------------------------
