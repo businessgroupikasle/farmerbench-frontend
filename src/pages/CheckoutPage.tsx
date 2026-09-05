@@ -474,7 +474,7 @@ export const CheckoutPage: React.FC = () => {
                       required
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
-                      placeholder="e.g. Thanjavur"
+                      placeholder="e.g. Coimbatore"
                       className="checkout-input"
                     />
                   </div>

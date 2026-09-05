@@ -244,9 +244,10 @@ export const ProductDetailPage: React.FC = () => {
 
     try {
       const place = await postalCodeService.lookup(pin);
-      setDeliveryStatus({ checked: true, available: true, message: `Delivery available to ${place.postOffice || place.city}, ${place.district}, ${place.state}.` });
+      const parts = Array.from(new Set([place.postOffice || place.city, place.district, place.state, 'India'])).filter(Boolean);
+      setDeliveryStatus({ checked: true, available: true, message: `Delivery available to ${parts.join(', ')}.` });
     } catch (error: any) {
-      setDeliveryStatus({ checked: true, available: false, message: error.message || 'Unable to verify this pincode.' });
+      setDeliveryStatus({ checked: true, available: false, message: error.message || 'Unable to verify this Indian pincode.' });
     }
   };
 

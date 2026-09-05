@@ -59,7 +59,7 @@ export const OrderTrackingModal: React.FC<OrderTrackingModalProps> = ({
     {
       title: 'Arriving at Nearest Delivery Facility',
       date: '30 Aug 2026 (Estimated)',
-      location: 'Thanjavur Rural Hub',
+      location: 'Coimbatore Rural Hub',
       done: false,
     },
     {
@@ -314,7 +314,7 @@ export const ConsultationVideoModal: React.FC<ConsultationVideoModalProps> = ({
                 boxShadow: '0 0 10px #22c55e',
               }}
             />
-            <span style={{ fontWeight: 700 }}>Live Consultation Room — Dr. Arun Kumar</span>
+            <span style={{ fontWeight: 700 }}>Live Consultation Room — Dr. AgriEra Kumar</span>
           </div>
           <button
             onClick={onClose}
@@ -328,7 +328,7 @@ export const ConsultationVideoModal: React.FC<ConsultationVideoModalProps> = ({
         <div style={{ position: 'relative', height: '420px', background: '#0f172a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <img
             src={doctorAvatar}
-            alt="Dr. Arun Kumar"
+            alt="Dr. AgriEra Kumar"
             style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.85 }}
           />
 
@@ -372,7 +372,7 @@ export const ConsultationVideoModal: React.FC<ConsultationVideoModalProps> = ({
               fontWeight: 700,
             }}
           >
-            Dr. Arun Kumar (Senior Agronomist)
+            Dr. AgriEra Kumar (Senior Agronomist)
           </div>
         </div>
 
@@ -604,7 +604,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({
               <input
                 className="fb-form-input"
                 required
-                placeholder="e.g., 123, Green Fields, Thanjavur, Tamil Nadu - 613001"
+                placeholder="e.g., 123, Green Fields, Coimbatore, Tamil Nadu - 613001"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
               />

@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import './FarmDevelopmentPage.css';
 import { postalCodeService } from '../services/postalCode.service';
-import { apiClient } from '../services/api';
+import { serviceBookingService } from '../services/serviceBooking.service';
 
 // Imported Assets
 import heroAgronomistImg from '../assets/farm-dev-hero.jpg';
@@ -59,6 +59,9 @@ export const FarmDevelopmentPage: React.FC = () => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookingReference, setBookingReference] = useState('');
+  const [callbackReference, setCallbackReference] = useState('');
+  const [isSubmittingCallback, setIsSubmittingCallback] = useState(false);
   const [postalStatus, setPostalStatus] = useState('');
   const [isExpertModalOpen, setIsExpertModalOpen] = useState(false);
   const [expertCallbackSuccess, setExpertCallbackSuccess] = useState(false);
@@ -250,23 +253,56 @@ export const FarmDevelopmentPage: React.FC = () => {
 
   const handleSubmitAssessment = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.farmerName.trim()) {
+      alert('Please enter your full name.');
+      return;
+    }
+    const cleanPhone = formData.mobileNumber.replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
+      alert('Please enter a valid 10-digit Indian mobile number.');
+      return;
+    }
+    const cleanPin = formData.pincode.replace(/\D/g, '');
+    if (cleanPin.length !== 6) {
+      alert('Please enter a valid 6-digit postal pincode.');
+      return;
+    }
+    if (!formData.location.trim()) {
+      alert('Please enter your farm location.');
+      return;
+    }
+    if (!formData.landArea.trim()) {
+      alert('Please specify your total land area.');
+      return;
+    }
     if (!formData.termsAgreed) {
       alert('Please agree to the terms and privacy policy to continue.');
       return;
     }
+
     setIsSubmitting(true);
     try {
-      await apiClient.post('/service-bookings', {
+      const response = await serviceBookingService.createBooking({
         serviceSlug: 'farm-development',
         serviceName: 'Farm Development',
-        name: formData.farmerName,
-        phone: formData.mobileNumber,
-        location: `${formData.location} - ${formData.pincode}`,
-        farmSize: formData.landArea,
-        cropType: formData.preferredCrops || null,
+        name: formData.farmerName.trim(),
+        phone: cleanPhone,
+        location: `${formData.location.trim()} - ${cleanPin}`,
+        farmSize: formData.landArea.trim(),
+        cropType: formData.preferredCrops.trim() || null,
         preferredDate: formData.startDate || null,
-        message: JSON.stringify({ pincode: formData.pincode, landCondition: formData.landCondition, waterSource: formData.waterSource, budget: formData.budget, notes: formData.additionalNotes }),
+        message: JSON.stringify({
+          pincode: cleanPin,
+          landCondition: formData.landCondition,
+          waterSource: formData.waterSource,
+          budget: formData.budget,
+          notes: formData.additionalNotes,
+        }),
       });
+
+      if (response.data?.bookingReference) {
+        setBookingReference(response.data.bookingReference);
+      }
       setIsSubmitting(false);
       setIsSubmitted(true);
     } catch (error: any) {
@@ -275,13 +311,34 @@ export const FarmDevelopmentPage: React.FC = () => {
     }
   };
 
-  const handleExpertCallbackSubmit = (e: React.FormEvent) => {
+  const handleExpertCallbackSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!expertPhone || expertPhone.length < 10) {
-      alert('Please enter a valid 10-digit mobile number.');
+    const cleanPhone = expertPhone.replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
+      alert('Please enter a valid 10-digit Indian mobile number.');
       return;
     }
-    setExpertCallbackSuccess(true);
+
+    setIsSubmittingCallback(true);
+    try {
+      const response = await serviceBookingService.createBooking({
+        serviceSlug: 'farm-development-callback',
+        serviceName: 'Farm Development (Callback)',
+        name: formData.farmerName.trim() || 'Farmer (Callback Request)',
+        phone: cleanPhone,
+        location: formData.location.trim() || 'Tamil Nadu',
+        message: 'Farmer requested immediate technical expert callback for farm development.',
+      });
+
+      if (response.data?.bookingReference) {
+        setCallbackReference(response.data.bookingReference);
+      }
+      setExpertCallbackSuccess(true);
+    } catch (error: any) {
+      alert(error.message || 'Unable to schedule callback. Please try again.');
+    } finally {
+      setIsSubmittingCallback(false);
+    }
   };
 
   const scrollToAssessmentForm = () => {
@@ -568,6 +625,12 @@ export const FarmDevelopmentPage: React.FC = () => {
                   <h3 className="farm-dev-success-title">
                     Assessment Request Submitted!
                   </h3>
+                  {bookingReference && (
+                    <div style={{ background: '#ECFDF5', border: '1px solid #10B981', borderRadius: '8px', padding: '0.75rem 1.25rem', margin: '1rem auto', display: 'inline-block' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#047857', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Generated Booking Reference</div>
+                      <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#065F46', letterSpacing: '0.06em', fontFamily: 'monospace' }}>{bookingReference}</div>
+                    </div>
+                  )}
                   <p className="farm-dev-success-desc">
                     Thank you, <strong>{formData.farmerName || 'Farmer'}</strong>. Our farm planning agronomist team has received your details for{' '}
                     <strong>{formData.landArea || 'your land'}</strong> in{' '}
@@ -971,6 +1034,12 @@ export const FarmDevelopmentPage: React.FC = () => {
                   <PhoneCall size={32} />
                 </div>
                 <h3 className="farm-dev-modal-title">Callback Scheduled!</h3>
+                {callbackReference && (
+                  <div style={{ background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: '8px', padding: '0.5rem 1rem', margin: '0.75rem 0' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#15803D', fontWeight: 600 }}>Reference ID: </span>
+                    <strong style={{ fontFamily: 'monospace', color: '#166534', fontSize: '1rem' }}>{callbackReference}</strong>
+                  </div>
+                )}
                 <p className="farm-dev-modal-desc">
                   Thank you! Our senior farm development engineer will call you back on{' '}
                   <strong>{expertPhone}</strong> within 15 minutes.
@@ -1014,9 +1083,10 @@ export const FarmDevelopmentPage: React.FC = () => {
                     type="submit"
                     className="farm-dev-btn-submit"
                     style={{ marginTop: '0.75rem' }}
+                    disabled={isSubmittingCallback}
                   >
                     <PhoneCall size={16} />
-                    <span>Request Immediate Call</span>
+                    <span>{isSubmittingCallback ? 'Scheduling Call...' : 'Request Immediate Call'}</span>
                   </button>
 
                   <div className="farm-dev-modal-footer-note">

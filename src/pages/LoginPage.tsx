@@ -58,7 +58,7 @@ export const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [district, setDistrict] = useState('Thanjavur');
+  const [district, setDistrict] = useState('Coimbatore');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -1323,7 +1323,7 @@ export const LoginPage: React.FC = () => {
                         </div>
                         <input
                           type="text"
-                          placeholder="District / State (e.g. Thanjavur, TN)"
+                          placeholder="District / State (e.g. Coimbatore, TN)"
                           value={district}
                           onChange={(e) => setDistrict(e.target.value)}
                           className="auth-input"

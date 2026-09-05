@@ -28,6 +28,7 @@ import {
   Plus,
   X,
   Sparkles,
+  Clock,
   TrendingUp,
   Star,
   CheckCircle2,
@@ -61,6 +62,8 @@ import { useBlogs, useBlogMutations } from '../hooks/useBlogs';
 import { BlogPost } from '../types/blog';
 import { adminService, CouponRecord } from '../services/admin.service';
 import { HeroBannerManager } from '../components/admin/HeroBannerManager';
+import { useServiceBookings, useServiceBookingStats, useServiceBookingMutations } from '../hooks/useServiceBookings';
+import { ServiceBooking, ServiceBookingStatus } from '../types/serviceBooking';
 
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
@@ -100,7 +103,13 @@ export const AdminPage: React.FC = () => {
   // Filter States
   const [orderFilter, setOrderFilter] = useState('All');
   const [productCategoryFilter, setProductCategoryFilter] = useState('All');
-  const [bookingTab, setBookingTab] = useState<'all' | 'new' | 'assigned' | 'completed'>('all');
+  const [bookingTab, setBookingTab] = useState<'ALL' | 'NEW' | 'CONTACTED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'>('ALL');
+  const [bookingSearchQuery, setBookingSearchQuery] = useState('');
+  const [selectedBookingForUpdate, setSelectedBookingForUpdate] = useState<ServiceBooking | null>(null);
+  const [statusModalStatus, setStatusModalStatus] = useState<ServiceBookingStatus>('NEW');
+  const [statusModalNotes, setStatusModalNotes] = useState('');
+  const [statusModalExpert, setStatusModalExpert] = useState('');
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   
   // Modals state
   const [isAddProductOpen, setIsAddProductOpen] = useState(false);
@@ -523,8 +532,44 @@ export const AdminPage: React.FC = () => {
     }).catch(() => undefined);
   }, [isAdmin]);
 
-  // 5. Service Bookings
-  const [serviceBookings, setServiceBookings] = useState<any[]>([]);
+  // 5. Service Bookings (Live PostgreSQL Data via React Query)
+  const bookingQueryFilter = React.useMemo(() => {
+    return {
+      status: bookingTab === 'ALL' ? undefined : (bookingTab as ServiceBookingStatus),
+      search: bookingSearchQuery.trim() || undefined,
+    };
+  }, [bookingTab, bookingSearchQuery]);
+
+  const {
+    data: bookingData,
+    isLoading: isBookingsLoading,
+    isError: isBookingsError,
+    error: bookingsError,
+    refetch: refetchBookings,
+  } = useServiceBookings(bookingQueryFilter);
+
+  const { data: bookingStats, isLoading: isStatsLoading, refetch: refetchBookingStats } = useServiceBookingStats();
+  const { updateBookingStatus: mutateBookingStatus, deleteBooking: mutateDeleteBooking } = useServiceBookingMutations();
+
+  const serviceBookings: ServiceBooking[] = bookingData?.bookings || [];
+
+  useEffect(() => {
+    const handleNewBooking = (e: any) => {
+      const b = e.detail;
+      if (b) {
+        setToastMessage(`⚡ Real-Time Alert: New Service Request — ${b.name} (${b.serviceName || 'Service'}) [${b.bookingReference}]`);
+        setTimeout(() => setToastMessage(null), 6000);
+        refetchBookings();
+        refetchBookingStats();
+      }
+    };
+    window.addEventListener('booking:created', handleNewBooking);
+    window.addEventListener('booking:updated', handleNewBooking);
+    return () => {
+      window.removeEventListener('booking:created', handleNewBooking);
+      window.removeEventListener('booking:updated', handleNewBooking);
+    };
+  }, [refetchBookings, refetchBookingStats]);
 
   // 6. Crop Doctor
   const [cropDoctorRequests, setCropDoctorRequests] = useState<any[]>([]);
@@ -731,7 +776,7 @@ export const AdminPage: React.FC = () => {
     storeName: 'AgriEra Agricultural Commerce & Services',
     supportEmail: 'support@AgriEra.agri',
     supportPhone: '+91 98400 12345',
-    address: 'AgriEra Agro Towers, Delta Zone, Thanjavur, Tamil Nadu',
+    address: 'AgriEra Agro Towers, Delta Zone, Coimbatore, Tamil Nadu',
     currency: 'INR (₹)',
     taxRate: '5%',
     freeShippingThreshold: '₹999',
@@ -902,7 +947,7 @@ export const AdminPage: React.FC = () => {
                 gap: '0.4rem',
               }}
             >
-              <Sparkles size={16} /> Sign In as Admin (Arun Admin)
+              <Sparkles size={16} /> Sign In as Admin (AgriEra Admin)
             </button>
 
             <button
@@ -1061,7 +1106,7 @@ export const AdminPage: React.FC = () => {
                 <CalendarCheck size={17} />
                 <span>Service Bookings</span>
               </div>
-              <span className="admin-nav-badge badge-green">{serviceBookings.length}</span>
+              <span className="admin-nav-badge badge-green">{isStatsLoading ? serviceBookings.length : (bookingStats?.totalBookings ?? serviceBookings.length)}</span>
             </button>
             <button
               className={`admin-nav-item ${activeNav === 'Crop Doctor' ? 'active' : ''}`}
@@ -1155,13 +1200,13 @@ export const AdminPage: React.FC = () => {
         {/* Sidebar Footer User Widget */}
         <div className="admin-sidebar-user">
           <div className="admin-sidebar-user-left">
-            <img
+            {/* <img
               src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
-              alt="Arun Admin"
+              alt="AgriEra Admin"
               className="admin-user-avatar"
-            />
+            /> */}
             <div>
-              <div className="admin-user-info-name">{user?.name || 'Arun Admin'}</div>
+              <div className="admin-user-info-name">{user?.name || 'AgriEra Admin'}</div>
               <div className="admin-user-info-role">Super Admin</div>
             </div>
           </div>
@@ -1228,12 +1273,12 @@ export const AdminPage: React.FC = () => {
             </button>
 
             <div className="admin-header-profile" onClick={() => setActiveNav('Settings')}>
-              <img
+              {/* <img
                 src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
-                alt="Arun Admin"
+                alt="AgriEra Admin"
                 className="admin-header-profile-img"
-              />
-              <span className="admin-header-profile-name">{user?.name || 'Arun Admin'}</span>
+              /> */}
+              <span className="admin-header-profile-name">{user?.name || 'AgriEra Admin'}</span>
               <ChevronDown size={14} style={{ color: '#94A3B8' }} />
             </div>
 
@@ -1288,7 +1333,7 @@ export const AdminPage: React.FC = () => {
               {/* Welcome & Quick Action Strip */}
               <div className="admin-welcome-strip">
                 <div>
-                  <h1 className="admin-welcome-title">Good morning, {user?.name?.split(' ')[0] || 'Arun'}</h1>
+                  <h1 className="admin-welcome-title">Good morning, {user?.name?.split(' ')[0] || 'AgriEra'}</h1>
                   <p className="admin-welcome-sub">Here's what's happening with AgriEra today.</p>
                 </div>
                 <div className="admin-welcome-controls">
@@ -1382,11 +1427,20 @@ export const AdminPage: React.FC = () => {
                     <div className="admin-kpi-icon-wrap bg-srv"><CalendarCheck size={20} /></div>
                     <div className="admin-kpi-meta">
                       <span className="admin-kpi-label">Service Bookings</span>
-                      <span className="admin-kpi-value">326</span>
+                      <span className="admin-kpi-value">
+                        {isStatsLoading
+                          ? '...'
+                          : (bookingStats?.totalBookings ?? (bookingStats as any)?.total ?? serviceBookings.length)}
+                      </span>
                     </div>
                   </div>
                   <div className="admin-kpi-bottom">
-                    <span className="admin-kpi-trend"><TrendingUp size={13} /> 14.3%</span>
+                    <span className="admin-kpi-trend">
+                      <TrendingUp size={13} />{' '}
+                      {isStatsLoading
+                        ? 'Syncing...'
+                        : `${bookingStats?.newBookings ?? serviceBookings.filter((b) => b.status === 'NEW').length} new`}
+                    </span>
                     <svg className="admin-kpi-sparkline" viewBox="0 0 60 20" fill="none">
                       <path d="M 2 16 Q 16 6, 32 12 T 58 4" stroke="#16A34A" strokeWidth="2" fill="none" strokeLinecap="round" />
                     </svg>
@@ -1561,7 +1615,7 @@ export const AdminPage: React.FC = () => {
                   <div className="admin-alert-card-item">
                     <div className="admin-alert-icon-box blue"><Users size={20} /></div>
                     <div className="admin-alert-text-box">
-                      <span className="admin-alert-title">{serviceBookings.filter((b) => b.isNew).length} New Service Requests</span>
+                      <span className="admin-alert-title">{(bookingStats?.new ?? serviceBookings.filter((b) => b.status === 'NEW').length)} New Service Requests</span>
                       <button onClick={() => setActiveNav('Service Bookings')} className="admin-alert-action-link" style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left' }}>
                         Assign Experts →
                       </button>
@@ -2289,96 +2343,374 @@ export const AdminPage: React.FC = () => {
           )}
 
           {/* ================================================================
-              VIEW 8: SERVICE BOOKINGS
+              VIEW 8: SERVICE BOOKINGS (Live PostgreSQL Database & Real-Time Sync)
               ================================================================ */}
           {activeNav === 'Service Bookings' && (
             <div className="admin-card">
               <div className="admin-card-header">
                 <div>
                   <h2 className="admin-welcome-title" style={{ fontSize: '1.4rem' }}>Agronomy Service Requests</h2>
-                  <p className="admin-welcome-sub">Farm visit consultations, soil testing dispatch, and video diagnostics.</p>
+                  <p className="admin-welcome-sub">Live agricultural service enquiries from farmers across Tamil Nadu & India.</p>
                 </div>
-                <button
-                  onClick={() => setIsAssignModalOpen(true)}
-                  className="admin-primary-btn"
-                >
-                  <CalendarCheck size={16} /> Assign Agronomist
-                </button>
+                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                  <button
+                    onClick={() => {
+                      setSelectedBookingForUpdate(serviceBookings[0] || null);
+                      setStatusModalStatus(serviceBookings[0]?.status || 'NEW');
+                      setStatusModalNotes(serviceBookings[0]?.adminNotes || '');
+                      setIsAssignModalOpen(true);
+                    }}
+                    disabled={serviceBookings.length === 0}
+                    className="admin-primary-btn"
+                  >
+                    <CalendarCheck size={16} /> Manage Status
+                  </button>
+                </div>
               </div>
 
-              <div className="admin-filter-bar">
+              {/* KPI Statistics Cards */}
+              <div
+                className="admin-kpi-grid"
+                style={{
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                  gap: '1.25rem',
+                  marginBottom: '1.75rem',
+                }}
+              >
+                <div className="admin-kpi-card">
+                  <div className="admin-kpi-top">
+                    <div className="admin-kpi-icon-wrap" style={{ backgroundColor: '#E8F5E9', color: '#166534' }}>
+                      <CalendarCheck size={20} />
+                    </div>
+                    <div className="admin-kpi-meta">
+                      <span className="admin-kpi-label">Total Bookings</span>
+                      <span className="admin-kpi-value">
+                        {isStatsLoading ? '...' : (bookingStats?.totalBookings ?? (bookingStats as any)?.total ?? serviceBookings.length)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="admin-kpi-bottom">
+                    <span className="admin-kpi-trend" style={{ color: '#166534' }}>All Enquiries</span>
+                  </div>
+                </div>
+
+                <div className="admin-kpi-card">
+                  <div className="admin-kpi-top">
+                    <div className="admin-kpi-icon-wrap" style={{ backgroundColor: '#EFF6FF', color: '#2563EB' }}>
+                      <Sparkles size={20} />
+                    </div>
+                    <div className="admin-kpi-meta">
+                      <span className="admin-kpi-label">New Requests</span>
+                      <span className="admin-kpi-value" style={{ color: '#2563EB' }}>
+                        {isStatsLoading
+                          ? '...'
+                          : (bookingStats?.newBookings ?? (bookingStats as any)?.new ?? serviceBookings.filter((b) => b.status === 'NEW').length)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="admin-kpi-bottom">
+                    <span className="admin-kpi-trend" style={{ color: '#2563EB' }}>Action Pending</span>
+                  </div>
+                </div>
+
+                <div className="admin-kpi-card">
+                  <div className="admin-kpi-top">
+                    <div className="admin-kpi-icon-wrap" style={{ backgroundColor: '#FFFBEB', color: '#D97706' }}>
+                      <Clock size={20} />
+                    </div>
+                    <div className="admin-kpi-meta">
+                      <span className="admin-kpi-label">In Progress / Contacted</span>
+                      <span className="admin-kpi-value" style={{ color: '#D97706' }}>
+                        {isStatsLoading
+                          ? '...'
+                          : ((bookingStats?.inProgressBookings ?? 0) + (bookingStats?.contactedBookings ?? 0)) ||
+                            serviceBookings.filter((b) => b.status === 'IN_PROGRESS' || b.status === 'CONTACTED').length}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="admin-kpi-bottom">
+                    <span className="admin-kpi-trend" style={{ color: '#D97706' }}>Active Follow-up</span>
+                  </div>
+                </div>
+
+                <div className="admin-kpi-card">
+                  <div className="admin-kpi-top">
+                    <div className="admin-kpi-icon-wrap" style={{ backgroundColor: '#F0FDF4', color: '#16A34A' }}>
+                      <CheckCircle2 size={20} />
+                    </div>
+                    <div className="admin-kpi-meta">
+                      <span className="admin-kpi-label">Completed</span>
+                      <span className="admin-kpi-value" style={{ color: '#16A34A' }}>
+                        {isStatsLoading
+                          ? '...'
+                          : (bookingStats?.completedBookings ?? (bookingStats as any)?.completed ?? serviceBookings.filter((b) => b.status === 'COMPLETED').length)}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="admin-kpi-bottom">
+                    <span className="admin-kpi-trend" style={{ color: '#16A34A' }}>Successfully Served</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Filter Tabs and Search Bar */}
+              <div
+                className="admin-filter-bar"
+                style={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  gap: '1rem',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: '1.25rem',
+                }}
+              >
                 <div className="admin-filter-tabs">
-                  {(['all', 'new', 'assigned', 'completed'] as const).map((tb) => (
+                  {[
+                    { key: 'ALL', label: 'All', count: bookingStats?.totalBookings ?? serviceBookings.length },
+                    { key: 'NEW', label: 'New', count: bookingStats?.newBookings ?? serviceBookings.filter((b) => b.status === 'NEW').length },
+                    { key: 'CONTACTED', label: 'Contacted', count: bookingStats?.contactedBookings ?? serviceBookings.filter((b) => b.status === 'CONTACTED').length },
+                    { key: 'IN_PROGRESS', label: 'In Progress', count: bookingStats?.inProgressBookings ?? serviceBookings.filter((b) => b.status === 'IN_PROGRESS').length },
+                    { key: 'COMPLETED', label: 'Completed', count: bookingStats?.completedBookings ?? serviceBookings.filter((b) => b.status === 'COMPLETED').length },
+                    { key: 'CANCELLED', label: 'Cancelled', count: bookingStats?.cancelledBookings ?? serviceBookings.filter((b) => b.status === 'CANCELLED').length },
+                  ].map((tb) => (
                     <button
-                      key={tb}
-                      className={`admin-filter-tab-btn ${bookingTab === tb ? 'active' : ''}`}
-                      onClick={() => setBookingTab(tb)}
-                      style={{ textTransform: 'capitalize' }}
+                      key={tb.key}
+                      className={`admin-filter-tab-btn ${bookingTab === tb.key ? 'active' : ''}`}
+                      onClick={() => setBookingTab(tb.key as any)}
                     >
-                      {tb}
+                      {tb.label} ({tb.count})
                     </button>
                   ))}
                 </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flex: '1', maxWidth: '400px', justifyContent: 'flex-end' }}>
+                  <div className="admin-search-wrap" style={{ flex: '1', margin: 0, minWidth: '220px' }}>
+                    <Search size={16} className="admin-search-icon" />
+                    <input
+                      type="text"
+                      placeholder="Search ref, farmer, phone, service..."
+                      value={bookingSearchQuery}
+                      onChange={(e) => setBookingSearchQuery(e.target.value)}
+                      className="admin-search-input"
+                    />
+                  </div>
+                  <button
+                    onClick={() => { refetchBookings(); refetchBookingStats(); }}
+                    title="Refresh Bookings"
+                    className="admin-quick-btn"
+                    style={{ padding: '0.55rem 0.75rem', border: '1px solid #CBD5E1', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                  >
+                    <RefreshCw size={14} />
+                    <span style={{ fontSize: '0.8rem' }}>Refresh</span>
+                  </button>
+                </div>
               </div>
 
+              {/* Bookings Table */}
               <div className="admin-table-wrap">
-                <table className="admin-data-table">
-                  <thead>
-                    <tr>
-                      <th>Booking ID</th>
-                      <th>Farmer</th>
-                      <th>Service Type</th>
-                      <th>Consultation Mode</th>
-                      <th>Location & Farm</th>
-                      <th>Scheduled Slot</th>
-                      <th>Assigned Agronomist</th>
-                      <th>Status</th>
-                      <th style={{ textAlign: 'center' }}>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {serviceBookings.map((b) => (
-                      <tr key={b.id}>
-                        <td style={{ fontWeight: 700, color: '#16A34A' }}>{b.id}</td>
-                        <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                            <img src={b.avatar} alt={b.customer} className="admin-booking-avatar" />
-                            <span style={{ fontWeight: 700 }}>{b.customer}</span>
-                          </div>
-                        </td>
-                        <td style={{ fontWeight: 600, color: '#0F291B' }}>{b.service}</td>
-                        <td>
-                          <span style={{ backgroundColor: '#F1F5F9', padding: '0.2rem 0.5rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600 }}>
-                            {b.mode}
-                          </span>
-                        </td>
-                        <td style={{ color: '#475569' }}>
-                          <div>{b.location}</div>
-                          <div style={{ fontSize: '0.72rem', color: '#15803D' }}>{b.crop}</div>
-                        </td>
-                        <td style={{ fontWeight: 600 }}>{b.time}</td>
-                        <td style={{ fontWeight: 700, color: b.assignedExpert === 'Unassigned' ? '#EA580C' : '#0F4726' }}>
-                          {b.assignedExpert}
-                        </td>
-                        <td>
-                          <span className={`admin-status-badge ${b.statusClass}`}>{b.status}</span>
-                        </td>
-                        <td style={{ textAlign: 'center' }}>
-                          <button
-                            className="admin-primary-btn"
-                            style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}
-                            onClick={() => {
-                              setAssignBookingId(b.id);
-                              setIsAssignModalOpen(true);
-                            }}
-                          >
-                            Assign Expert
-                          </button>
-                        </td>
+                {isBookingsLoading ? (
+                  <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#64748B' }}>
+                    <Loader2 size={32} className="admin-spin" style={{ margin: '0 auto 0.75rem', color: '#16A34A' }} />
+                    <p style={{ fontWeight: 600 }}>Loading service bookings from PostgreSQL...</p>
+                  </div>
+                ) : isBookingsError ? (
+                  <div style={{ textAlign: 'center', padding: '2.5rem 1rem', backgroundColor: '#FEF2F2', borderRadius: '8px', margin: '1rem', border: '1px solid #FCA5A5' }}>
+                    <ShieldAlert size={32} style={{ color: '#DC2626', margin: '0 auto 0.5rem' }} />
+                    <h4 style={{ color: '#991B1B', fontWeight: 700, margin: '0 0 0.25rem' }}>Failed to Load Service Bookings</h4>
+                    <p style={{ color: '#B91C1C', fontSize: '0.875rem' }}>{(bookingsError as any)?.message || 'Database connection error. Please try again.'}</p>
+                    <button onClick={() => refetchBookings()} className="admin-primary-btn" style={{ marginTop: '0.75rem', padding: '0.35rem 0.85rem', fontSize: '0.8rem' }}>
+                      <RefreshCw size={14} /> Retry Query
+                    </button>
+                  </div>
+                ) : serviceBookings.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#64748B' }}>
+                    <FileText size={36} style={{ margin: '0 auto 0.5rem', color: '#CBD5E1' }} />
+                    <h4 style={{ fontWeight: 700, color: '#334155', margin: '0 0 0.25rem' }}>No Service Bookings Found</h4>
+                    <p style={{ fontSize: '0.85rem' }}>No requests match the selected status filter or search query.</p>
+                  </div>
+                ) : (
+                  <table className="admin-data-table">
+                    <thead>
+                      <tr>
+                        <th>Booking Reference</th>
+                        <th>Farmer Details</th>
+                        <th>Service Type</th>
+                        <th>Location & Farm</th>
+                        <th>Assessment Details</th>
+                        <th>Date Submitted</th>
+                        <th>Status</th>
+                        <th style={{ textAlign: 'center' }}>Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {serviceBookings.map((b) => {
+                        let parsedDetails: any = null;
+                        try {
+                          if (b.message && b.message.startsWith('{')) {
+                            parsedDetails = JSON.parse(b.message);
+                          }
+                        } catch {}
+
+                        const statusStyles: Record<string, { bg: string; color: string; border: string }> = {
+                          NEW: { bg: '#EFF6FF', color: '#1D4ED8', border: '#93C5FD' },
+                          CONTACTED: { bg: '#FAF5FF', color: '#7E22CE', border: '#D8B4FE' },
+                          IN_PROGRESS: { bg: '#FFFBEB', color: '#B45309', border: '#FDE68A' },
+                          COMPLETED: { bg: '#F0FDF4', color: '#15803D', border: '#86EFAC' },
+                          CANCELLED: { bg: '#FEF2F2', color: '#B91C1C', border: '#FCA5A5' },
+                        };
+                        const statusStyle = statusStyles[b.status] || { bg: '#F1F5F9', color: '#475569', border: '#CBD5E1' };
+
+                        return (
+                          <tr key={b.id}>
+                            {/* 1. Reference */}
+                            <td>
+                              <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '0.92rem', color: '#0F4726', backgroundColor: '#ECFDF5', padding: '0.25rem 0.6rem', borderRadius: '6px', border: '1px solid #A7F3D0' }}>
+                                {b.bookingReference}
+                              </span>
+                            </td>
+
+                            {/* 2. Farmer */}
+                            <td>
+                              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <span style={{ fontWeight: 700, color: '#0F291B' }}>{b.name}</span>
+                                <span style={{ fontSize: '0.8rem', color: '#475569', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                                  <Phone size={12} /> {b.phone}
+                                </span>
+                                {b.email && (
+                                  <span style={{ fontSize: '0.75rem', color: '#64748B' }}>{b.email}</span>
+                                )}
+                              </div>
+                            </td>
+
+                            {/* 3. Service */}
+                            <td>
+                              <div style={{ fontWeight: 700, color: '#0F4726' }}>{b.serviceName || b.serviceSlug}</div>
+                              {parsedDetails?.consultationMode && (
+                                <span style={{ fontSize: '0.72rem', backgroundColor: '#F1F5F9', padding: '0.15rem 0.45rem', borderRadius: '4px', color: '#334155' }}>
+                                  {parsedDetails.consultationMode}
+                                </span>
+                              )}
+                            </td>
+
+                            {/* 4. Location & Farm */}
+                            <td style={{ color: '#334155' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem' }}>
+                                <MapPin size={13} style={{ color: '#16A34A', flexShrink: 0 }} />
+                                <span>{b.location}</span>
+                              </div>
+                              {(b.farmSize || b.cropType) && (
+                                <div style={{ fontSize: '0.75rem', color: '#15803D', marginTop: '0.15rem' }}>
+                                  {b.farmSize ? `${b.farmSize}` : ''}
+                                  {b.farmSize && b.cropType ? ' • ' : ''}
+                                  {b.cropType ? `${b.cropType}` : ''}
+                                </div>
+                              )}
+                            </td>
+
+                            {/* 5. Assessment Details */}
+                            <td style={{ maxWidth: '240px' }}>
+                              {parsedDetails ? (
+                                <div style={{ fontSize: '0.75rem', lineHeight: '1.3' }}>
+                                  {Object.entries(parsedDetails).slice(0, 3).map(([key, val]) => (
+                                    <div key={key} style={{ color: '#475569' }}>
+                                      <strong style={{ textTransform: 'capitalize' }}>{key.replace(/([A-Z])/g, ' $1')}:</strong> {String(val)}
+                                    </div>
+                                  ))}
+                                  {b.adminNotes && (
+                                    <div style={{ marginTop: '0.25rem', padding: '0.2rem 0.4rem', backgroundColor: '#FEF3C7', borderRadius: '4px', color: '#92400E', fontSize: '0.72rem' }}>
+                                      <strong>Note:</strong> {b.adminNotes}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : b.message ? (
+                                <div style={{ fontSize: '0.8rem', color: '#475569' }}>
+                                  {b.message}
+                                  {b.adminNotes && (
+                                    <div style={{ marginTop: '0.25rem', padding: '0.2rem 0.4rem', backgroundColor: '#FEF3C7', borderRadius: '4px', color: '#92400E', fontSize: '0.72rem' }}>
+                                      <strong>Note:</strong> {b.adminNotes}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : b.adminNotes ? (
+                                <div style={{ padding: '0.2rem 0.4rem', backgroundColor: '#FEF3C7', borderRadius: '4px', color: '#92400E', fontSize: '0.72rem' }}>
+                                  <strong>Note:</strong> {b.adminNotes}
+                                </div>
+                              ) : (
+                                <span style={{ color: '#94A3B8', fontSize: '0.75rem' }}>—</span>
+                              )}
+                            </td>
+
+                            {/* 6. Date Submitted */}
+                            <td style={{ fontSize: '0.82rem', color: '#475569', whiteSpace: 'nowrap' }}>
+                              <div>{new Date(b.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                              <div style={{ fontSize: '0.72rem', color: '#94A3B8' }}>
+                                {new Date(b.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                              </div>
+                            </td>
+
+                            {/* 7. Status */}
+                            <td>
+                              <span
+                                style={{
+                                  backgroundColor: statusStyle.bg,
+                                  color: statusStyle.color,
+                                  border: `1px solid ${statusStyle.border}`,
+                                  padding: '0.25rem 0.6rem',
+                                  borderRadius: '9999px',
+                                  fontSize: '0.72rem',
+                                  fontWeight: 700,
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.03em',
+                                  display: 'inline-block',
+                                }}
+                              >
+                                {b.status.replace('_', ' ')}
+                              </span>
+                            </td>
+
+                            {/* 8. Actions */}
+                            <td style={{ textAlign: 'center' }}>
+                              <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'center' }}>
+                                <button
+                                  className="admin-primary-btn"
+                                  style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}
+                                  onClick={() => {
+                                    setSelectedBookingForUpdate(b);
+                                    setAssignBookingId(b.id);
+                                    setStatusModalStatus(b.status);
+                                    setStatusModalNotes(b.adminNotes || '');
+                                    setStatusModalExpert('');
+                                    setIsAssignModalOpen(true);
+                                  }}
+                                >
+                                  Update Status
+                                </button>
+                                <button
+                                  className="admin-mini-btn btn-danger"
+                                  title="Delete Booking"
+                                  style={{ padding: '0.35rem 0.5rem' }}
+                                  onClick={async () => {
+                                    if (window.confirm(`Delete booking ${b.bookingReference} for ${b.name}?`)) {
+                                      try {
+                                        await mutateDeleteBooking(b.id);
+                                        showToast(`Booking ${b.bookingReference} deleted.`);
+                                      } catch (err: any) {
+                                        showToast(err?.message || 'Failed to delete booking');
+                                      }
+                                    }
+                                  }}
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
               </div>
             </div>
           )}
@@ -2852,7 +3184,11 @@ export const AdminPage: React.FC = () => {
                 </div>
                 <div className="admin-kpi-card">
                   <span className="admin-kpi-label">Consultations Delivered</span>
-                  <span className="admin-kpi-value">326</span>
+                  <span className="admin-kpi-value">
+                    {isStatsLoading
+                      ? '...'
+                      : (bookingStats?.completedBookings ?? serviceBookings.filter((b) => b.status === 'COMPLETED').length)}
+                  </span>
                 </div>
                 <div className="admin-kpi-card">
                   <span className="admin-kpi-label">Farmer Retention</span>
@@ -2917,14 +3253,14 @@ export const AdminPage: React.FC = () => {
                     <tr>
                       <td>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&auto=format&fit=crop&q=80" alt="Arun" className="admin-header-profile-img" />
+                          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&auto=format&fit=crop&q=80" alt="AgriEra" className="admin-header-profile-img" />
                           <div>
-                            <div style={{ fontWeight: 800 }}>Arun Admin</div>
+                            <div style={{ fontWeight: 800 }}>AgriEra Admin</div>
                             <div style={{ fontSize: '0.72rem', color: '#15803D' }}>Owner Account</div>
                           </div>
                         </div>
                       </td>
-                      <td>arun.admin@AgriEra.agri</td>
+                      <td>AgriEra.admin@AgriEra.agri</td>
                       <td><span className="admin-status-badge paid">SUPER ADMIN</span></td>
                       <td style={{ color: '#475569' }}>Full System & Financial Access</td>
                       <td style={{ color: '#64748B' }}>Just now</td>
@@ -3078,42 +3414,42 @@ export const AdminPage: React.FC = () => {
                 className={`admin-cms-tab-btn ${cmsTab === 'basic' ? 'active' : ''}`}
                 onClick={() => setCmsTab('basic')}
               >
-                📋 Basic & Pricing
+                Basic & Pricing
               </button>
               <button
                 type="button"
                 className={`admin-cms-tab-btn ${cmsTab === 'media' ? 'active' : ''}`}
                 onClick={() => setCmsTab('media')}
               >
-                🖼️ Media & Gallery
+                Media & Gallery
               </button>
               <button
                 type="button"
                 className={`admin-cms-tab-btn ${cmsTab === 'highlights' ? 'active' : ''}`}
                 onClick={() => setCmsTab('highlights')}
               >
-                📝 Overview & Highlights
+                Overview & Highlights
               </button>
               <button
                 type="button"
                 className={`admin-cms-tab-btn ${cmsTab === 'steps' ? 'active' : ''}`}
                 onClick={() => setCmsTab('steps')}
               >
-                🌱 Benefits & Steps
+                Benefits & Steps
               </button>
               <button
                 type="button"
                 className={`admin-cms-tab-btn ${cmsTab === 'dosage' ? 'active' : ''}`}
                 onClick={() => setCmsTab('dosage')}
               >
-                💧 Dosage & Ingredients
+                Dosage & Ingredients
               </button>
               <button
                 type="button"
                 className={`admin-cms-tab-btn ${cmsTab === 'specs' ? 'active' : ''}`}
                 onClick={() => setCmsTab('specs')}
               >
-                🔬 Specs, FAQs & Results
+                Specs, FAQs & Results
               </button>
             </div>
 
@@ -4274,7 +4610,7 @@ export const AdminPage: React.FC = () => {
                 </div>
                 <div className="admin-form-group">
                   <label className="admin-form-label">Territory / District</label>
-                  <input name="expTerritory" required placeholder="Delta Region / Thanjavur" className="admin-form-input" />
+                  <input name="expTerritory" required placeholder="Delta Region / Coimbatore" className="admin-form-input" />
                 </div>
               </div>
               <div className="admin-modal-footer">
@@ -4290,57 +4626,171 @@ export const AdminPage: React.FC = () => {
         </div>
       )}
 
-      {/* Modal: Assign Expert */}
+      {/* Modal: Assign Expert & Update Status (Live Database Mutation) */}
       {isAssignModalOpen && (
         <div className="admin-modal-overlay" onClick={() => setIsAssignModalOpen(false)}>
-          <div className="admin-modal-card" onClick={(e) => e.stopPropagation()}>
+          <div className="admin-modal-card" style={{ maxWidth: '560px', width: '95%' }} onClick={(e) => e.stopPropagation()}>
             <div className="admin-modal-header">
-              <h3 className="admin-modal-title">Assign Expert to Booking</h3>
+              <div>
+                <h3 className="admin-modal-title">Update Booking & Assign Agronomist</h3>
+                <p style={{ fontSize: '0.8rem', color: '#64748B', margin: '0.25rem 0 0' }}>
+                  Persists directly to PostgreSQL database via live API.
+                </p>
+              </div>
               <button onClick={() => setIsAssignModalOpen(false)} className="admin-modal-close-btn">
                 <X size={20} />
               </button>
             </div>
             <form
-              onSubmit={(e: any) => {
+              onSubmit={async (e: React.FormEvent) => {
                 e.preventDefault();
-                const bId = e.target.assignBId.value;
-                const exp = e.target.assignExp.value;
+                const targetBooking = selectedBookingForUpdate || serviceBookings.find((b) => b.id === assignBookingId) || serviceBookings[0];
+                if (!targetBooking) {
+                  showToast('No booking selected to update.');
+                  return;
+                }
 
-                setServiceBookings((prev) =>
-                  prev.map((b) => (b.id === bId ? { ...b, assignedExpert: exp, status: 'Assigned', statusClass: 'shipped', isNew: false } : b))
-                );
-                setIsAssignModalOpen(false);
-                showToast(`Assigned ${exp} to booking ${bId}`);
+                setIsUpdatingStatus(true);
+                try {
+                  let finalNotes = (statusModalNotes || '').trim();
+                  if (statusModalExpert) {
+                    const expertTag = `[Assigned Agronomist: ${statusModalExpert}]`;
+                    if (!finalNotes.includes(statusModalExpert)) {
+                      finalNotes = finalNotes ? `${finalNotes}\n${expertTag}` : expertTag;
+                    }
+                  }
+
+                  await mutateBookingStatus({
+                    id: targetBooking.id,
+                    status: statusModalStatus,
+                    adminNotes: finalNotes || null,
+                  });
+
+                  showToast(`Updated booking ${targetBooking.bookingReference} to ${statusModalStatus}`);
+                  setIsAssignModalOpen(false);
+                } catch (err: any) {
+                  showToast(err?.message || 'Failed to update booking status');
+                } finally {
+                  setIsUpdatingStatus(false);
+                }
               }}
             >
               <div className="admin-modal-body">
+                {/* Active Booking Reference Card */}
+                {selectedBookingForUpdate && (
+                  <div style={{ background: '#F8FAFC', padding: '0.75rem 1rem', borderRadius: '8px', border: '1px solid #E2E8F0', marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#0F4726', fontSize: '0.95rem' }}>
+                        {selectedBookingForUpdate.bookingReference}
+                      </span>
+                      <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#475569', background: '#E2E8F0', padding: '0.2rem 0.5rem', borderRadius: '4px' }}>
+                        {selectedBookingForUpdate.serviceName}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: '#1E293B', marginTop: '0.4rem', fontWeight: 600 }}>
+                      Farmer: {selectedBookingForUpdate.name} • {selectedBookingForUpdate.phone}
+                    </div>
+                    <div style={{ fontSize: '0.8rem', color: '#64748B', marginTop: '0.2rem' }}>
+                      Location: {selectedBookingForUpdate.location}
+                    </div>
+                  </div>
+                )}
+
+                {/* Dropdown if no single booking or to switch */}
+                {serviceBookings.length > 0 && (
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Selected Booking Reference</label>
+                    <select
+                      className="admin-form-select"
+                      value={selectedBookingForUpdate?.id || assignBookingId || serviceBookings[0]?.id}
+                      onChange={(e) => {
+                        const b = serviceBookings.find((item) => item.id === e.target.value);
+                        if (b) {
+                          setSelectedBookingForUpdate(b);
+                          setStatusModalStatus(b.status);
+                          setStatusModalNotes(b.adminNotes || '');
+                        }
+                      }}
+                    >
+                      {serviceBookings.map((b) => (
+                        <option key={b.id} value={b.id}>
+                          {b.bookingReference} — {b.name} ({b.serviceName} - {b.location})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Status Selection */}
                 <div className="admin-form-group">
-                  <label className="admin-form-label">Select Service Booking</label>
-                  <select name="assignBId" defaultValue={assignBookingId || 'SB-326'} className="admin-form-select">
-                    {serviceBookings.map((b) => (
-                      <option key={b.id} value={b.id}>
-                        {b.id} — {b.customer} ({b.service} - {b.location})
-                      </option>
-                    ))}
+                  <label className="admin-form-label">Booking Workflow Status *</label>
+                  <select
+                    className="admin-form-select"
+                    value={statusModalStatus}
+                    onChange={(e) => setStatusModalStatus(e.target.value as ServiceBookingStatus)}
+                  >
+                    <option value="NEW">NEW - Newly Received Enquiry</option>
+                    <option value="CONTACTED">CONTACTED - Agronomist Contacted Farmer</option>
+                    <option value="IN_PROGRESS">IN_PROGRESS - Assessment / Visit In Progress</option>
+                    <option value="COMPLETED">COMPLETED - Service Work Completed</option>
+                    <option value="CANCELLED">CANCELLED - Farmer Cancelled / Duplicate</option>
                   </select>
                 </div>
+
+                {/* Agronomist Selection */}
                 <div className="admin-form-group">
-                  <label className="admin-form-label">Choose Agronomist</label>
-                  <select name="assignExp" className="admin-form-select">
-                    {experts.map((exp) => (
-                      <option key={exp.id} value={exp.name}>
-                        {exp.name} ({exp.spec})
+                  <label className="admin-form-label">Assign Field Agronomist / Expert</label>
+                  <select
+                    value={statusModalExpert}
+                    onChange={(e) => setStatusModalExpert(e.target.value)}
+                    className="admin-form-select"
+                  >
+                    <option value="">-- Keep Current / No Expert Assigned --</option>
+                    {(experts.length > 0 ? experts : [
+                      { id: 'exp-1', name: 'Dr. R. Senthilkumar', spec: 'Soil Health & Farm Development' },
+                      { id: 'exp-2', name: 'Er. M. Karthikeyan', spec: 'Micro-Irrigation & Drip Engineering' },
+                      { id: 'exp-3', name: 'Dr. V. Anbarasan', spec: 'Hydrogeology & Well Assessment' },
+                      { id: 'exp-4', name: 'K. Meenakshi Sundaram', spec: 'Crop Nutrition & Agronomy' },
+                    ]).map((exp) => (
+                      <option key={exp.id || exp.name} value={exp.name}>
+                        {exp.name} ({exp.spec || exp.specialization || 'Field Expert'})
                       </option>
                     ))}
                   </select>
+                  <span style={{ fontSize: '0.725rem', color: '#64748B', display: 'block', marginTop: '0.25rem' }}>
+                    Note: Assigned agronomist is persisted into Database Admin Notes.
+                  </span>
+                </div>
+
+                {/* Admin / Assessment Notes */}
+                <div className="admin-form-group">
+                  <label className="admin-form-label">Internal Admin Notes & Instructions</label>
+                  <textarea
+                    rows={3}
+                    value={statusModalNotes}
+                    onChange={(e) => setStatusModalNotes(e.target.value)}
+                    placeholder="Enter dispatch notes, assessment findings, quote details or farmer feedback..."
+                    className="admin-form-input"
+                    style={{ resize: 'vertical' }}
+                  />
                 </div>
               </div>
+
               <div className="admin-modal-footer">
-                <button type="button" onClick={() => setIsAssignModalOpen(false)} className="admin-quick-btn">
+                <button
+                  type="button"
+                  onClick={() => setIsAssignModalOpen(false)}
+                  className="admin-quick-btn"
+                  disabled={isUpdatingStatus}
+                >
                   Cancel
                 </button>
-                <button type="submit" className="admin-primary-btn">
-                  Confirm Assignment
+                <button
+                  type="submit"
+                  className="admin-primary-btn"
+                  disabled={isUpdatingStatus}
+                >
+                  {isUpdatingStatus ? 'Saving to Database...' : 'Save & Update Status'}
                 </button>
               </div>
             </form>
@@ -4926,7 +5376,7 @@ export const AdminPage: React.FC = () => {
                   </div>
                   <div className="admin-form-group">
                     <label className="admin-form-label">Location / Region *</label>
-                    <input name="custLocation" required placeholder="e.g. Thanjavur, Tamil Nadu" className="admin-form-input" />
+                    <input name="custLocation" required placeholder="e.g. Coimbatore, Tamil Nadu" className="admin-form-input" />
                   </div>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>

@@ -24,6 +24,7 @@ import { FarmDevelopmentPage } from './pages/FarmDevelopmentPage';
 import { WellDevelopmentPage } from './pages/WellDevelopmentPage';
 import { DripIrrigationPage } from './pages/DripIrrigationPage';
 import { FarmConsultancyPage } from './pages/FarmConsultancyPage';
+import { CropDoctorPage } from './pages/CropDoctorPage';
 import { BlogPage } from './pages/BlogPage';
 import { BlogDetailPage } from './pages/BlogDetailPage';
 import { LoginPage } from './pages/LoginPage';
@@ -62,6 +63,8 @@ const AppContent: React.FC = () => {
           <Route path="/services/farm-consultancy" element={<FarmConsultancyPage />} />
           <Route path="/services/consultancy" element={<Navigate to="/services/farm-consultancy" replace />} />
           <Route path="/services/consult" element={<Navigate to="/services/farm-consultancy" replace />} />
+          <Route path="/services/crop-doctor" element={<CropDoctorPage />} />
+          <Route path="/crop-doctor" element={<CropDoctorPage />} />
           <Route
             path="/products"
             element={

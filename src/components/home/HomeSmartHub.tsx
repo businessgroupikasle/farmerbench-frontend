@@ -47,7 +47,7 @@ const tools = [
     heading: 'Identify Crop Problems',
     description: 'Upload crop photo & get expert guidance instantly.',
     action: 'Ask Crop Doctor',
-    to: '/services/farm-consultancy',
+    to: '/crop-doctor',
     art: (
       <div className="smart-hub-phone" aria-hidden="true">
         <Smartphone size={68} strokeWidth={1.7} />
@@ -87,7 +87,7 @@ const tools = [
     heading: "Today's Agriculture Prices",
     description: 'Check daily market prices of crops, seeds, fertilizers and more.',
     action: 'View Market Prices',
-    to: '/products',
+    to: '',
     art: <ChartNoAxesCombined className="smart-hub-market-art" size={67} aria-hidden="true" />,
   },
 ];

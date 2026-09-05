@@ -20,7 +20,7 @@ export const SecurityAndNotificationsCard: React.FC<SecurityAndNotificationsCard
     {
       id: 'notif-2',
       icon: <Stethoscope size={15} color="#16a34a" />,
-      text: 'Dr. Arun replied to your Crop Doctor request.',
+      text: 'Dr. AgriEra replied to your Crop Doctor request.',
       time: '28 Aug 2026, 11:20 AM',
     },
     {

@@ -24,9 +24,9 @@ export const ConsultationCard: React.FC<ConsultationCardProps> = ({
         </div>
 
         <div className="fb-doctor-profile">
-          <img src={doctorAvatar} alt="Dr. Arun Kumar" className="fb-doctor-avatar" />
+          <img src={doctorAvatar} alt="Dr. AgriEra Kumar" className="fb-doctor-avatar" />
           <div className="fb-doctor-info">
-            <span className="fb-doctor-name">Dr. Arun Kumar</span>
+            <span className="fb-doctor-name">Dr. AgriEra Kumar</span>
             <span className="fb-doctor-role">Crop Nutrition Specialist</span>
           </div>
         </div>

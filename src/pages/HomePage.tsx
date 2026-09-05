@@ -13,18 +13,19 @@ export const HomePage: React.FC = () => {
       {/* 1. Hero Section (Natural Organic Products) */}
       <HomeHero />
 
+      {/* Shop by Categories Carousel */}
       <HomeCategories />
 
       {/* 2. Main AgriFlow Sections */}
       <div className="container homepage-sections-container">
+        {/* Live Featured Products Section from Database (Best Selling Products) */}
+        <HomeOurProducts />
+
         {/* Farmer tools and live information hub */}
         <HomeSmartHub />
 
         {/* Daily agricultural input and crop price snapshot */}
         <HomeMarketPrices />
-
-        {/* Live Featured Products Section from Database */}
-        <HomeOurProducts />
 
         {/* Our Latest News / Agricultural Insights Section */}
         <HomeLatestNews />

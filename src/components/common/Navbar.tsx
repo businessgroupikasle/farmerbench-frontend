@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../hooks/useCart';
-import { useUIStore } from '../../store/uiStore';
 import {
   ShoppingCart,
   ChevronDown,
@@ -29,7 +28,6 @@ import './Navbar.css';
 export const Navbar: React.FC = () => {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const { totalItems } = useCart();
-  const { openAuthModal } = useUIStore();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -148,7 +146,7 @@ export const Navbar: React.FC = () => {
                   <ChevronDown size={14} className="agriflow-dropdown-chevron" />
                 </Link>
                 <div className="agriflow-nav-dropdown-menu">
-                  <Link to="/services#crop-doctor" className="agriflow-dropdown-subitem">
+                  <Link to="/crop-doctor" className="agriflow-dropdown-subitem">
                     <div className="agriflow-dropdown-icon-box">
                       <Stethoscope size={17} />
                     </div>
@@ -316,7 +314,7 @@ export const Navbar: React.FC = () => {
                 Crop Services
               </Link>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', paddingLeft: '0.75rem', borderLeft: '2px solid rgba(136, 207, 58, 0.3)' }}>
-                <Link to="/services#crop-doctor" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Link to="/crop-doctor" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <Stethoscope size={14} color="#88CF3A" /> Crop Doctor
                 </Link>
                 <Link to="/services#crop-calendar" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
@@ -339,7 +337,7 @@ export const Navbar: React.FC = () => {
               Contact Us
             </Link>
             {!isAuthenticated ? (
-              <button onClick={() => { setIsMobileMenuOpen(false); openAuthModal('login'); }} className="agriflow-auth-btn" style={{ padding: '0.75rem', marginTop: '0.5rem' }}>
+              <button onClick={() => { setIsMobileMenuOpen(false); navigate('/login'); }} className="agriflow-auth-btn" style={{ padding: '0.75rem', marginTop: '0.5rem' }}>
                 Sign In / Register
               </button>
             ) : (

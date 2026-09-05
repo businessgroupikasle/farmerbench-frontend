@@ -21,7 +21,7 @@ const DEFAULT_CUSTOMERS: CustomerRecord[] = [
     name: 'Senthil Nathan',
     phone: '+91 98421 99210',
     email: 'senthil.farmer@gmail.com',
-    location: 'Thanjavur, Tamil Nadu',
+    location: 'Coimbatore, Tamil Nadu',
     crops: 'Paddy, Sugarcane (12 Acres)',
     totalOrders: 6,
     totalSpent: '₹14,580',

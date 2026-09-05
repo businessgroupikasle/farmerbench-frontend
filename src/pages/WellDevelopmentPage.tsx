@@ -26,6 +26,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import './WellDevelopmentPage.css';
+import { serviceBookingService } from '../services/serviceBooking.service';
 
 // Assets
 import heroWellImg from '../assets/well-dev-hero.jpg';
@@ -58,6 +59,9 @@ export const WellDevelopmentPage: React.FC = () => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookingReference, setBookingReference] = useState('');
+  const [callbackReference, setCallbackReference] = useState('');
+  const [isSubmittingCallback, setIsSubmittingCallback] = useState(false);
   const [isExpertModalOpen, setIsExpertModalOpen] = useState(false);
   const [expertCallbackSuccess, setExpertCallbackSuccess] = useState(false);
   const [expertPhone, setExpertPhone] = useState('');
@@ -234,26 +238,89 @@ export const WellDevelopmentPage: React.FC = () => {
   };
 
   // Form Submit Handler
-  const handleSubmitAssessment = (e: React.FormEvent) => {
+  const handleSubmitAssessment = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.farmerName.trim()) {
+      alert('Please enter your full name.');
+      return;
+    }
+    const cleanPhone = formData.mobileNumber.replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
+      alert('Please enter a valid 10-digit Indian mobile number.');
+      return;
+    }
+    if (!formData.farmLocation.trim()) {
+      alert('Please enter your farm location.');
+      return;
+    }
+    if (!formData.farmArea.trim()) {
+      alert('Please enter total farm area.');
+      return;
+    }
     if (!formData.termsConfirmed) {
       alert('Please confirm the declaration checkbox to continue.');
       return;
     }
+
     setIsSubmitting(true);
-    setTimeout(() => {
+    try {
+      const response = await serviceBookingService.createBooking({
+        serviceSlug: 'well-development',
+        serviceName: 'Well Development',
+        name: formData.farmerName.trim(),
+        phone: cleanPhone,
+        location: formData.farmLocation.trim(),
+        farmSize: formData.farmArea.trim(),
+        cropType: formData.mainCrops.trim() || null,
+        preferredDate: formData.inspectionDate || null,
+        message: JSON.stringify({
+          existingWaterSource: formData.existingWaterSource,
+          currentDepth: formData.currentDepth,
+          waterShortageDetails: formData.waterShortageDetails,
+          requiredQuantity: formData.requiredQuantity,
+          uploadedFilesCount: uploadedFiles.length,
+        }),
+      });
+
+      if (response.data?.bookingReference) {
+        setBookingReference(response.data.bookingReference);
+      }
       setIsSubmitting(false);
       setIsSubmitted(true);
-    }, 800);
+    } catch (error: any) {
+      setIsSubmitting(false);
+      alert(error.message || 'Unable to submit water assessment request. Please try again.');
+    }
   };
 
-  const handleExpertCallbackSubmit = (e: React.FormEvent) => {
+  const handleExpertCallbackSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!expertPhone || expertPhone.length < 10) {
-      alert('Please enter a valid 10-digit mobile number.');
+    const cleanPhone = expertPhone.replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
+      alert('Please enter a valid 10-digit Indian mobile number.');
       return;
     }
-    setExpertCallbackSuccess(true);
+
+    setIsSubmittingCallback(true);
+    try {
+      const response = await serviceBookingService.createBooking({
+        serviceSlug: 'well-development-callback',
+        serviceName: 'Well Development (Callback)',
+        name: formData.farmerName.trim() || 'Farmer (Callback Request)',
+        phone: cleanPhone,
+        location: formData.farmLocation.trim() || 'Tamil Nadu',
+        message: 'Farmer requested immediate telephone callback for well development and water engineering guidance.',
+      });
+
+      if (response.data?.bookingReference) {
+        setCallbackReference(response.data.bookingReference);
+      }
+      setExpertCallbackSuccess(true);
+    } catch (error: any) {
+      alert(error.message || 'Unable to schedule callback. Please try again.');
+    } finally {
+      setIsSubmittingCallback(false);
+    }
   };
 
   const scrollToAssessmentForm = () => {
@@ -558,6 +625,12 @@ export const WellDevelopmentPage: React.FC = () => {
                   <h3 className="well-dev-success-title">
                     Water Assessment Request Received!
                   </h3>
+                  {bookingReference && (
+                    <div style={{ background: '#EFF6FF', border: '1px solid #3B82F6', borderRadius: '8px', padding: '0.75rem 1.25rem', margin: '1rem auto', display: 'inline-block' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#1D4ED8', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Generated Booking Reference</div>
+                      <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#1E40AF', letterSpacing: '0.06em', fontFamily: 'monospace' }}>{bookingReference}</div>
+                    </div>
+                  )}
                   <p className="well-dev-success-desc">
                     Thank you, <strong>{formData.farmerName || 'Farmer'}</strong>. Our water engineering team has received your assessment booking for{' '}
                     <strong>{formData.farmLocation || 'your farm'}</strong>. We will review regional aquifer data and call you within 24 hours to schedule the site visit.
@@ -978,6 +1051,12 @@ export const WellDevelopmentPage: React.FC = () => {
                   <PhoneCall size={32} />
                 </div>
                 <h3 className="well-dev-modal-title">Callback Scheduled!</h3>
+                {callbackReference && (
+                  <div style={{ background: '#EFF6FF', border: '1px solid #93C5FD', borderRadius: '8px', padding: '0.5rem 1rem', margin: '0.75rem 0' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#1D4ED8', fontWeight: 600 }}>Reference ID: </span>
+                    <strong style={{ fontFamily: 'monospace', color: '#1E40AF', fontSize: '1rem' }}>{callbackReference}</strong>
+                  </div>
+                )}
                 <p className="well-dev-modal-desc">
                   Thank you! Our senior groundwater & borewell engineer will call you on{' '}
                   <strong>{expertPhone}</strong> within 15 minutes.
@@ -1021,9 +1100,10 @@ export const WellDevelopmentPage: React.FC = () => {
                     type="submit"
                     className="well-dev-btn-submit"
                     style={{ marginTop: '0.75rem' }}
+                    disabled={isSubmittingCallback}
                   >
                     <PhoneCall size={16} />
-                    <span>Request Immediate Call</span>
+                    <span>{isSubmittingCallback ? 'Scheduling Call...' : 'Request Immediate Call'}</span>
                   </button>
 
                   <div className="well-dev-modal-footer-note">

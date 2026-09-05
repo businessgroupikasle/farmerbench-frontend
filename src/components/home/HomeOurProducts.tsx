@@ -60,7 +60,7 @@ export const HomeOurProducts: React.FC = () => {
               <div className="agriflow-product-info">
                 <div className="agriflow-product-meta">
                   <span>{item.subcategory?.name || item.category?.name || 'Farm Product'}</span>
-                  <span><Star size={11} fill="currentColor" /> {(item.rating || 0).toFixed(1)}</span>
+                  <span><Star size={14} fill="currentColor" /> {(item.rating || 0).toFixed(1)}</span>
                 </div>
                 <h3 className="agriflow-product-name">{item.title}</h3>
                 <p className="agriflow-product-pack">Pack: {packSize || 'Standard pack'}</p>

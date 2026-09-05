@@ -1,0 +1,1702 @@
+/* ==========================================================================
+   Crop Doctor Page - Stylesheet
+   Design matching AgriEra / FarmerBench Crop Health Support Hero
+   ========================================================================== */
+
+.crop-doctor-page {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #F8FAF7;
+  color: #1A2E22;
+  font-family: inherit;
+  overflow-x: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   1. Hero Section (Pixel-Perfect from Design Screenshot)
+   -------------------------------------------------------------------------- */
+.crop-doctor-hero-section {
+  position: relative;
+  width: 100%;
+  background: linear-gradient(135deg, #FFFFFF 0%, #F5FAF6 50%, #EEF7F1 100%);
+  border-bottom: 1px solid #E2EDE5;
+  overflow: hidden;
+  padding: 1.5rem 0 3.5rem 0;
+}
+
+/* Decorative background leaves on left */
+.crop-doctor-hero-leaf-accent {
+  position: absolute;
+  top: 0;
+  left: -20px;
+  width: 110px;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.85;
+  z-index: 1;
+  background-image: radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.15) 0%, transparent 45%),
+                    radial-gradient(circle at 5% 60%, rgba(22, 101, 52, 0.12) 0%, transparent 40%);
+}
+
+.crop-doctor-hero-container {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 1.75rem;
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  align-items: center;
+  gap: 2.5rem;
+  position: relative;
+  z-index: 2;
+  min-height: 520px;
+}
+
+/* Left Content */
+.crop-doctor-hero-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  z-index: 3;
+}
+
+/* Breadcrumb */
+.crop-doctor-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.825rem;
+  color: #64748B;
+  margin-bottom: 1.5rem;
+}
+
+.crop-doctor-breadcrumbs a {
+  color: #64748B;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+.crop-doctor-breadcrumbs a:hover {
+  color: #0F4726;
+}
+
+.crop-doctor-breadcrumbs .breadcrumb-separator {
+  color: #94A3B8;
+  font-size: 0.75rem;
+}
+
+.crop-doctor-breadcrumbs .breadcrumb-current {
+  color: #0F4726;
+  font-weight: 600;
+}
+
+/* Tag / Badge */
+.crop-doctor-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background-color: #EBF7EE;
+  color: #166534;
+  border: 1px solid #C8E8CE;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  font-size: 0.775rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 1.25rem;
+}
+
+.crop-doctor-badge-leaf {
+  color: #22C55E;
+}
+
+/* Headline */
+.crop-doctor-hero-title {
+  font-size: clamp(2.4rem, 4vw, 3.4rem);
+  line-height: 1.15;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: #0F2318;
+  margin: 0 0 1.15rem 0;
+}
+
+.crop-doctor-hero-title .title-accent {
+  color: #0F4726;
+  display: block;
+}
+
+/* Description */
+.crop-doctor-hero-desc {
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: #4B5E53;
+  max-width: 500px;
+  margin: 0 0 1.5rem 0;
+}
+
+/* Feature Chips Row */
+.crop-doctor-features-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.crop-doctor-feature-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #F0F8F2;
+  border: 1px solid #D2E9D8;
+  padding: 0.45rem 0.95rem;
+  border-radius: 9999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #166534;
+  box-shadow: 0 1px 3px rgba(15, 71, 38, 0.04);
+}
+
+.crop-doctor-feature-chip svg {
+  color: #15803D;
+  flex-shrink: 0;
+}
+
+/* Action Buttons Row */
+.crop-doctor-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.crop-doctor-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #0F4726;
+  color: #FFFFFF;
+  padding: 0.8rem 1.65rem;
+  border-radius: 9999px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(15, 71, 38, 0.28);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.crop-doctor-btn-primary:hover {
+  background-color: #166534;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(15, 71, 38, 0.35);
+}
+
+.crop-doctor-btn-primary:active {
+  transform: translateY(0);
+}
+
+.crop-doctor-btn-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: transparent;
+  color: #0F4726;
+  font-size: 0.95rem;
+  font-weight: 700;
+  border: none;
+  padding: 0.5rem 0.25rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.crop-doctor-btn-link:hover {
+  color: #166534;
+  gap: 0.65rem;
+}
+
+/* Right Media (Hero Visual) */
+.crop-doctor-hero-media {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 440px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.crop-doctor-hero-image-wrap {
+  position: relative;
+  width: 100%;
+  height: 460px;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 16px 36px rgba(15, 71, 38, 0.12);
+}
+
+.crop-doctor-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  display: block;
+}
+
+/* Soft Edge Fade Effect to blend seamlessly into left content */
+.crop-doctor-hero-image-wrap::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 35%;
+  height: 100%;
+  background: linear-gradient(to right, rgba(245, 250, 246, 0.85) 0%, rgba(245, 250, 246, 0) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Floating Live Doctor Badge */
+.crop-doctor-floating-badge {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(22, 101, 52, 0.18);
+  padding: 0.75rem 1.15rem;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 2;
+  animation: floatGentle 4s ease-in-out infinite alternate;
+}
+
+@keyframes floatGentle {
+  from { transform: translateY(0px); }
+  to { transform: translateY(-6px); }
+}
+
+.crop-doctor-floating-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: #E8F5E9;
+  color: #166534;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.crop-doctor-floating-text strong {
+  display: block;
+  font-size: 0.85rem;
+  color: #0F291B;
+  font-weight: 700;
+}
+
+.crop-doctor-floating-text span {
+  display: block;
+  font-size: 0.75rem;
+  color: #64748B;
+}
+
+/* --------------------------------------------------------------------------
+   2. Four-Step Workflow Process Bar (Exact from Screenshot)
+   -------------------------------------------------------------------------- */
+.crop-doctor-workflow-bar {
+  background-color: #FFFFFF;
+  border-bottom: 1px solid #E2EDE5;
+  box-shadow: 0 4px 20px rgba(15, 71, 38, 0.04);
+  padding: 1.75rem 1.5rem;
+  position: relative;
+  z-index: 5;
+}
+
+.crop-doctor-workflow-container {
+  max-width: 1360px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.crop-doctor-workflow-step {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.crop-doctor-step-icon-squircle {
+  width: 48px;
+  height: 48px;
+  border: 1.8px solid #2E7D47;
+  border-radius: 14px;
+  background-color: #FFFFFF;
+  color: #1E7E34;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(46, 125, 50, 0.08);
+  transition: all 0.2s ease;
+}
+
+.crop-doctor-workflow-step:hover .crop-doctor-step-icon-squircle {
+  background-color: #F0FDF4;
+  transform: scale(1.04);
+}
+
+.crop-doctor-step-badge {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #E8F5E9;
+  color: #166534;
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.crop-doctor-step-divider {
+  width: 1px;
+  height: 30px;
+  background-color: #CBD5E1;
+  margin: 0 0.15rem;
+  flex-shrink: 0;
+}
+
+.crop-doctor-step-body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.crop-doctor-step-heading {
+  font-size: 0.925rem;
+  font-weight: 800;
+  color: #17251E;
+  margin: 0 0 0.2rem 0;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.crop-doctor-step-caption {
+  font-size: 0.76rem;
+  color: #64748B;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.crop-doctor-workflow-dots {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+  padding: 0 0.5rem;
+}
+
+.crop-doctor-dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background-color: #86EFAC;
+}
+
+@media (max-width: 1100px) {
+  .crop-doctor-workflow-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+  }
+
+  .crop-doctor-workflow-dots {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .crop-doctor-workflow-container {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   3. How Crop Doctor Works (3 Steps)
+   -------------------------------------------------------------------------- */
+.crop-doctor-steps-section {
+  padding: 4.5rem 1.75rem;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.crop-doctor-section-header {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 3rem auto;
+}
+
+.crop-doctor-section-tag {
+  display: inline-block;
+  font-size: 0.775rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #0F4726;
+  background-color: #EBF8EE;
+  padding: 0.35rem 0.85rem;
+  border-radius: 9999px;
+  margin-bottom: 0.75rem;
+}
+
+.crop-doctor-section-title {
+  font-size: 2.1rem;
+  font-weight: 800;
+  color: #0F2318;
+  margin: 0 0 0.75rem 0;
+  letter-spacing: -0.02em;
+}
+
+.crop-doctor-section-desc {
+  font-size: 0.95rem;
+  color: #64748B;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.crop-doctor-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.75rem;
+}
+
+.crop-doctor-step-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E2EDE5;
+  border-radius: 16px;
+  padding: 2rem 1.75rem;
+  position: relative;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+
+.crop-doctor-step-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 28px rgba(15, 71, 38, 0.08);
+}
+
+.crop-doctor-step-num {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  font-size: 2rem;
+  font-weight: 900;
+  color: #E2ECE5;
+  line-height: 1;
+}
+
+.crop-doctor-step-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background-color: #E8F5E9;
+  color: #166534;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.crop-doctor-step-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0F2318;
+  margin: 0 0 0.5rem 0;
+}
+
+.crop-doctor-step-desc {
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: #4B5E53;
+  margin: 0;
+}
+
+/* --------------------------------------------------------------------------
+   4. Submit a Crop Problem - Two Column Assessment Layout
+   -------------------------------------------------------------------------- */
+.crop-doctor-assessment-section {
+  padding: 3.5rem 1.75rem;
+  background-color: #F8FAF7;
+  border-top: 1px solid #E2EDE5;
+}
+
+.crop-doctor-assessment-container {
+  max-width: 1360px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 2.1fr 1fr;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+/* Main Form Card */
+.crop-doctor-main-form-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E0EBE2;
+  border-radius: 18px;
+  box-shadow: 0 6px 28px rgba(15, 71, 38, 0.05);
+  padding: 2.5rem;
+}
+
+.crop-doctor-form-header {
+  margin-bottom: 1.75rem;
+}
+
+.crop-doctor-form-main-title {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #0F2318;
+  margin: 0 0 0.35rem 0;
+  letter-spacing: -0.02em;
+}
+
+.crop-doctor-form-subtitle {
+  font-size: 0.85rem;
+  color: #64748B;
+  margin: 0 0 1.25rem 0;
+}
+
+/* Step Indicator Pill Bar */
+.crop-doctor-form-step-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border: 1px solid #E2E8F0;
+  background-color: #F8FAFC;
+  padding: 0.4rem;
+  border-radius: 9999px;
+  margin-bottom: 2.25rem;
+  flex-wrap: wrap;
+}
+
+.crop-doctor-step-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 1.15rem;
+  border-radius: 9999px;
+  font-size: 0.825rem;
+  font-weight: 700;
+  color: #64748B;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.crop-doctor-step-pill.active {
+  background-color: #EBF7EE;
+  color: #0F4726;
+  border: 1.5px solid #0F4726;
+  box-shadow: 0 2px 6px rgba(15, 71, 38, 0.08);
+}
+
+.crop-doctor-step-pill-num {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: #0F4726;
+  color: #FFFFFF;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.crop-doctor-step-pill:not(.active) .crop-doctor-step-pill-num {
+  background-color: #CBD5E1;
+  color: #475569;
+}
+
+/* Sub-sections within form */
+.crop-doctor-form-section-block {
+  margin-bottom: 2.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #F1F5F9;
+}
+
+.crop-doctor-form-section-block:last-of-type {
+  border-bottom: none;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0;
+}
+
+.crop-doctor-block-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.crop-doctor-block-badge-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #0F4726;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.775rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.crop-doctor-block-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #0F2318;
+  margin: 0;
+}
+
+/* Grid Rows */
+.crop-doctor-row-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.crop-doctor-row-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.crop-doctor-field-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.crop-doctor-field-label {
+  font-size: 0.825rem;
+  font-weight: 700;
+  color: #1E293B;
+  margin-bottom: 0.45rem;
+}
+
+.crop-doctor-field-input,
+.crop-doctor-field-select {
+  width: 100%;
+  padding: 0.7rem 0.95rem;
+  border-radius: 10px;
+  border: 1px solid #CBD5E1;
+  background-color: #FFFFFF;
+  font-size: 0.88rem;
+  color: #0F172A;
+  outline: none;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.crop-doctor-field-input:focus,
+.crop-doctor-field-select:focus,
+.crop-doctor-field-textarea:focus {
+  border-color: #0F4726;
+  box-shadow: 0 0 0 3px rgba(15, 71, 38, 0.12);
+}
+
+.crop-doctor-field-textarea {
+  width: 100%;
+  padding: 0.75rem 0.95rem;
+  border-radius: 10px;
+  border: 1px solid #CBD5E1;
+  background-color: #FFFFFF;
+  font-size: 0.88rem;
+  color: #0F172A;
+  outline: none;
+  transition: all 0.15s ease;
+  resize: vertical;
+  box-sizing: border-box;
+  line-height: 1.5;
+}
+
+.crop-doctor-field-hint {
+  font-size: 0.75rem;
+  color: #64748B;
+  margin-top: 0.35rem;
+}
+
+/* Selectable Pill Buttons */
+.crop-doctor-pills-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.crop-doctor-pill-select-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid #CBD5E1;
+  background-color: #FFFFFF;
+  color: #475569;
+  font-size: 0.825rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.crop-doctor-pill-select-btn:hover {
+  border-color: #0F4726;
+  color: #0F4726;
+}
+
+.crop-doctor-pill-select-btn.active {
+  border-color: #0F4726;
+  background-color: #EBF7EE;
+  color: #0F4726;
+  font-weight: 700;
+}
+
+/* Category Cards Grid */
+.crop-doctor-category-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.65rem;
+  margin-bottom: 1.25rem;
+}
+
+.crop-doctor-category-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 0.4rem;
+  border-radius: 12px;
+  border: 1px solid #E2E8F0;
+  background-color: #FFFFFF;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.crop-doctor-category-card:hover {
+  border-color: #0F4726;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(15, 71, 38, 0.08);
+}
+
+.crop-doctor-category-card.active {
+  border: 1.8px solid #0F4726;
+  background-color: #F0FDF4;
+  color: #0F4726;
+  box-shadow: 0 4px 14px rgba(15, 71, 38, 0.1);
+}
+
+.crop-doctor-cat-icon {
+  margin-bottom: 0.35rem;
+  color: inherit;
+}
+
+.crop-doctor-cat-name {
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* Radio Choice Rows */
+.crop-doctor-radio-group {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-top: 0.25rem;
+}
+
+.crop-doctor-radio-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+}
+
+.crop-doctor-radio-item input[type="radio"] {
+  accent-color: #0F4726;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* Severity Tag */
+.crop-doctor-severity-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.775rem;
+  font-weight: 700;
+  border: 1px solid transparent;
+}
+
+.crop-doctor-severity-badge.mild {
+  background-color: #F0FDF4;
+  color: #166534;
+  border-color: #BBF7D0;
+}
+
+.crop-doctor-severity-badge.moderate {
+  background-color: #FEF3C7;
+  color: #B45309;
+  border-color: #FDE68A;
+}
+
+.crop-doctor-severity-badge.severe {
+  background-color: #FEF2F2;
+  color: #B91C1C;
+  border-color: #FECACA;
+}
+
+/* Photo Upload Box & Previews */
+.crop-doctor-dropzone-box {
+  border: 2px dashed #93C5FD;
+  background-color: #F0FDF4;
+  border-radius: 14px;
+  padding: 2.25rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 1.25rem;
+}
+
+.crop-doctor-dropzone-box:hover {
+  border-color: #0F4726;
+  background-color: #DCFCE7;
+}
+
+.crop-doctor-dropzone-box.dragging {
+  border-color: #0F4726;
+  background-color: #DCFCE7;
+}
+
+.crop-doctor-dropzone-cloud-icon {
+  color: #0F4726;
+  margin-bottom: 0.5rem;
+}
+
+.crop-doctor-dropzone-prompt {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0F2318;
+  margin: 0 0 0.35rem 0;
+}
+
+.crop-doctor-choose-btn {
+  display: inline-block;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  color: #0F4726;
+  font-weight: 700;
+  padding: 0.35rem 0.85rem;
+  border-radius: 6px;
+  margin: 0 0.35rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.crop-doctor-dropzone-limit {
+  font-size: 0.78rem;
+  color: #64748B;
+  margin: 0;
+}
+
+/* Photo Preview Cards Row */
+.crop-doctor-previews-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.crop-doctor-preview-card {
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  position: relative;
+}
+
+.crop-doctor-preview-thumb-wrap {
+  position: relative;
+  width: 100%;
+  height: 120px;
+  background-color: #F1F5F9;
+}
+
+.crop-doctor-preview-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.crop-doctor-preview-remove-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.65);
+  color: #FFFFFF;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.crop-doctor-preview-details {
+  padding: 0.65rem 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.crop-doctor-preview-name {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #1E293B;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 120px;
+}
+
+.crop-doctor-preview-size {
+  font-size: 0.7rem;
+  color: #64748B;
+}
+
+.crop-doctor-check-circle {
+  color: #16A34A;
+}
+
+/* Helpful Tip Box */
+.crop-doctor-tip-banner {
+  background-color: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: 12px;
+  padding: 0.85rem 1.15rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.crop-doctor-tip-icon {
+  color: #16A34A;
+  flex-shrink: 0;
+}
+
+.crop-doctor-tip-text {
+  font-size: 0.825rem;
+  color: #166534;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* Contact Verification & Response Modes */
+.crop-doctor-verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #16A34A;
+  background-color: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  margin-left: auto;
+}
+
+.crop-doctor-response-tabs {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.crop-doctor-response-tab-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.65rem 0.5rem;
+  border-radius: 10px;
+  border: 1px solid #CBD5E1;
+  background-color: #FFFFFF;
+  color: #475569;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.crop-doctor-response-tab-btn:hover {
+  border-color: #0F4726;
+  color: #0F4726;
+}
+
+.crop-doctor-response-tab-btn.active {
+  border-color: #0F4726;
+  background-color: #EBF7EE;
+  color: #0F4726;
+}
+
+/* Consent Checkbox & Lock Note */
+.crop-doctor-consent-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin: 1.25rem 0 0.75rem 0;
+}
+
+.crop-doctor-consent-checkbox {
+  margin-top: 0.2rem;
+  accent-color: #0F4726;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.crop-doctor-consent-text {
+  font-size: 0.825rem;
+  color: #334155;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.crop-doctor-lock-note {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  color: #64748B;
+  margin-bottom: 1.75rem;
+}
+
+/* Bottom Action Buttons */
+.crop-doctor-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.crop-doctor-btn-submit-main {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  background-color: #0F4726;
+  color: #FFFFFF;
+  padding: 0.95rem 1.75rem;
+  border-radius: 12px;
+  font-size: 0.98rem;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(15, 71, 38, 0.25);
+  transition: all 0.2s ease;
+}
+
+.crop-doctor-btn-submit-main:hover:not(:disabled) {
+  background-color: #166534;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(15, 71, 38, 0.32);
+}
+
+.crop-doctor-btn-draft {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.95rem 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #CBD5E1;
+  background-color: #FFFFFF;
+  color: #334155;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.crop-doctor-btn-draft:hover {
+  background-color: #F8FAFC;
+  border-color: #94A3B8;
+}
+
+.crop-doctor-post-submit-note {
+  font-size: 0.78rem;
+  color: #64748B;
+  text-align: center;
+  margin-top: 0.75rem;
+}
+
+/* --------------------------------------------------------------------------
+   Right Sidebar Cards
+   -------------------------------------------------------------------------- */
+.crop-doctor-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.crop-doctor-sidebar-card {
+  background-color: #FFFFFF;
+  border: 1px solid #E2EDE5;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 16px rgba(15, 71, 38, 0.04);
+}
+
+.crop-doctor-sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.crop-doctor-sidebar-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0F2318;
+  margin: 0;
+}
+
+/* Sidebar Item Lists */
+.crop-doctor-sidebar-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.crop-doctor-sidebar-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  font-size: 0.84rem;
+  color: #334155;
+  line-height: 1.45;
+}
+
+.crop-doctor-sidebar-list-icon {
+  color: #16A34A;
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.crop-doctor-sidebar-step-circle {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid #16A34A;
+  color: #16A34A;
+  font-size: 0.7rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+/* Immediate Help Card */
+.crop-doctor-contact-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid #E2E8F0;
+  background-color: #F8FAFC;
+  color: #0F2318;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-decoration: none;
+  margin-bottom: 0.65rem;
+  transition: all 0.15s ease;
+}
+
+.crop-doctor-contact-btn:hover {
+  background-color: #F0FDF4;
+  border-color: #86EFAC;
+  color: #0F4726;
+}
+
+.crop-doctor-contact-btn.whatsapp {
+  background-color: #F0FDF4;
+  border-color: #86EFAC;
+  color: #15803D;
+}
+
+.crop-doctor-sidebar-footer-note {
+  font-size: 0.75rem;
+  color: #64748B;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .crop-doctor-category-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 1024px) {
+  .crop-doctor-assessment-container {
+    grid-template-columns: 1fr;
+  }
+
+  .crop-doctor-category-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .crop-doctor-category-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .crop-doctor-row-2,
+  .crop-doctor-row-3,
+  .crop-doctor-previews-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .crop-doctor-actions-row {
+    flex-direction: column;
+  }
+
+  .crop-doctor-btn-submit-main,
+  .crop-doctor-btn-draft {
+    width: 100%;
+  }
+
+  .crop-doctor-main-form-card {
+    padding: 1.5rem;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Live Postal Code Lookup Styles
+   -------------------------------------------------------------------------- */
+.crop-doctor-postal-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #16A34A;
+}
+
+.crop-doctor-postal-indicator.searching {
+  color: #0284C7;
+}
+
+.crop-doctor-spin {
+  animation: cdSpin 0.9s linear infinite;
+}
+
+@keyframes cdSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.crop-doctor-postal-badge {
+  margin-top: 0.45rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: 8px;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.775rem;
+  color: #166534;
+  flex-wrap: wrap;
+}
+
+.crop-doctor-postal-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: #16A34A;
+  box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7);
+  animation: cdDotPulse 1.8s infinite;
+  flex-shrink: 0;
+}
+
+@keyframes cdDotPulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(22, 163, 74, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+}
+
+.crop-doctor-postal-text {
+  flex: 1;
+}
+
+.crop-doctor-postal-apply-btn {
+  background-color: #0F4726;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 5px;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.725rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.crop-doctor-postal-apply-btn:hover {
+  background-color: #15803D;
+  transform: translateY(-1px);
+}
+
+.crop-doctor-postal-warn {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: #B45309;
+  display: block;
+}
+
+/* Character count & phone hint */
+.crop-doctor-char-count {
+  font-size: 0.725rem;
+  font-weight: 600;
+  color: #64748B;
+  background-color: #F1F5F9;
+  padding: 0.15rem 0.45rem;
+  border-radius: 4px;
+}
+
+.crop-doctor-phone-hint {
+  font-size: 0.725rem;
+  color: #94A3B8;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   Draft Resume Banner
+   -------------------------------------------------------------------------- */
+.crop-doctor-draft-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background-color: #F0FDF4;
+  border: 1px solid #86EFAC;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.crop-doctor-draft-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #166534;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.crop-doctor-draft-icon {
+  color: #15803D;
+  flex-shrink: 0;
+}
+
+.crop-doctor-draft-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.crop-doctor-draft-btn-restore {
+  background-color: #0F4726;
+  color: #FFFFFF;
+  border: none;
+  border-radius: 9999px;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.crop-doctor-draft-btn-restore:hover {
+  background-color: #15803D;
+  transform: translateY(-1px);
+}
+
+.crop-doctor-draft-btn-discard {
+  background: transparent;
+  color: #64748B;
+  border: 1px solid #CBD5E1;
+  border-radius: 9999px;
+  padding: 0.35rem 0.85rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.crop-doctor-draft-btn-discard:hover {
+  color: #0F172A;
+  border-color: #94A3B8;
+}
+
+/* --------------------------------------------------------------------------
+   Floating Toast Notification
+   -------------------------------------------------------------------------- */
+.crop-doctor-toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background-color: #0F291B;
+  color: #FFFFFF;
+  padding: 0.85rem 1.35rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  z-index: 99999;
+  border-left: 4px solid #22C55E;
+}
+
+.crop-doctor-toast-icon {
+  color: #4ADE80;
+  flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Enlarged Photo Modal
+   -------------------------------------------------------------------------- */
+.crop-doctor-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100000;
+  padding: 1.5rem;
+}
+
+.crop-doctor-modal-content {
+  background-color: #FFFFFF;
+  border-radius: 16px;
+  overflow: hidden;
+  max-width: 680px;
+  width: 100%;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+}
+
+.crop-doctor-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #E2E8F0;
+  background-color: #F8FAFC;
+}
+
+.crop-doctor-modal-title h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #0F172A;
+  font-weight: 700;
+}
+
+.crop-doctor-modal-meta {
+  font-size: 0.775rem;
+  color: #64748B;
+}
+
+.crop-doctor-modal-close {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #64748B;
+  padding: 0.35rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.crop-doctor-modal-close:hover {
+  background-color: #E2E8F0;
+  color: #0F172A;
+}
+
+.crop-doctor-modal-body {
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #0F172A;
+}
+
+.crop-doctor-modal-img {
+  max-height: 70vh;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+/* --------------------------------------------------------------------------
+   Interactive Micro-Animations
+   -------------------------------------------------------------------------- */
+.animate-slide-down {
+  animation: cdSlideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes cdSlideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-slide-up {
+  animation: cdSlideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes cdSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: cdFadeIn 0.25s ease both;
+}
+
+@keyframes cdFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-zoom-in {
+  animation: cdZoomIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes cdZoomIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-pop {
+  animation: cdPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes cdPop {
+  0% { transform: scale(0.8); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-scale-in {
+  animation: cdScaleIn 0.25s ease both;
+}
+
+@keyframes cdScaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Category cards active glow and hover lift */
+.crop-doctor-category-card {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.crop-doctor-category-card:hover {
+  transform: translateY(-4px);
+  border-color: #86EFAC;
+  box-shadow: 0 8px 18px rgba(15, 71, 38, 0.08);
+}
+
+.crop-doctor-category-card.active {
+  border-color: #16A34A;
+  background-color: #F0FDF4;
+  box-shadow: 0 0 0 2.5px rgba(22, 163, 74, 0.25), 0 6px 16px rgba(15, 71, 38, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Step pills interactive hover and transition */
+.crop-doctor-step-pill {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.crop-doctor-step-pill:hover:not(.active) {
+  background-color: #F1F5F9;
+  color: #0F2318;
+  transform: translateY(-1px);
+}
+
+.crop-doctor-step-pill.active {
+  animation: cdPillGlow 2s infinite alternate;
+}
+
+@keyframes cdPillGlow {
+  from { box-shadow: 0 2px 6px rgba(15, 71, 38, 0.08); }
+  to { box-shadow: 0 4px 12px rgba(15, 71, 38, 0.2); }
+}
+
+/* Floating certification badge floating animation */
+.crop-doctor-floating-badge {
+  animation: cdFloatBadge 4s ease-in-out infinite alternate;
+}
+
+@keyframes cdFloatBadge {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-8px); }
+}
+
+/* Workflow step icons hover pulse */
+.crop-doctor-workflow-step:hover .crop-doctor-step-icon-squircle {
+  transform: scale(1.08) rotate(3deg);
+  box-shadow: 0 8px 20px rgba(15, 71, 38, 0.2);
+}
+
+.crop-doctor-step-icon-squircle {
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+

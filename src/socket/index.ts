@@ -59,12 +59,35 @@ export const useSocketSync = () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
     };
 
+    const handleBookingCreated = (booking: any) => {
+      queryClient.invalidateQueries({ queryKey: ['service-bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['service-booking-stats'] });
+      if (booking?.name) {
+        addToast({
+          type: 'info',
+          message: `⚡ Real-Time Alert: New Service Request — ${booking.name} (${booking.serviceName || 'Service'})`,
+        });
+      }
+      window.dispatchEvent(new CustomEvent('booking:created', { detail: booking }));
+    };
+
+    const handleBookingUpdated = (booking: any) => {
+      queryClient.invalidateQueries({ queryKey: ['service-bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['service-booking-stats'] });
+      if (booking?.id) {
+        queryClient.invalidateQueries({ queryKey: ['service-booking', booking.id] });
+      }
+      window.dispatchEvent(new CustomEvent('booking:updated', { detail: booking }));
+    };
+
     s.on('product:created', handleProductCreated);
     s.on('product:updated', handleProductUpdated);
     s.on('product:deleted', handleProductDeleted);
     s.on('category:created', handleCategoryCreated);
     s.on('category:updated', handleCategoryUpdated);
     s.on('category:deleted', handleCategoryDeleted);
+    s.on('booking:created', handleBookingCreated);
+    s.on('booking:updated', handleBookingUpdated);
 
     return () => {
       s.off('product:created', handleProductCreated);
@@ -73,6 +96,8 @@ export const useSocketSync = () => {
       s.off('category:created', handleCategoryCreated);
       s.off('category:updated', handleCategoryUpdated);
       s.off('category:deleted', handleCategoryDeleted);
+      s.off('booking:created', handleBookingCreated);
+      s.off('booking:updated', handleBookingUpdated);
     };
   }, [queryClient, addToast]);
 };

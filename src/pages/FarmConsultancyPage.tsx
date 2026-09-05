@@ -31,6 +31,7 @@ import {
   User,
 } from 'lucide-react';
 import './FarmConsultancyPage.css';
+import { serviceBookingService } from '../services/serviceBooking.service';
 
 // Assets
 import heroConsultImg from '../assets/farm-consult-hero.jpg';
@@ -64,6 +65,9 @@ export const FarmConsultancyPage: React.FC = () => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookingReference, setBookingReference] = useState('');
+  const [callbackReference, setCallbackReference] = useState('');
+  const [isSubmittingCallback, setIsSubmittingCallback] = useState(false);
   const [isExpertModalOpen, setIsExpertModalOpen] = useState(false);
   const [expertCallbackSuccess, setExpertCallbackSuccess] = useState(false);
   const [expertPhone, setExpertPhone] = useState('');
@@ -303,26 +307,87 @@ export const FarmConsultancyPage: React.FC = () => {
   };
 
   // Form Submit Handler
-  const handleSubmitConsultation = (e: React.FormEvent) => {
+  const handleSubmitConsultation = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.farmerName.trim()) {
+      alert('Please enter your full name.');
+      return;
+    }
+    const cleanPhone = formData.mobileNumber.replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
+      alert('Please enter a valid 10-digit Indian mobile number.');
+      return;
+    }
+    if (!formData.location.trim()) {
+      alert('Please enter your farm location.');
+      return;
+    }
     if (!formData.termsAgreed) {
       alert('Please agree to share information with AgriEra experts to continue.');
       return;
     }
+
     setIsSubmitting(true);
-    setTimeout(() => {
+    try {
+      const response = await serviceBookingService.createBooking({
+        serviceSlug: 'farm-consultancy',
+        serviceName: 'Farm Consultancy',
+        name: formData.farmerName.trim(),
+        phone: cleanPhone,
+        location: formData.location.trim(),
+        farmSize: formData.farmSize.trim() || null,
+        cropType: formData.cropVariety.trim() || null,
+        preferredDate: formData.preferredDateTime || null,
+        message: JSON.stringify({
+          consultationMode: formData.consultationMode,
+          growthStage: formData.growthStage,
+          mainConcern: formData.mainConcern,
+          previousTreatments: formData.previousTreatments,
+          preferredLanguage: formData.preferredLanguage,
+          preferredDateTime: formData.preferredDateTime,
+          uploadedFilesCount: uploadedFiles.length,
+        }),
+      });
+
+      if (response.data?.bookingReference) {
+        setBookingReference(response.data.bookingReference);
+      }
       setIsSubmitting(false);
       setIsSubmitted(true);
-    }, 800);
+    } catch (error: any) {
+      setIsSubmitting(false);
+      alert(error.message || 'Unable to submit consultation request. Please try again.');
+    }
   };
 
-  const handleExpertCallbackSubmit = (e: React.FormEvent) => {
+  const handleExpertCallbackSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!expertPhone || expertPhone.length < 10) {
-      alert('Please enter a valid 10-digit mobile number.');
+    const cleanPhone = expertPhone.replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
+      alert('Please enter a valid 10-digit Indian mobile number.');
       return;
     }
-    setExpertCallbackSuccess(true);
+
+    setIsSubmittingCallback(true);
+    try {
+      const response = await serviceBookingService.createBooking({
+        serviceSlug: 'farm-consultancy-callback',
+        serviceName: 'Farm Consultancy (Callback)',
+        name: formData.farmerName.trim() || 'Farmer (Callback Request)',
+        phone: cleanPhone,
+        location: formData.location.trim() || 'Tamil Nadu',
+        message: 'Farmer requested immediate agronomy and crop diagnosis telephone callback.',
+      });
+
+      if (response.data?.bookingReference) {
+        setCallbackReference(response.data.bookingReference);
+      }
+      setExpertCallbackSuccess(true);
+    } catch (error: any) {
+      alert(error.message || 'Unable to schedule callback. Please try again.');
+    } finally {
+      setIsSubmittingCallback(false);
+    }
   };
 
   const scrollToConsultForm = () => {
@@ -753,6 +818,12 @@ export const FarmConsultancyPage: React.FC = () => {
                   <h3 className="consult-dev-success-title">
                     Consultation Request Confirmed!
                   </h3>
+                  {bookingReference && (
+                    <div style={{ background: '#ECFDF5', border: '1px solid #10B981', borderRadius: '8px', padding: '0.75rem 1.25rem', margin: '1rem auto', display: 'inline-block' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#047857', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Generated Booking Reference</div>
+                      <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#065F46', letterSpacing: '0.06em', fontFamily: 'monospace' }}>{bookingReference}</div>
+                    </div>
+                  )}
                   <p className="consult-dev-success-desc">
                     Thank you, <strong>{formData.farmerName || 'Farmer'}</strong>. Your consultation request for{' '}
                     <strong>{formData.cropVariety || 'your crop'}</strong> ({formData.consultationMode}) has been booked.
@@ -1198,6 +1269,12 @@ export const FarmConsultancyPage: React.FC = () => {
                   <PhoneCall size={32} />
                 </div>
                 <h3 className="consult-dev-modal-title">Callback Scheduled!</h3>
+                {callbackReference && (
+                  <div style={{ background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: '8px', padding: '0.5rem 1rem', margin: '0.75rem 0' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#15803D', fontWeight: 600 }}>Reference ID: </span>
+                    <strong style={{ fontFamily: 'monospace', color: '#166534', fontSize: '1rem' }}>{callbackReference}</strong>
+                  </div>
+                )}
                 <p className="consult-dev-modal-desc">
                   Thank you! Our senior agronomist will call you on{' '}
                   <strong>{expertPhone}</strong> within 15 minutes.
@@ -1241,9 +1318,10 @@ export const FarmConsultancyPage: React.FC = () => {
                     type="submit"
                     className="consult-dev-btn-submit"
                     style={{ marginTop: '0.75rem' }}
+                    disabled={isSubmittingCallback}
                   >
                     <PhoneCall size={16} />
-                    <span>Request Immediate Call</span>
+                    <span>{isSubmittingCallback ? 'Scheduling Call...' : 'Request Immediate Call'}</span>
                   </button>
 
                   <div className="consult-dev-modal-footer-note">

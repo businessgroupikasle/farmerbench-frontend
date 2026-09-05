@@ -24,6 +24,7 @@ import {
   Zap,
 } from 'lucide-react';
 import './DripIrrigationPage.css';
+import { serviceBookingService } from '../services/serviceBooking.service';
 
 // Assets
 import heroDripImg from '../assets/drip-dev-hero.jpg';
@@ -59,6 +60,9 @@ export const DripIrrigationPage: React.FC = () => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookingReference, setBookingReference] = useState('');
+  const [callbackReference, setCallbackReference] = useState('');
+  const [isSubmittingCallback, setIsSubmittingCallback] = useState(false);
   const [isExpertModalOpen, setIsExpertModalOpen] = useState(false);
   const [expertCallbackSuccess, setExpertCallbackSuccess] = useState(false);
   const [expertPhone, setExpertPhone] = useState('');
@@ -259,26 +263,89 @@ export const DripIrrigationPage: React.FC = () => {
   };
 
   // Form Submit Handler
-  const handleSubmitPlan = (e: React.FormEvent) => {
+  const handleSubmitPlan = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.farmerName.trim()) {
+      alert('Please enter your full name.');
+      return;
+    }
+    const cleanPhone = formData.mobileNumber.replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
+      alert('Please enter a valid 10-digit Indian mobile number.');
+      return;
+    }
+    if (!formData.farmLocation.trim()) {
+      alert('Please enter your farm location.');
+      return;
+    }
+    if (!formData.farmSize.trim()) {
+      alert('Please specify your farm size or acreage.');
+      return;
+    }
     if (!formData.termsAgreed) {
       alert('Please agree to share information with AgriEra to continue.');
       return;
     }
+
     setIsSubmitting(true);
-    setTimeout(() => {
+    try {
+      const response = await serviceBookingService.createBooking({
+        serviceSlug: 'drip-irrigation',
+        serviceName: 'Drip Irrigation',
+        name: formData.farmerName.trim(),
+        phone: cleanPhone,
+        location: formData.farmLocation.trim(),
+        farmSize: formData.farmSize.trim(),
+        cropType: formData.cropVariety.trim() || null,
+        message: JSON.stringify({
+          cropSpacing: formData.cropSpacing,
+          waterSource: formData.waterSource,
+          pumpCapacity: formData.pumpCapacity,
+          existingMethod: formData.existingMethod,
+          requiredService: formData.requiredService,
+          uploadedFilesCount: uploadedFiles.length,
+        }),
+      });
+
+      if (response.data?.bookingReference) {
+        setBookingReference(response.data.bookingReference);
+      }
       setIsSubmitting(false);
       setIsSubmitted(true);
-    }, 800);
+    } catch (error: any) {
+      setIsSubmitting(false);
+      alert(error.message || 'Unable to submit drip irrigation plan request. Please try again.');
+    }
   };
 
-  const handleExpertCallbackSubmit = (e: React.FormEvent) => {
+  const handleExpertCallbackSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!expertPhone || expertPhone.length < 10) {
-      alert('Please enter a valid 10-digit mobile number.');
+    const cleanPhone = expertPhone.replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
+      alert('Please enter a valid 10-digit Indian mobile number.');
       return;
     }
-    setExpertCallbackSuccess(true);
+
+    setIsSubmittingCallback(true);
+    try {
+      const response = await serviceBookingService.createBooking({
+        serviceSlug: 'drip-irrigation-callback',
+        serviceName: 'Drip Irrigation (Callback)',
+        name: formData.farmerName.trim() || 'Farmer (Callback Request)',
+        phone: cleanPhone,
+        location: formData.farmLocation.trim() || 'Tamil Nadu',
+        message: 'Farmer requested immediate telephone callback for drip irrigation planning and subsidised materials.',
+      });
+
+      if (response.data?.bookingReference) {
+        setCallbackReference(response.data.bookingReference);
+      }
+      setExpertCallbackSuccess(true);
+    } catch (error: any) {
+      alert(error.message || 'Unable to schedule callback. Please try again.');
+    } finally {
+      setIsSubmittingCallback(false);
+    }
   };
 
   const scrollToPlanForm = () => {
@@ -592,6 +659,12 @@ export const DripIrrigationPage: React.FC = () => {
                   <h3 className="drip-dev-success-title">
                     Drip Irrigation Plan Request Submitted!
                   </h3>
+                  {bookingReference && (
+                    <div style={{ background: '#ECFDF5', border: '1px solid #10B981', borderRadius: '8px', padding: '0.75rem 1.25rem', margin: '1rem auto', display: 'inline-block' }}>
+                      <div style={{ fontSize: '0.75rem', color: '#047857', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Generated Booking Reference</div>
+                      <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#065F46', letterSpacing: '0.06em', fontFamily: 'monospace' }}>{bookingReference}</div>
+                    </div>
+                  )}
                   <p className="drip-dev-success-desc">
                     Thank you, <strong>{formData.farmerName || 'Farmer'}</strong>. Our micro-irrigation engineering team has received your request for{' '}
                     <strong>{formData.cropVariety || 'your crop'}</strong> ({formData.farmSize || 'farm area'}) in{' '}
@@ -1023,6 +1096,12 @@ export const DripIrrigationPage: React.FC = () => {
                   <PhoneCall size={32} />
                 </div>
                 <h3 className="drip-dev-modal-title">Callback Scheduled!</h3>
+                {callbackReference && (
+                  <div style={{ background: '#F0FDF4', border: '1px solid #86EFAC', borderRadius: '8px', padding: '0.5rem 1rem', margin: '0.75rem 0' }}>
+                    <span style={{ fontSize: '0.75rem', color: '#15803D', fontWeight: 600 }}>Reference ID: </span>
+                    <strong style={{ fontFamily: 'monospace', color: '#166534', fontSize: '1rem' }}>{callbackReference}</strong>
+                  </div>
+                )}
                 <p className="drip-dev-modal-desc">
                   Thank you! Our micro-irrigation and fertigation specialist will call you on{' '}
                   <strong>{expertPhone}</strong> within 15 minutes.
@@ -1066,9 +1145,10 @@ export const DripIrrigationPage: React.FC = () => {
                     type="submit"
                     className="drip-dev-btn-submit"
                     style={{ marginTop: '0.75rem' }}
+                    disabled={isSubmittingCallback}
                   >
                     <PhoneCall size={16} />
-                    <span>Request Immediate Call</span>
+                    <span>{isSubmittingCallback ? 'Scheduling Call...' : 'Request Immediate Call'}</span>
                   </button>
 
                   <div className="drip-dev-modal-footer-note">
