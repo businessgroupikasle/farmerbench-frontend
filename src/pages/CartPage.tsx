@@ -25,6 +25,7 @@ import { useWishlistStore } from '../store/wishlistStore';
 import { useUIStore } from '../store/uiStore';
 import { Product } from '@formerbench/shared';
 import { couponService } from '../services/coupon.service';
+import { PostalLocation, postalCodeService } from '../services/postalCode.service';
 import './CartPage.css';
 
 interface SavedItemData {
@@ -58,6 +59,7 @@ export const CartPage: React.FC = () => {
   // Delivery checker state
   const [pincode, setPincode] = useState('');
   const [deliveryChecked, setDeliveryChecked] = useState(false);
+  const [deliveryPlace, setDeliveryPlace] = useState<PostalLocation | null>(null);
 
   // Filter real catalog products for "You May Also Like" (excluding products currently in cart)
   const cartProductIds = new Set(items.map((i) => i.productId));
@@ -164,11 +166,19 @@ export const CartPage: React.FC = () => {
     addToast({ type: 'info', message: 'Coupon removed' });
   };
 
-  const handleCheckPincode = (e: React.FormEvent) => {
+  const handleCheckPincode = async (e: React.FormEvent) => {
     e.preventDefault();
     if (pincode.trim().length >= 6) {
-      setDeliveryChecked(true);
-      addToast({ type: 'success', message: `Delivery available for pincode ${pincode}` });
+      try {
+        const place = await postalCodeService.lookup(pincode.trim());
+        setDeliveryPlace(place);
+        setDeliveryChecked(true);
+        addToast({ type: 'success', message: `Location found: ${place.city}, ${place.state}` });
+      } catch (error: any) {
+        setDeliveryChecked(false);
+        setDeliveryPlace(null);
+        addToast({ type: 'error', message: error.message || 'Pincode not found' });
+      }
     } else {
       addToast({ type: 'error', message: 'Please enter a valid 6-digit pincode' });
     }
@@ -597,7 +607,7 @@ export const CartPage: React.FC = () => {
               {deliveryChecked && (
                 <div className="cart-pincode-result">
                   <Check size={14} />
-                  <span>Delivery in 24-48 Hours to {pincode}</span>
+                  <span>Delivery to {deliveryPlace?.postOffice || deliveryPlace?.city}, {deliveryPlace?.district}, {deliveryPlace?.state}</span>
                 </div>
               )}
             </div>

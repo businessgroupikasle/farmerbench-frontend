@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Sprout,
@@ -24,6 +24,8 @@ import {
   Clock,
 } from 'lucide-react';
 import './FarmDevelopmentPage.css';
+import { postalCodeService } from '../services/postalCode.service';
+import { apiClient } from '../services/api';
 
 // Imported Assets
 import heroAgronomistImg from '../assets/farm-dev-hero.jpg';
@@ -57,6 +59,7 @@ export const FarmDevelopmentPage: React.FC = () => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [postalStatus, setPostalStatus] = useState('');
   const [isExpertModalOpen, setIsExpertModalOpen] = useState(false);
   const [expertCallbackSuccess, setExpertCallbackSuccess] = useState(false);
   const [expertPhone, setExpertPhone] = useState('');
@@ -233,17 +236,43 @@ export const FarmDevelopmentPage: React.FC = () => {
   };
 
   // Form Submit Handler
-  const handleSubmitAssessment = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (formData.pincode.length !== 6) { setPostalStatus(''); return; }
+    let active = true;
+    setPostalStatus('Finding location...');
+    postalCodeService.lookup(formData.pincode).then((place) => {
+      if (!active) return;
+      setFormData((current) => ({ ...current, location: `${place.postOffice || place.city}, ${place.district}, ${place.state}` }));
+      setPostalStatus('Location verified');
+    }).catch((error) => active && setPostalStatus(error.message || 'Pincode not found'));
+    return () => { active = false; };
+  }, [formData.pincode]);
+
+  const handleSubmitAssessment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.termsAgreed) {
       alert('Please agree to the terms and privacy policy to continue.');
       return;
     }
     setIsSubmitting(true);
-    setTimeout(() => {
+    try {
+      await apiClient.post('/service-bookings', {
+        serviceSlug: 'farm-development',
+        serviceName: 'Farm Development',
+        name: formData.farmerName,
+        phone: formData.mobileNumber,
+        location: `${formData.location} - ${formData.pincode}`,
+        farmSize: formData.landArea,
+        cropType: formData.preferredCrops || null,
+        preferredDate: formData.startDate || null,
+        message: JSON.stringify({ pincode: formData.pincode, landCondition: formData.landCondition, waterSource: formData.waterSource, budget: formData.budget, notes: formData.additionalNotes }),
+      });
       setIsSubmitting(false);
       setIsSubmitted(true);
-    }, 800);
+    } catch (error: any) {
+      setIsSubmitting(false);
+      alert(error.message || 'Unable to submit request. Please try again.');
+    }
   };
 
   const handleExpertCallbackSubmit = (e: React.FormEvent) => {
@@ -630,6 +659,7 @@ export const FarmDevelopmentPage: React.FC = () => {
                         }
                         className="farm-dev-input"
                       />
+                      {postalStatus && <small style={{ color: postalStatus === 'Location verified' ? '#15803d' : '#b45309' }}>{postalStatus}</small>}
                     </div>
                   </div>
 

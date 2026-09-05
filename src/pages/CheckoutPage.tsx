@@ -6,6 +6,7 @@ import { useUIStore } from '../store/uiStore';
 import { orderService } from '../services/order.service';
 import { paymentService } from '../services/payment.service';
 import { AppliedCoupon } from '../services/coupon.service';
+import { postalCodeService } from '../services/postalCode.service';
 import { ShippingAddress, PaymentMethod } from '@formerbench/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -65,9 +66,10 @@ export const CheckoutPage: React.FC = () => {
   const [phone, setPhone] = useState(user?.phone || '');
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
-  const [city, setCity] = useState(user?.location || 'Thanjavur');
-  const [state, setState] = useState('Tamil Nadu');
-  const [pincode, setPincode] = useState('613001');
+  const [city, setCity] = useState(user?.location || '');
+  const [state, setState] = useState('');
+  const [pincode, setPincode] = useState('');
+  const [postalStatus, setPostalStatus] = useState('');
   const [orderNotes, setOrderNotes] = useState('');
 
   // Payment Method
@@ -84,6 +86,19 @@ export const CheckoutPage: React.FC = () => {
   useEffect(() => {
     void loadRazorpayCheckout();
   }, []);
+
+  useEffect(() => {
+    if (pincode.length !== 6) { setPostalStatus(''); return; }
+    let active = true;
+    setPostalStatus('Finding location...');
+    postalCodeService.lookup(pincode).then((place) => {
+      if (!active) return;
+      setCity(place.postOffice || place.city);
+      setState(place.state);
+      setPostalStatus(`${place.district}, ${place.state}`);
+    }).catch((error) => active && setPostalStatus(error.message || 'Pincode not found'));
+    return () => { active = false; };
+  }, [pincode]);
 
   if (items.length === 0) {
     return (
@@ -489,6 +504,11 @@ export const CheckoutPage: React.FC = () => {
                       placeholder="613001"
                       className="checkout-input"
                     />
+                    {postalStatus && (
+                      <small style={{ color: postalStatus.toLowerCase().includes('not found') ? '#b91c1c' : '#15803d' }}>
+                        {postalStatus}
+                      </small>
+                    )}
                   </div>
                 </div>
 

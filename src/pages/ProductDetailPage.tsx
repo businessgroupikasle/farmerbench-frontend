@@ -26,6 +26,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { getUploadUrl } from '../utils/image';
+import { postalCodeService } from '../services/postalCode.service';
 import './ProductDetailPage.css';
 
 export const ProductDetailPage: React.FC = () => {
@@ -229,7 +230,7 @@ export const ProductDetailPage: React.FC = () => {
     });
   };
 
-  const handleCheckPincode = (e: React.FormEvent) => {
+  const handleCheckPincode = async (e: React.FormEvent) => {
     e.preventDefault();
     const pin = pincodeInput.trim();
     if (!pin || pin.length < 6) {
@@ -241,11 +242,12 @@ export const ProductDetailPage: React.FC = () => {
       return;
     }
 
-    setDeliveryStatus({
-      checked: true,
-      available: true,
-      message: `✅ Express Rural & Urban Delivery Available to PIN ${pin} (Est. Delivery: 2-4 business days).`,
-    });
+    try {
+      const place = await postalCodeService.lookup(pin);
+      setDeliveryStatus({ checked: true, available: true, message: `Delivery available to ${place.postOffice || place.city}, ${place.district}, ${place.state}.` });
+    } catch (error: any) {
+      setDeliveryStatus({ checked: true, available: false, message: error.message || 'Unable to verify this pincode.' });
+    }
   };
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
@@ -574,7 +576,7 @@ export const ProductDetailPage: React.FC = () => {
                 type="text"
                 placeholder="Enter your 6-digit PIN code"
                 value={pincodeInput}
-                onChange={(e) => setPincodeInput(e.target.value.slice(0, 6))}
+                onChange={(e) => setPincodeInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 className="pdp-pincode-input"
               />
               <button type="submit" className="pdp-pincode-btn">
