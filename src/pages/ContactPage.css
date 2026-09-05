@@ -69,19 +69,39 @@
 
 @media (max-width: 620px) {
   .contact-hero-banner {
-    min-height: 420px;
-    background-position: 68% bottom;
+    min-height: 250px;
+    background-image: linear-gradient(90deg, rgba(5, 35, 20, .82), rgba(5, 35, 20, .25)), url('../assets/contact-hero-hands-seedling.png');
+    background-position: center;
+    background-size: cover;
   }
   .contact-hero-container {
-    min-height: 420px;
-    align-items: flex-start;
-    padding-top: 2.25rem;
+    min-height: 250px;
+    box-sizing: border-box;
+    align-items: center;
+    padding: 20px 16px;
   }
   .contact-hero-text {
     max-width: 100%;
   }
+  .contact-hero-title {
+    margin-bottom: 7px;
+    color: #fff;
+    font-size: 1.68rem;
+    line-height: 1.1;
+  }
+  .contact-hero-leaf {
+    width: 21px;
+    height: 21px;
+    color: #88cf3a;
+    fill: #88cf3a;
+  }
   .contact-hero-desc {
-    max-width: 380px;
+    max-width: 325px;
+    color: rgba(255, 255, 255, .94);
+    font-size: .72rem;
+    font-weight: 500;
+    line-height: 1.45;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, .3);
   }
 }
 

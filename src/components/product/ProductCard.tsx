@@ -229,7 +229,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               aria-label={`Add ${product.title} to cart`}
             >
               <ShoppingBag size={15} strokeWidth={2.2} />
-              <span>{isOutOfStock ? 'Out of Stock' : 'Add to Cart'}</span>
+              <span className="fb-cta-label-full">{isOutOfStock ? 'Out of Stock' : 'Add to Cart'}</span>
+              <span className="fb-cta-label-mobile">{isOutOfStock ? 'Out' : 'Cart'}</span>
             </button>
 
             {!isOutOfStock && (
@@ -241,7 +242,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
                 aria-label={`Buy ${product.title} now`}
               >
                 <Zap size={14} strokeWidth={2.4} />
-                <span>Buy Now</span>
+                <span className="fb-cta-label-full">Buy Now</span>
+                <span className="fb-cta-label-mobile">Buy</span>
               </button>
             )}
           </div>

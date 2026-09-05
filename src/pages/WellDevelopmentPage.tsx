@@ -270,7 +270,10 @@ export const WellDevelopmentPage: React.FC = () => {
   return (
     <div className="well-dev-page">
       {/* 1. Breadcrumb + Hero Banner */}
-      <section className="well-dev-hero">
+      <section
+        className="well-dev-hero"
+        style={{ '--well-dev-mobile-image': `url(${heroWellImg})` } as React.CSSProperties}
+      >
         <div className="well-dev-hero-container">
           {/* Left Hero Content */}
           <div className="well-dev-hero-content">

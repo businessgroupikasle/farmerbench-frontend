@@ -40,7 +40,11 @@ export const ProductHero: React.FC<ProductHeroProps> = ({
   };
 
   const renderHero = (banner?: any) => (
-    <section className="product-hero-banner" aria-label="Product Catalog Banner">
+    <section
+      className="product-hero-banner"
+      aria-label="Product Catalog Banner"
+      style={{ '--product-mobile-image': `url(${banner ? getUploadUrl(banner.mobileImage || banner.desktopImage, heroProductsImg) : heroProductsImg})` } as React.CSSProperties}
+    >
       <div className="product-hero-container">
         {/* Left Content Column */}
         <div className="product-hero-left">

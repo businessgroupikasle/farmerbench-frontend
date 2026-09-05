@@ -295,7 +295,10 @@ export const DripIrrigationPage: React.FC = () => {
   return (
     <div className="drip-dev-page">
       {/* 1. Breadcrumb + Hero Banner */}
-      <section className="drip-dev-hero">
+      <section
+        className="drip-dev-hero"
+        style={{ '--drip-dev-mobile-image': `url(${heroDripImg})` } as React.CSSProperties}
+      >
         <div className="drip-dev-hero-container">
           {/* Left Hero Content */}
           <div className="drip-dev-hero-content">

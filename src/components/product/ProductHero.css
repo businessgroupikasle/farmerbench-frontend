@@ -56,14 +56,90 @@
 }
 
 @media (max-width: 560px) {
-  .product-hero-container { min-height: 510px; padding: 25px 20px; }
-  .product-hero-left { flex-basis: 100%; max-width: none; }
-  .product-hero-title { font-size: 1.85rem; }
-  .product-hero-description { font-size: 11px; }
-  .product-hero-search-form { max-width: 100%; }
-  .product-hero-badges-row { gap: 7px; }
-  .product-hero-badge { padding-inline: 7px; }
-  .product-hero-right { height: 220px; }
+  .product-hero-container {
+    min-height: 250px;
+    padding: 18px 16px;
+    align-items: center;
+    border: 0;
+    border-radius: 0;
+    background-image: linear-gradient(90deg, rgba(5, 35, 20, .84), rgba(5, 35, 20, .32)), var(--product-mobile-image) !important;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+  }
+
+  .product-hero-left {
+    flex-basis: 100%;
+    max-width: 100%;
+  }
+
+  .product-hero-brand-tag {
+    margin-bottom: 5px;
+    color: #f5a623;
+  }
+
+  .product-hero-brand-text {
+    font-size: .56rem;
+  }
+
+  .product-hero-title {
+    margin-bottom: 7px;
+    color: #fff;
+    font-size: 1.55rem;
+    line-height: 1.1;
+  }
+
+  .product-hero-title-highlight {
+    color: #88cf3a;
+  }
+
+  .product-hero-description {
+    max-width: 340px;
+    margin-bottom: 9px;
+    color: rgba(255, 255, 255, .93);
+    font-size: .68rem;
+    line-height: 1.4;
+  }
+
+  .product-hero-search-form {
+    max-width: 330px;
+    height: 32px;
+    margin-bottom: 9px;
+  }
+
+  .product-hero-input {
+    font-size: .6rem;
+  }
+
+  .product-hero-submit-btn {
+    min-width: 88px;
+    padding-inline: 9px;
+    font-size: .6rem;
+  }
+
+  .product-hero-badges-row {
+    gap: 6px;
+  }
+
+  .product-hero-badge {
+    min-height: 25px;
+    padding: 4px 6px;
+    gap: 4px;
+    background: rgba(255, 255, 255, .92);
+  }
+
+  .product-hero-badge-icon svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .product-hero-badge-text {
+    font-size: .52rem;
+  }
+
+  .product-hero-right {
+    display: none;
+  }
 }
 
 [data-theme='dark'] .product-hero-container { border-color: #294433; background: linear-gradient(100deg, #13241b, #172b20); }

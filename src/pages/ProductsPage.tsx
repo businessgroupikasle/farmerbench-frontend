@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useProducts } from '../hooks/useProducts';
 import { useCategories } from '../hooks/useCategories';
@@ -8,7 +8,7 @@ import { ProductFilters } from '../components/product/ProductFilters';
 import { ProductHero } from '../components/product/ProductHero';
 import { CompareDrawer } from '../components/product/CompareDrawer';
 import { Pagination } from '../components/common/Pagination';
-import { X, SlidersHorizontal, ArrowUpDown } from 'lucide-react';
+import { X, SlidersHorizontal, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import './ProductsPage.css';
 
 export const ProductsPage: React.FC = () => {
@@ -29,6 +29,14 @@ export const ProductsPage: React.FC = () => {
 
   const { data: apiCategories = [] } = useCategories();
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const categoryPillsRef = useRef<HTMLDivElement>(null);
+
+  const scrollCategoryPills = (direction: -1 | 1) => {
+    categoryPillsRef.current?.scrollBy({
+      left: direction * Math.max(180, categoryPillsRef.current.clientWidth * 0.7),
+      behavior: 'smooth',
+    });
+  };
 
   // Sync URL query parameters with filterStore on initial load and param change
   useEffect(() => {
@@ -173,7 +181,10 @@ export const ProductsPage: React.FC = () => {
       <section className="fb-catalog-header" id="products-catalog-section" aria-label="Catalog Navigation">
         {/* Category Pills Bar */}
         <div className="fb-catalog-pills-bar">
-          <div className="fb-category-pills-scroll">
+          <button type="button" className="fb-category-scroll-btn fb-category-scroll-prev" onClick={() => scrollCategoryPills(-1)} aria-label="Previous product categories">
+            <ChevronLeft size={17} />
+          </button>
+          <div className="fb-category-pills-scroll" ref={categoryPillsRef}>
             {categoryPills.map((cat: any) => {
               const catSlug = cat.slug || cat.id || '';
               const isActive = (!filters.category && !catSlug) || filters.category === catSlug;
@@ -189,6 +200,9 @@ export const ProductsPage: React.FC = () => {
               );
             })}
           </div>
+          <button type="button" className="fb-category-scroll-btn fb-category-scroll-next" onClick={() => scrollCategoryPills(1)} aria-label="Next product categories">
+            <ChevronRight size={17} />
+          </button>
         </div>
 
         {/* Catalog Control Bar (Title, Active Chips, Quick Sort, Mobile Toggle) */}

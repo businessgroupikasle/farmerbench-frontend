@@ -84,18 +84,37 @@
 
 @media (max-width: 620px) {
   .blog-hero-section {
-    min-height: 410px;
-    align-items: flex-start;
-    background-position: 68% bottom;
+    min-height: 250px;
+    align-items: center;
+    background-image: linear-gradient(90deg, rgba(5, 35, 20, .82), rgba(5, 35, 20, .28)), url('../assets/blog-hero-notebook-seedling.png');
+    background-position: center;
   }
   .blog-hero-container {
-    padding-top: 2.25rem;
+    min-height: 250px;
+    box-sizing: border-box;
+    padding: 20px 16px;
   }
   .blog-hero-text {
     max-width: 100%;
   }
+  .blog-hero-title {
+    margin-bottom: 7px;
+    color: #fff;
+    font-size: 1.68rem;
+    line-height: 1.1;
+  }
+  .blog-hero-leaf {
+    width: 21px;
+    height: 21px;
+    color: #88cf3a;
+    fill: #88cf3a;
+  }
   .blog-hero-desc {
-    max-width: 390px;
+    max-width: 340px;
+    color: rgba(255, 255, 255, .93);
+    font-size: .72rem;
+    line-height: 1.45;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, .28);
   }
 }
 

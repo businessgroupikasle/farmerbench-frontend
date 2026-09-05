@@ -269,7 +269,10 @@ export const FarmDevelopmentPage: React.FC = () => {
   return (
     <div className="farm-dev-page">
       {/* 1. Breadcrumb + Hero Banner */}
-      <section className="farm-dev-hero">
+      <section
+        className="farm-dev-hero"
+        style={{ '--farm-dev-mobile-image': `url(${heroAgronomistImg})` } as React.CSSProperties}
+      >
         <div className="farm-dev-hero-container">
           {/* Left Hero Content */}
           <div className="farm-dev-hero-content">

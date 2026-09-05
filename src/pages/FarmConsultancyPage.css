@@ -207,6 +207,81 @@
   }
 }
 
+@media (max-width: 650px) {
+  .consult-dev-hero { min-height: 250px; box-sizing: border-box; padding: 0; background-image: linear-gradient(90deg, rgba(5,35,20,.84), rgba(5,35,20,.4)), var(--consult-dev-mobile-image); background-position: center; background-size: cover; background-repeat: no-repeat; }
+  .consult-dev-hero::before, .consult-dev-breadcrumbs, .consult-dev-hero-media { display: none; }
+  .consult-dev-hero-container { display: block; min-height: 250px; padding: 20px 16px; }
+  .consult-dev-hero-content { display: flex; min-height: 210px; flex-direction: column; justify-content: center; }
+  .consult-dev-hero-title { max-width: 350px; margin: 0 0 8px; font-size: 1.68rem; line-height: 1.12; }
+  .consult-dev-hero-desc { display: -webkit-box; max-width: 340px; margin: 0 0 11px; overflow: hidden; font-size: .7rem; font-weight: 500; line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+  .consult-dev-hero-actions { gap: 6px; flex-wrap: nowrap; }
+  .consult-dev-btn-primary, .consult-dev-btn-secondary { min-width: 0; min-height: 34px; padding: .48rem .72rem; gap: 5px; border-radius: 5px; font-size: .64rem; white-space: nowrap; }
+  .consult-dev-btn-primary svg, .consult-dev-btn-secondary svg { width: 14px; height: 14px; }
+
+  .consult-dev-about-section { padding: 14px 0 18px !important; }
+  .consult-dev-about-container { padding: 0 14px !important; gap: 14px !important; }
+  .consult-dev-about-img-wrap { border-radius: 10px !important; }
+  .consult-dev-about-img { height: 185px !important; }
+  .consult-dev-about-title { margin-bottom: 7px !important; font-size: 1.35rem !important; line-height: 1.12 !important; }
+  .consult-dev-about-desc { margin-bottom: 14px !important; font-size: .68rem !important; line-height: 1.4 !important; text-align: justify; }
+  .consult-dev-pillars-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 6px; }
+  .consult-dev-pillar-card { min-width: 0; min-height: 118px; padding: 8px 7px !important; border-radius: 8px !important; }
+  .consult-dev-pillar-icon { width: 27px !important; height: 27px !important; margin-bottom: 7px !important; border-radius: 7px !important; }
+  .consult-dev-pillar-icon svg { width: 15px; height: 15px; }
+  .consult-dev-pillar-title { margin-bottom: 4px !important; font-size: .58rem !important; line-height: 1.15 !important; overflow-wrap: anywhere; }
+  .consult-dev-pillar-text { font-size: .48rem !important; line-height: 1.25 !important; overflow-wrap: anywhere; }
+
+  .consult-dev-modules-section { padding: 2rem 0; }
+  .consult-dev-modules-container { padding: 0 10px; }
+  .consult-dev-section-header { margin-bottom: 1.4rem; }
+  .consult-dev-leaf-icon { margin-bottom: 4px; }
+  .consult-dev-leaf-icon svg { width: 17px; height: 17px; }
+  .consult-dev-section-title { max-width: 330px; font-size: 1.35rem; line-height: 1.18; }
+  .consult-dev-modules-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 9px; }
+  .consult-dev-module-card { min-width: 0; min-height: 135px; padding: 13px 9px; justify-content: center; border-radius: 10px; }
+  .consult-dev-module-icon-box { width: 36px; height: 36px; margin-bottom: 8px; }
+  .consult-dev-module-icon-box svg { width: 18px; height: 18px; }
+  .consult-dev-module-title { margin-bottom: 4px; font-size: .72rem; line-height: 1.2; overflow-wrap: anywhere; }
+  .consult-dev-module-desc { display: -webkit-box; overflow: hidden; font-size: .6rem; line-height: 1.3; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+
+  .consult-dev-reasons-section { padding: 2rem 0 !important; }
+  .consult-dev-reasons-container { padding: 0 12px !important; gap: 1.25rem !important; }
+  .consult-dev-reasons-title { margin-bottom: .45rem !important; font-size: 1.4rem !important; line-height: 1.15 !important; }
+  .consult-dev-title-divider { width: 34px !important; height: 3px !important; margin-bottom: 1rem !important; }
+  .consult-dev-benefits-list { display: grid !important; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 10px !important; }
+  .consult-dev-benefit-item { min-width: 0; align-items: flex-start; gap: 5px !important; font-size: .66rem !important; line-height: 1.25; }
+  .consult-dev-benefit-check svg { width: 14px; height: 14px; }
+  .consult-dev-plan-card { padding: 12px !important; border-radius: 11px !important; }
+  .consult-dev-plan-header { padding-bottom: 9px !important; margin-bottom: 9px !important; gap: 7px !important; }
+  .consult-dev-plan-title { font-size: .9rem !important; }
+  .consult-dev-expert-tag { padding: 4px 7px !important; gap: 5px !important; }
+  .consult-dev-expert-avatar { width: 26px !important; height: 26px !important; }
+  .consult-dev-expert-name { font-size: .65rem !important; }
+  .consult-dev-expert-role { font-size: .56rem !important; }
+  .consult-dev-plan-grid { grid-template-columns: 1fr !important; gap: 7px !important; margin-bottom: 9px !important; }
+  .consult-dev-plan-box { min-width: 0; padding: 9px !important; border-radius: 7px !important; }
+  .consult-dev-box-title { margin-bottom: 6px !important; font-size: .68rem !important; }
+  .consult-dev-crop-thumb { width: 38px !important; height: 38px !important; }
+  .consult-dev-crop-badge-row { gap: 7px !important; }
+  .consult-dev-status-pill, .consult-dev-next-badge, .consult-dev-mode-tag { font-size: .57rem !important; }
+  .consult-dev-crop-sub, .consult-dev-actions-list li, .consult-dev-nut-item { font-size: .6rem !important; line-height: 1.3; }
+  .consult-dev-actions-list { gap: 4px; }
+  .consult-dev-nutrition-list { gap: 4px; }
+  .consult-dev-plan-footer { grid-template-columns: 1fr !important; gap: 8px !important; padding-top: 9px !important; }
+  .consult-dev-footer-col { gap: 2px; }
+  .consult-dev-footer-label { font-size: .64rem !important; }
+  .consult-dev-footer-text { font-size: .58rem !important; line-height: 1.3; }
+
+  .consult-dev-bottom-banner { padding: 1.5rem 0; }
+  .consult-dev-bottom-container { padding: 0 14px; gap: 12px; }
+  .consult-dev-bottom-content { width: 100%; align-items: flex-start; gap: 9px; }
+  .consult-dev-bottom-icon svg { width: 24px; height: 24px; }
+  .consult-dev-bottom-title { margin-bottom: 4px; font-size: 1.1rem; line-height: 1.18; }
+  .consult-dev-bottom-desc { font-size: .68rem; line-height: 1.4; }
+  .consult-dev-bottom-btn { width: 100%; min-height: 38px; padding: .55rem .8rem; justify-content: center; gap: 6px; border-radius: 6px; font-size: .72rem; }
+  .consult-dev-bottom-btn svg { width: 14px; height: 14px; }
+}
+
 /* ==========================================================================
    2. About Farm Consultancy Section
    ========================================================================== */

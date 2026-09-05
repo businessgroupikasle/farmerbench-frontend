@@ -1217,3 +1217,419 @@
 .pdp-review-submit-btn:hover {
   background-color: #166534;
 }
+
+/* Compact product details layout for phones only. */
+@media (max-width: 600px) {
+  .pdp-wrapper {
+    width: 100%;
+    max-width: 100%;
+    padding: 10px 12px 36px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .pdp-breadcrumbs {
+    gap: 4px;
+    margin-bottom: 10px;
+    font-size: .62rem;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+
+  .pdp-breadcrumbs-current {
+    min-width: 0;
+    max-width: 44%;
+  }
+
+  .pdp-main-grid {
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .pdp-gallery-container {
+    gap: 7px;
+  }
+
+  .pdp-main-stage {
+    min-height: 230px;
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .pdp-stage-img-wrap {
+    height: 190px;
+  }
+
+  .pdp-stage-img-wrap img {
+    max-width: 88%;
+    max-height: 88%;
+  }
+
+  .pdp-genuine-badge {
+    top: 8px;
+    right: 8px;
+    padding: 3px 7px;
+    font-size: .55rem;
+  }
+
+  .pdp-genuine-badge svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .pdp-zoom-indicator {
+    margin-top: 3px;
+    padding: 3px 7px;
+    font-size: .55rem;
+  }
+
+  .pdp-thumbnails-stack {
+    gap: 6px;
+    padding: 1px 1px 3px;
+    scrollbar-width: none;
+  }
+
+  .pdp-thumbnails-stack::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pdp-thumbnail-item {
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    padding: 2px;
+    border-radius: 8px;
+  }
+
+  .pdp-info-panel {
+    min-width: 0;
+    gap: 9px;
+  }
+
+  .pdp-category-link {
+    font-size: .62rem;
+  }
+
+  .pdp-title {
+    font-size: 1.3rem;
+    line-height: 1.18;
+    overflow-wrap: anywhere;
+  }
+
+  .pdp-rating-row {
+    gap: 6px;
+    font-size: .68rem;
+  }
+
+  .pdp-rating-num {
+    font-size: .76rem;
+  }
+
+  .pdp-stars svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  .pdp-write-review-btn,
+  .pdp-meta-row {
+    font-size: .65rem;
+  }
+
+  .pdp-meta-row {
+    gap: 10px;
+    flex-wrap: wrap;
+    padding-bottom: 6px;
+  }
+
+  .pdp-current-price {
+    font-size: 1.45rem;
+  }
+
+  .pdp-mrp-price {
+    font-size: .85rem;
+  }
+
+  .pdp-discount-tag {
+    padding: 3px 6px;
+    font-size: .6rem;
+  }
+
+  .pdp-price-main {
+    gap: 7px;
+    flex-wrap: wrap;
+  }
+
+  .pdp-tax-notice {
+    font-size: .6rem;
+  }
+
+  .pdp-short-desc {
+    margin: 0;
+    font-size: .75rem;
+    line-height: 1.45;
+  }
+
+  .pdp-feature-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 8px;
+  }
+
+  .pdp-feature-item {
+    align-items: flex-start;
+    gap: 5px;
+    min-width: 0;
+    font-size: .65rem;
+    line-height: 1.3;
+  }
+
+  .pdp-feature-icon {
+    width: 15px;
+    height: 15px;
+  }
+
+  .pdp-section-label {
+    font-size: .68rem;
+  }
+
+  .pdp-pack-options {
+    gap: 6px;
+  }
+
+  .pdp-pack-btn {
+    padding: 6px 10px;
+    border-radius: 7px;
+    font-size: .66rem;
+  }
+
+  .pdp-actions-row {
+    display: grid;
+    grid-template-columns: 80px repeat(2, minmax(0, 1fr));
+    align-items: end;
+    gap: 6px;
+  }
+
+  .pdp-qty-wrap,
+  .pdp-qty-stepper,
+  .pdp-btn-add-cart,
+  .pdp-btn-buy-now {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .pdp-qty-stepper,
+  .pdp-btn-add-cart,
+  .pdp-btn-buy-now {
+    height: 38px;
+    border-radius: 8px;
+  }
+
+  .pdp-qty-btn,
+  .pdp-qty-value {
+    width: 26px;
+    font-size: .75rem;
+  }
+
+  .pdp-btn-add-cart,
+  .pdp-btn-buy-now {
+    padding: 0 5px;
+    font-size: .66rem;
+    white-space: nowrap;
+  }
+
+  .pdp-btn-add-cart svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .pdp-wishlist-btn {
+    font-size: .68rem;
+  }
+
+  .pdp-delivery-card {
+    gap: 6px;
+    padding: 9px;
+    border-radius: 9px;
+  }
+
+  .pdp-delivery-form {
+    flex-direction: row;
+    gap: 5px;
+  }
+
+  .pdp-pincode-input {
+    min-width: 0;
+    padding: 7px 8px;
+    font-size: .68rem;
+  }
+
+  .pdp-pincode-btn {
+    width: auto;
+    flex: 0 0 auto;
+    padding: 7px 10px;
+    font-size: .65rem;
+  }
+
+  .pdp-delivery-estimate,
+  .pdp-delivery-result {
+    font-size: .62rem;
+  }
+
+  .pdp-trust-row {
+    gap: 7px;
+  }
+
+  .pdp-trust-item {
+    gap: 4px;
+    font-size: .6rem;
+  }
+
+  .pdp-trust-item svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .pdp-expert-banner {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+    padding: 10px;
+    border-radius: 10px;
+  }
+
+  .pdp-expert-left {
+    min-width: 0;
+    gap: 7px;
+  }
+
+  .pdp-expert-icon-wrap {
+    width: 34px;
+    height: 34px;
+    font-size: 1rem;
+  }
+
+  .pdp-expert-title {
+    font-size: .75rem;
+  }
+
+  .pdp-expert-sub {
+    font-size: .6rem;
+    line-height: 1.3;
+  }
+
+  .pdp-expert-btn {
+    flex: 0 0 auto;
+    padding: 7px 9px;
+    font-size: .62rem;
+    white-space: nowrap;
+  }
+
+  .pdp-tabs-container {
+    gap: 14px;
+    margin-bottom: 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .pdp-tabs-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pdp-tab-btn {
+    padding: 6px 1px 9px;
+    font-size: .7rem;
+  }
+
+  .pdp-tab-content-grid,
+  .pdp-overview-block,
+  .pdp-reviews-wrap {
+    gap: 12px;
+  }
+
+  .pdp-block-heading,
+  .pdp-specs-title {
+    font-size: .9rem;
+  }
+
+  .pdp-block-text,
+  .pdp-review-comment {
+    font-size: .7rem;
+    line-height: 1.5;
+  }
+
+  .pdp-step-card,
+  .pdp-specs-card,
+  .pdp-add-review-card,
+  .pdp-review-item {
+    padding: 10px;
+    border-radius: 9px;
+  }
+
+  .pdp-step-icon {
+    font-size: 1.2rem;
+  }
+
+  .pdp-step-name,
+  .pdp-step-desc,
+  .pdp-dosage-notice,
+  .pdp-specs-label,
+  .pdp-specs-value {
+    font-size: .65rem;
+  }
+
+  .pdp-specs-label,
+  .pdp-specs-value {
+    padding-top: 7px;
+    padding-bottom: 7px;
+    overflow-wrap: anywhere;
+  }
+
+  .pdp-results-section {
+    margin-top: 20px;
+    padding-top: 14px;
+  }
+
+  .pdp-results-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .pdp-result-card {
+    height: 135px;
+    border-radius: 9px;
+  }
+
+  .pdp-result-tag {
+    bottom: 6px;
+    left: 6px;
+    padding: 3px 7px;
+    font-size: .55rem;
+  }
+
+  .pdp-review-top {
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .pdp-reviewer-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: .7rem;
+  }
+
+  .pdp-reviewer-name,
+  .pdp-review-form-title {
+    font-size: .76rem;
+  }
+
+  .pdp-review-verified,
+  .pdp-review-date {
+    font-size: .58rem;
+  }
+
+  .pdp-review-textarea {
+    box-sizing: border-box;
+    font-size: .72rem;
+  }
+}
