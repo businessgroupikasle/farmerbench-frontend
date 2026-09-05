@@ -5,6 +5,7 @@ import { Footer } from './components/common/Footer';
 import { CartDrawer } from './components/cart/CartDrawer';
 import { AuthModal } from './components/auth/AuthModal';
 import { ToastContainer } from './components/common/Toast';
+import { ChatWidget } from './components/chat/ChatWidget';
 import { useThemeStore } from './store/themeStore';
 
 // Pages
@@ -36,7 +37,7 @@ import { useSocketSync } from './socket';
 const AppContent: React.FC = () => {
   useSocketSync();
   const location = useLocation();
-  const isAuthPage = ['/login', '/signin', '/signup', '/register'].some(path => 
+  const isAuthPage = ['/login', '/signin', '/signup', '/register'].some((path) =>
     location.pathname.startsWith(path)
   );
   const isAdminPage = location.pathname.startsWith('/admin');
@@ -61,7 +62,14 @@ const AppContent: React.FC = () => {
           <Route path="/services/farm-consultancy" element={<FarmConsultancyPage />} />
           <Route path="/services/consultancy" element={<Navigate to="/services/farm-consultancy" replace />} />
           <Route path="/services/consult" element={<Navigate to="/services/farm-consultancy" replace />} />
-          <Route path="/products" element={<div className="container" style={{ padding: '2rem 1.5rem' }}><ProductsPage /></div>} />
+          <Route
+            path="/products"
+            element={
+              <div className="container" style={{ padding: '2rem 1.5rem' }}>
+                <ProductsPage />
+              </div>
+            }
+          />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:idOrSlug" element={<BlogDetailPage />} />
           <Route path="/contact" element={<ContactPage />} />
@@ -72,10 +80,31 @@ const AppContent: React.FC = () => {
           <Route path="/faqs" element={<FaqPage />} />
           <Route path="/catalog" element={<Navigate to="/products" replace />} />
           <Route path="/shop" element={<Navigate to="/products" replace />} />
-          <Route path="/product/:idOrSlug" element={<div className="container" style={{ padding: '2rem 1.5rem' }}><ProductDetailPage /></div>} />
+          <Route
+            path="/product/:idOrSlug"
+            element={
+              <div className="container" style={{ padding: '2rem 1.5rem' }}>
+                <ProductDetailPage />
+              </div>
+            }
+          />
           <Route path="/cart" element={<CartPage />} />
-          <Route path="/checkout" element={<div className="container" style={{ padding: '2rem 1.5rem' }}><CheckoutPage /></div>} />
-          <Route path="/order-confirmation/:orderId" element={<div className="container" style={{ padding: '2rem 1.5rem' }}><OrderConfirmationPage /></div>} />
+          <Route
+            path="/checkout"
+            element={
+              <div className="container" style={{ padding: '2rem 1.5rem' }}>
+                <CheckoutPage />
+              </div>
+            }
+          />
+          <Route
+            path="/order-confirmation/:orderId"
+            element={
+              <div className="container" style={{ padding: '2rem 1.5rem' }}>
+                <OrderConfirmationPage />
+              </div>
+            }
+          />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/admin/*" element={<AdminPage />} />
@@ -91,6 +120,7 @@ const AppContent: React.FC = () => {
       <CartDrawer />
       <AuthModal />
       <ToastContainer />
+      {!isAdminPage && <ChatWidget />}
     </div>
   );
 };
