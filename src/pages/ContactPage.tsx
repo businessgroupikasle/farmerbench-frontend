@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Sprout,
   Leaf,
@@ -16,6 +16,8 @@ import {
   Navigation,
   ExternalLink,
 } from 'lucide-react';
+import { contactService } from '../services/contact.service';
+import { useUIStore } from '../store/uiStore';
 import './ContactPage.css';
 
 export const ContactPage: React.FC = () => {
@@ -28,10 +30,26 @@ export const ContactPage: React.FC = () => {
   });
 
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submitLock = useRef(false);
+  const { addToast } = useUIStore();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitted(true);
+    if (submitLock.current) return;
+    submitLock.current = true;
+    setIsSubmitting(true);
+    try {
+      await contactService.submitContact(formData);
+      setIsSubmitted(true);
+      setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
+      addToast({ type: 'success', message: 'Your message has been sent successfully' });
+    } catch (error: any) {
+      addToast({ type: 'error', message: error?.message || 'Unable to send your message. Please try again.' });
+    } finally {
+      setIsSubmitting(false);
+      submitLock.current = false;
+    }
   };
 
   return (
@@ -157,8 +175,8 @@ export const ContactPage: React.FC = () => {
                   />
                 </div>
 
-                <button type="submit" className="contact-btn-submit">
-                  <Send size={16} /> Send Message
+                <button type="submit" className="contact-btn-submit" disabled={isSubmitting}>
+                  {isSubmitting ? <><span className="contact-submit-spinner" /> Sending…</> : <><Send size={16} /> Send Message</>}
                 </button>
 
                 <div className="contact-security-text">

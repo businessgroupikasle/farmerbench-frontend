@@ -21,8 +21,6 @@ import {
   Settings,
   Search,
   Calendar,
-  HelpCircle,
-  Bell,
   ExternalLink,
   ChevronDown,
   Plus,
@@ -53,9 +51,7 @@ import {
   Check,
   AlertTriangle,
   Key,
-  Globe,
   Store,
-  Percent,
   Smartphone,
   Mail,
 } from 'lucide-react';
@@ -78,6 +74,7 @@ import { adminService, CouponRecord } from '../services/admin.service';
 import { HeroBannerManager } from '../components/admin/HeroBannerManager';
 import { useServiceBookings, useServiceBookingStats, useServiceBookingMutations } from '../hooks/useServiceBookings';
 import { ServiceBooking, ServiceBookingStatus } from '../types/serviceBooking';
+import { useContacts, useContactStats, useContactMutations, Contact } from '../hooks/useContacts';
 
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
@@ -86,12 +83,64 @@ export const AdminPage: React.FC = () => {
   const { createCustomer, updateCustomer } = useCustomerMutations();
   const customers = customerData?.customers || [];
 
+  // Custom Modal Popup Window States
+  const [viewContactModal, setViewContactModal] = useState<Contact | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmText?: string;
+    cancelText?: string;
+    type?: 'danger' | 'warning' | 'info';
+    icon?: React.ReactNode;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    confirmText: 'Delete',
+    cancelText: 'Cancel',
+    type: 'danger',
+    onConfirm: () => {},
+  });
+
+  const openConfirmModal = (options: {
+    title: string;
+    message: string;
+    confirmText?: string;
+    cancelText?: string;
+    type?: 'danger' | 'warning' | 'info';
+    icon?: React.ReactNode;
+    onConfirm: () => void;
+  }) => {
+    setConfirmModal({
+      isOpen: true,
+      title: options.title,
+      message: options.message,
+      confirmText: options.confirmText || 'Delete',
+      cancelText: options.cancelText || 'Cancel',
+      type: options.type || 'danger',
+      icon: options.icon,
+      onConfirm: options.onConfirm,
+    });
+  };
+
   const handleAdminLogout = () => {
-    logout();
-    localStorage.removeItem('formerbench_auth_token');
-    localStorage.removeItem('formerbench_auth_user');
-    localStorage.removeItem('AgriEra_demo_admin');
-    navigate('/login');
+    openConfirmModal({
+      title: 'Sign Out of Super Admin?',
+      message: 'Are you sure you want to end your administrator session? You will need to sign in again to access administrative features.',
+      confirmText: 'Yes, Sign Out',
+      cancelText: 'Stay Logged In',
+      type: 'danger',
+      icon: <LogOut size={26} />,
+      onConfirm: () => {
+        logout();
+        localStorage.removeItem('formerbench_auth_token');
+        localStorage.removeItem('formerbench_auth_user');
+        localStorage.removeItem('AgriEra_demo_admin');
+        navigate('/login');
+      },
+    });
   };
 
   // Active View Tab
@@ -100,6 +149,45 @@ export const AdminPage: React.FC = () => {
   const [chartMetric, setChartMetric] = useState<'revenue' | 'orders'>('revenue');
   const [searchQuery, setSearchQuery] = useState('');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Search & Date Dropdown States
+  const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
+  const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
+  const [isLiveSyncing, setIsLiveSyncing] = useState(false);
+  const [lastSyncedTime, setLastSyncedTime] = useState<string>(() =>
+    new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+  );
+  const searchContainerRef = React.useRef<HTMLDivElement | null>(null);
+  const dateDropdownRef = React.useRef<HTMLDivElement | null>(null);
+
+  // Formatted Live Date for today (e.g. 7 Sep 2026)
+  const liveTodayFormatted = React.useMemo(() => {
+    return new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  }, []);
+
+  const DATE_RANGE_OPTIONS = [
+    'Today (Live)',
+    'Yesterday',
+    'Last 7 Days',
+    'Last 30 Days',
+    'This Month',
+    'This Year',
+    'All Time',
+  ];
+
+  // Close search and date dropdowns on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
+        setIsSearchDropdownOpen(false);
+      }
+      if (dateDropdownRef.current && !dateDropdownRef.current.contains(e.target as Node)) {
+        setIsDateDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Real-Time Socket.IO / Custom Event Listener for newly verified customers
   useEffect(() => {
@@ -644,19 +732,87 @@ export const AdminPage: React.FC = () => {
       status: o.orderStatus ? (o.orderStatus.charAt(0) + o.orderStatus.slice(1).toLowerCase()) : 'Pending',
       statusClass: (o.orderStatus || 'pending').toLowerCase(),
       date: new Date(o.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+      createdAt: o.createdAt,
+      rawPrice: (o.totalPrice || o.itemsPrice || 0),
       items: o.items?.map((it: any) => ({ name: it.title, qty: it.quantity, price: '₹' + it.price })) || [],
       shippingAddress: o.shippingAddress ? (o.shippingAddress.street + ', ' + o.shippingAddress.city + ', ' + o.shippingAddress.state + ' - ' + o.shippingAddress.postalCode) : 'Standard Shipping Address',
     }));
 
-  const totalRevenue = orders.reduce((sum: number, o: any) => {
-    const cleanAmount = parseFloat(String(o.amount).replace(/[^0-9.]/g, '')) || 0;
-    return sum + cleanAmount;
-  }, 0);
+  // Check if an item's date matches the selected dateRange
+  const isWithinSelectedRange = (dateInput?: string | Date) => {
+    if (!dateInput || !dateRange || dateRange === 'All Time') return true;
+    const d = new Date(dateInput);
+    if (isNaN(d.getTime())) return true;
+    const now = new Date();
+
+    if (dateRange === 'Today (Live)' || dateRange === 'Today') {
+      return (
+        d.getFullYear() === now.getFullYear() &&
+        d.getMonth() === now.getMonth() &&
+        d.getDate() === now.getDate()
+      );
+    }
+    if (dateRange === 'Yesterday') {
+      const yesterday = new Date(now);
+      yesterday.setDate(now.getDate() - 1);
+      return (
+        d.getFullYear() === yesterday.getFullYear() &&
+        d.getMonth() === yesterday.getMonth() &&
+        d.getDate() === yesterday.getDate()
+      );
+    }
+    if (dateRange === 'Last 7 Days') {
+      const past7 = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      return d >= past7;
+    }
+    if (dateRange === 'Last 30 Days') {
+      const past30 = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      return d >= past30;
+    }
+    if (dateRange === 'This Month') {
+      return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+    }
+    if (dateRange === 'This Year') {
+      return d.getFullYear() === now.getFullYear();
+    }
+    return true;
+  };
+
+  // Dashboard Metrics filtered by date range
+  const dashboardOrders = React.useMemo(() => {
+    return orders.filter((o: any) => isWithinSelectedRange(o.createdAt));
+  }, [orders, dateRange]);
+
+  const totalRevenue = React.useMemo(() => {
+    return dashboardOrders.reduce((sum: number, o: any) => {
+      const cleanAmount = parseFloat(String(o.amount).replace(/[^0-9.]/g, '')) || 0;
+      return sum + cleanAmount;
+    }, 0);
+  }, [dashboardOrders]);
+
+  // On the Dashboard view, filter recent orders by date range AND searchQuery
+  const dashboardRecentOrders = React.useMemo(() => {
+    return orders
+      .filter((o: any) => {
+        if (!isWithinSelectedRange(o.createdAt)) return false;
+        if (searchQuery.trim()) {
+          const q = searchQuery.trim().toLowerCase();
+          return (
+            o.id.toLowerCase().includes(q) ||
+            o.customer.toLowerCase().includes(q) ||
+            o.phone.toLowerCase().includes(q) ||
+            o.products.toLowerCase().includes(q)
+          );
+        }
+        return true;
+      })
+      .slice(0, 5);
+  }, [orders, dateRange, searchQuery]);
 
   // 2. Database-Driven Products & Categories (PostgreSQL Single Source of Truth)
-  const { data: productsResponse } = useProducts({ limit: 100 });
-  const { data: dbCategories = [] } = useCategories();
-  const { data: dbSubcategories = [] } = useSubcategories();
+  const { data: productsResponse, refetch: refetchProducts } = useProducts({ limit: 100 });
+  const { data: dbCategories = [], refetch: refetchCategories } = useCategories();
+  const { data: dbSubcategories = [], refetch: refetchSubcategories } = useSubcategories();
 
   const { createProduct, updateProduct, deleteProduct, deleteReview } = useProductMutations();
   const { createCategory, updateCategory } = useCategoryMutations();
@@ -759,9 +915,16 @@ export const AdminPage: React.FC = () => {
 
   // 9. Blogs (Live Database-Driven CMS via useBlogs)
   const ADMIN_BLOGS_PARAM = { status: 'ALL' as const };
-  const { data: adminBlogsData } = useBlogs(ADMIN_BLOGS_PARAM);
+  const { data: adminBlogsData, refetch: refetchBlogs } = useBlogs(ADMIN_BLOGS_PARAM);
   const { createBlog, updateBlog, deleteBlog, toggleStatus: toggleBlogStatus } = useBlogMutations();
   const blogs: BlogPost[] = adminBlogsData?.blogs || [];
+
+  // 10. Contacts (Website contact form submissions)
+  const { data: contactsData, refetch: refetchContacts } = useContacts(1, 100);
+  const { data: statsData, refetch: refetchContactStats } = useContactStats();
+  const { markAsRead, deleteContact } = useContactMutations();
+  const contacts: Contact[] = contactsData?.data?.contacts || [];
+  const contactStats = statsData?.data || { totalContacts: 0, unreadCount: 0 };
 
   const [isBlogModalOpen, setIsBlogModalOpen] = useState(false);
   const [editingBlog, setEditingBlog] = useState<BlogPost | null>(null);
@@ -927,15 +1090,21 @@ export const AdminPage: React.FC = () => {
     }
   };
 
-  const handleDeleteBlogClick = async (b: BlogPost) => {
-    if (!window.confirm(`Are you sure you want to permanently delete the article "${b.title}"?`)) {
-      return;
-    }
-    try {
-      await deleteBlog(b.id);
-    } catch (err: any) {
-      showToast(err?.message || 'Failed to delete blog');
-    }
+  const handleDeleteBlogClick = (b: BlogPost) => {
+    openConfirmModal({
+      title: 'Delete Blog Article?',
+      message: `Are you sure you want to permanently delete the article "${b.title}"? This cannot be undone.`,
+      confirmText: 'Delete Article',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteBlog(b.id);
+          showToast(`Article "${b.title}" deleted.`);
+        } catch (err: any) {
+          showToast(err?.message || 'Failed to delete blog');
+        }
+      },
+    });
   };
 
   const handleToggleBlogStatusClick = async (b: BlogPost) => {
@@ -1030,11 +1199,17 @@ export const AdminPage: React.FC = () => {
   };
 
   const handleResetSettings = () => {
-    if (window.confirm('Are you sure you want to reset all platform settings to default values?')) {
-      setStoreSettings(DEFAULT_SETTINGS);
-      localStorage.removeItem('formerbench_store_settings');
-      showToast('Settings restored to defaults!');
-    }
+    openConfirmModal({
+      title: 'Reset Platform Settings?',
+      message: 'Are you sure you want to reset all platform and store settings back to default values?',
+      confirmText: 'Reset Defaults',
+      type: 'warning',
+      onConfirm: () => {
+        setStoreSettings(DEFAULT_SETTINGS);
+        localStorage.removeItem('formerbench_store_settings');
+        showToast('Settings restored to defaults!');
+      },
+    });
   };
 
   const handleSendTestEmail = () => {
@@ -1127,6 +1302,44 @@ export const AdminPage: React.FC = () => {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
+  // Live Sync handler: Refreshes all queries and notifies user
+  const handleLiveRefresh = async () => {
+    setIsLiveSyncing(true);
+    try {
+      await Promise.allSettled([
+        refetchOrders?.(),
+        refetchProducts?.(),
+        refetchCustomers?.(),
+        refetchCategories?.(),
+        refetchSubcategories?.(),
+        refetchBookings?.(),
+        refetchBookingStats?.(),
+        refetchContacts?.(),
+        refetchContactStats?.(),
+        refetchBlogs?.(),
+      ]);
+      const nowStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      setLastSyncedTime(nowStr);
+      showToast(`⚡ Live database sync completed at ${nowStr}`);
+    } catch {
+      showToast('Live database sync completed');
+    } finally {
+      setTimeout(() => setIsLiveSyncing(false), 500);
+    }
+  };
+
+  // Background auto-refresh every 40 seconds to keep live data synchronized
+  useEffect(() => {
+    const timer = setInterval(() => {
+      refetchOrders?.();
+      refetchBookingStats?.();
+      refetchContactStats?.();
+      refetchCustomers?.();
+      setLastSyncedTime(new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }));
+    }, 40000);
+    return () => clearInterval(timer);
+  }, [refetchOrders, refetchBookingStats, refetchContactStats, refetchCustomers]);
+
   // Status Handlers
   const handleUpdateOrderStatus = async (orderId: string, newStatus: string, _newClass: string) => {
     try {
@@ -1153,16 +1366,21 @@ export const AdminPage: React.FC = () => {
     }
   };
 
-  const handleDeleteProduct = async (id: string, name: string) => {
-    if (!window.confirm(`Are you sure you want to permanently delete "${name}" from PostgreSQL?`)) {
-      return;
-    }
-    try {
-      await deleteProduct(id);
-      showToast(`Product "${name}" deleted from database.`);
-    } catch (err: any) {
-      showToast(err.message || 'Failed to delete product');
-    }
+  const handleDeleteProduct = (id: string, name: string) => {
+    openConfirmModal({
+      title: 'Delete Product from Database?',
+      message: `Are you sure you want to permanently delete "${name}" from PostgreSQL? This action cannot be undone.`,
+      confirmText: 'Delete Product',
+      type: 'danger',
+      onConfirm: async () => {
+        try {
+          await deleteProduct(id);
+          showToast(`Product "${name}" deleted from database.`);
+        } catch (err: any) {
+          showToast(err.message || 'Failed to delete product');
+        }
+      },
+    });
   };
 
   // Auth loading state (Only shows if no local credentials exist)
@@ -1286,6 +1504,73 @@ export const AdminPage: React.FC = () => {
     );
   }
 
+  // Global Live Search Matches across the entire portal
+  const searchTrimmed = searchQuery.trim().toLowerCase();
+
+  const matchingProducts = React.useMemo(() => {
+    if (!searchTrimmed) return [];
+    return products.filter((p: any) =>
+      p.name.toLowerCase().includes(searchTrimmed) ||
+      p.sku.toLowerCase().includes(searchTrimmed) ||
+      p.category.toLowerCase().includes(searchTrimmed)
+    );
+  }, [products, searchTrimmed]);
+
+  const matchingOrders = React.useMemo(() => {
+    if (!searchTrimmed) return [];
+    return orders.filter((o: any) =>
+      o.id.toLowerCase().includes(searchTrimmed) ||
+      o.customer.toLowerCase().includes(searchTrimmed) ||
+      o.phone.toLowerCase().includes(searchTrimmed) ||
+      o.email.toLowerCase().includes(searchTrimmed)
+    );
+  }, [orders, searchTrimmed]);
+
+  const matchingCustomers = React.useMemo(() => {
+    if (!searchTrimmed) return [];
+    return customers.filter((c: any) =>
+      (c.name && c.name.toLowerCase().includes(searchTrimmed)) ||
+      (c.phone && c.phone.toLowerCase().includes(searchTrimmed)) ||
+      (c.email && c.email.toLowerCase().includes(searchTrimmed)) ||
+      (c.location && c.location.toLowerCase().includes(searchTrimmed))
+    );
+  }, [customers, searchTrimmed]);
+
+  const matchingBookings = React.useMemo(() => {
+    if (!searchTrimmed) return [];
+    return serviceBookings.filter((b) =>
+      (b.bookingReference && b.bookingReference.toLowerCase().includes(searchTrimmed)) ||
+      (b.name && b.name.toLowerCase().includes(searchTrimmed)) ||
+      (b.phone && b.phone.toLowerCase().includes(searchTrimmed)) ||
+      (b.serviceName && b.serviceName.toLowerCase().includes(searchTrimmed)) ||
+      (b.serviceSlug && b.serviceSlug.toLowerCase().includes(searchTrimmed))
+    );
+  }, [serviceBookings, searchTrimmed]);
+
+  const matchingBlogs = React.useMemo(() => {
+    if (!searchTrimmed) return [];
+    return blogs.filter((bl: any) =>
+      (bl.title && bl.title.toLowerCase().includes(searchTrimmed)) ||
+      (bl.category && bl.category.toLowerCase().includes(searchTrimmed))
+    );
+  }, [blogs, searchTrimmed]);
+
+  const matchingCategories = React.useMemo(() => {
+    if (!searchTrimmed) return [];
+    return categories.filter((cat: any) =>
+      cat.name.toLowerCase().includes(searchTrimmed) ||
+      cat.slug.toLowerCase().includes(searchTrimmed)
+    );
+  }, [categories, searchTrimmed]);
+
+  const totalSearchMatches = 
+    matchingProducts.length +
+    matchingOrders.length +
+    matchingCustomers.length +
+    matchingBookings.length +
+    matchingBlogs.length +
+    matchingCategories.length;
+
   // Filtered Lists
   const filteredOrders = orders.filter((o) => {
     if (orderFilter !== 'All' && o.status !== orderFilter) return false;
@@ -1305,7 +1590,7 @@ export const AdminPage: React.FC = () => {
 
   const filteredCustomers = customers.filter((c) => {
     if (customerStatusFilter !== 'All' && c.status !== customerStatusFilter) return false;
-    const q = (customerSearchQuery || searchQuery).trim().toLowerCase();
+    const q = (customerSearchQuery || (activeNav === 'Customers' ? searchQuery : '')).trim().toLowerCase();
     if (!q) return true;
     return (
       c.name.toLowerCase().includes(q) ||
@@ -1313,6 +1598,28 @@ export const AdminPage: React.FC = () => {
       c.phone.toLowerCase().includes(q) ||
       (c.location && c.location.toLowerCase().includes(q)) ||
       (c.crops && c.crops.toLowerCase().includes(q))
+    );
+  });
+
+  const filteredCategories = categories.filter((c: any) => {
+    if (!searchQuery.trim() || activeNav !== 'Categories') return true;
+    const q = searchQuery.trim().toLowerCase();
+    return (
+      c.name.toLowerCase().includes(q) ||
+      c.slug.toLowerCase().includes(q) ||
+      (c.subcategories && c.subcategories.some((s: any) => s.name.toLowerCase().includes(q)))
+    );
+  });
+
+  const filteredContacts = contacts.filter((c: any) => {
+    if (!searchQuery.trim() || activeNav !== 'Contacts') return true;
+    const q = searchQuery.trim().toLowerCase();
+    return (
+      c.name.toLowerCase().includes(q) ||
+      c.email.toLowerCase().includes(q) ||
+      c.phone.toLowerCase().includes(q) ||
+      c.subject.toLowerCase().includes(q) ||
+      c.message.toLowerCase().includes(q)
     );
   });
 
@@ -1462,6 +1769,18 @@ export const AdminPage: React.FC = () => {
               </span>
             </button>
             <button
+              className={`admin-nav-item ${activeNav === 'Contacts' ? 'active' : ''}`}
+              onClick={() => setActiveNav('Contacts')}
+            >
+              <div className="admin-nav-item-left">
+                <Mail size={17} />
+                <span>Contacts</span>
+              </div>
+              <span className="admin-nav-badge badge-orange">
+                {contactStats.unreadCount}
+              </span>
+            </button>
+            <button
               className={`admin-nav-item ${activeNav === 'Blog' ? 'active' : ''}`}
               onClick={() => setActiveNav('Blog')}
             >
@@ -1552,52 +1871,317 @@ export const AdminPage: React.FC = () => {
             <span className="admin-breadcrumb-current">{activeNav}</span>
           </div>
 
-          {/* Search Box */}
-          <div className="admin-search-box">
+          {/* Search Box with Global Instant Results Dropdown */}
+          <div className="admin-search-box" ref={searchContainerRef}>
             <Search size={16} className="admin-search-icon" />
             <input
               type="text"
-              placeholder={`Search in ${activeNav.toLowerCase()}...`}
+              placeholder={`Search in ${activeNav.toLowerCase()} or across portal...`}
               className="admin-search-input"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setIsSearchDropdownOpen(e.target.value.trim().length > 0);
+              }}
+              onFocus={() => {
+                if (searchQuery.trim().length > 0) setIsSearchDropdownOpen(true);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') setIsSearchDropdownOpen(false);
+              }}
             />
+            {searchQuery && (
+              <button 
+                type="button" 
+                className="admin-search-clear-btn" 
+                onClick={() => {
+                  setSearchQuery('');
+                  setIsSearchDropdownOpen(false);
+                }}
+                title="Clear search"
+              >
+                <X size={14} />
+              </button>
+            )}
+
+            {/* Live Search Results Dropdown */}
+            {isSearchDropdownOpen && searchQuery.trim().length > 0 && (
+              <div className="admin-search-results-dropdown">
+                <div className="admin-search-results-header">
+                  <span>Results for "{searchQuery}"</span>
+                  <span className="admin-search-results-count">{totalSearchMatches} matches</span>
+                </div>
+
+                {totalSearchMatches === 0 ? (
+                  <div className="admin-search-empty-state">
+                    <Search size={24} style={{ color: '#CBD5E1' }} />
+                    <p>No matches found across orders, products, customers, bookings, or blogs.</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Products */}
+                    {matchingProducts.length > 0 && (
+                      <div className="admin-search-group">
+                        <div className="admin-search-group-title">
+                          <Package size={13} />
+                          <span>Products ({matchingProducts.length})</span>
+                        </div>
+                        {matchingProducts.slice(0, 4).map((p) => (
+                          <div 
+                            key={p.id} 
+                            className="admin-search-result-item"
+                            onClick={() => {
+                              setActiveNav('Products');
+                              setSelectedProduct(p);
+                              setIsSearchDropdownOpen(false);
+                            }}
+                          >
+                            <div className="admin-search-item-left">
+                              <img src={p.image} alt={p.name} className="admin-search-item-thumb" />
+                              <div className="admin-search-item-meta">
+                                <span className="admin-search-item-title">{p.name}</span>
+                                <span className="admin-search-item-sub">{p.category} • {p.sku}</span>
+                              </div>
+                            </div>
+                            <div className="admin-search-item-right">
+                              <span style={{ fontWeight: 700, fontSize: '0.825rem', color: '#15803D' }}>₹{p.price}</span>
+                              <span className={`admin-status-badge ${p.stock <= 10 ? 'low-stock' : 'in-stock'}`} style={{ fontSize: '0.7rem', padding: '2px 6px' }}>
+                                {p.status}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Orders */}
+                    {matchingOrders.length > 0 && (
+                      <div className="admin-search-group">
+                        <div className="admin-search-group-title">
+                          <ShoppingCart size={13} />
+                          <span>Orders ({matchingOrders.length})</span>
+                        </div>
+                        {matchingOrders.slice(0, 4).map((ord) => (
+                          <div 
+                            key={ord.id} 
+                            className="admin-search-result-item"
+                            onClick={() => {
+                              setActiveNav('Orders');
+                              setSelectedOrder(ord);
+                              setIsInvoiceModalOpen(true);
+                              setIsSearchDropdownOpen(false);
+                            }}
+                          >
+                            <div className="admin-search-item-left">
+                              <div className="admin-search-item-icon-box">
+                                <ShoppingCart size={15} />
+                              </div>
+                              <div className="admin-search-item-meta">
+                                <span className="admin-search-item-title">{ord.id} — {ord.customer}</span>
+                                <span className="admin-search-item-sub">{ord.phone} • {ord.products}</span>
+                              </div>
+                            </div>
+                            <div className="admin-search-item-right">
+                              <span style={{ fontWeight: 700, fontSize: '0.825rem' }}>{ord.amount}</span>
+                              <span className={`admin-status-badge ${ord.statusClass}`} style={{ fontSize: '0.7rem', padding: '2px 6px' }}>
+                                {ord.status}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Customers */}
+                    {matchingCustomers.length > 0 && (
+                      <div className="admin-search-group">
+                        <div className="admin-search-group-title">
+                          <Users size={13} />
+                          <span>Customers ({matchingCustomers.length})</span>
+                        </div>
+                        {matchingCustomers.slice(0, 3).map((cust) => (
+                          <div 
+                            key={cust.id} 
+                            className="admin-search-result-item"
+                            onClick={() => {
+                              setActiveNav('Customers');
+                              setCustomerSearchQuery(cust.name);
+                              setIsSearchDropdownOpen(false);
+                            }}
+                          >
+                            <div className="admin-search-item-left">
+                              <div className="admin-search-item-icon-box" style={{ backgroundColor: '#EFF6FF', color: '#2563EB' }}>
+                                <Users size={15} />
+                              </div>
+                              <div className="admin-search-item-meta">
+                                <span className="admin-search-item-title">{cust.name}</span>
+                                <span className="admin-search-item-sub">{cust.phone || cust.email} • {cust.location || 'Customer'}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Service Bookings */}
+                    {matchingBookings.length > 0 && (
+                      <div className="admin-search-group">
+                        <div className="admin-search-group-title">
+                          <CalendarCheck size={13} />
+                          <span>Service Bookings ({matchingBookings.length})</span>
+                        </div>
+                        {matchingBookings.slice(0, 3).map((b) => (
+                          <div 
+                            key={b.id} 
+                            className="admin-search-result-item"
+                            onClick={() => {
+                              setActiveNav('Service Bookings');
+                              setBookingSearchQuery(b.bookingReference || b.name || '');
+                              setIsSearchDropdownOpen(false);
+                            }}
+                          >
+                            <div className="admin-search-item-left">
+                              <div className="admin-search-item-icon-box" style={{ backgroundColor: '#FEF3C7', color: '#D97706' }}>
+                                <CalendarCheck size={15} />
+                              </div>
+                              <div className="admin-search-item-meta">
+                                <span className="admin-search-item-title">{b.bookingReference ? `#${b.bookingReference}` : 'Booking'} — {b.name}</span>
+                                <span className="admin-search-item-sub">{b.serviceName || b.serviceSlug} • {b.phone}</span>
+                              </div>
+                            </div>
+                            <div className="admin-search-item-right">
+                              <span className={`admin-status-badge ${(b.status || '').toLowerCase()}`} style={{ fontSize: '0.7rem', padding: '2px 6px' }}>
+                                {b.status}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Blog Posts */}
+                    {matchingBlogs.length > 0 && (
+                      <div className="admin-search-group">
+                        <div className="admin-search-group-title">
+                          <BookOpen size={13} />
+                          <span>Blog Posts ({matchingBlogs.length})</span>
+                        </div>
+                        {matchingBlogs.slice(0, 3).map((blog) => (
+                          <div 
+                            key={blog.id} 
+                            className="admin-search-result-item"
+                            onClick={() => {
+                              setActiveNav('Blog');
+                              setBlogSearchQuery(blog.title);
+                              setIsSearchDropdownOpen(false);
+                            }}
+                          >
+                            <div className="admin-search-item-left">
+                              <div className="admin-search-item-icon-box" style={{ backgroundColor: '#F3E8FF', color: '#7E22CE' }}>
+                                <BookOpen size={15} />
+                              </div>
+                              <div className="admin-search-item-meta">
+                                <span className="admin-search-item-title">{blog.title}</span>
+                                <span className="admin-search-item-sub">{blog.category} • {blog.status === 'PUBLISHED' ? 'Published' : 'Draft'}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Categories */}
+                    {matchingCategories.length > 0 && (
+                      <div className="admin-search-group">
+                        <div className="admin-search-group-title">
+                          <Layers size={13} />
+                          <span>Categories ({matchingCategories.length})</span>
+                        </div>
+                        {matchingCategories.slice(0, 3).map((cat) => (
+                          <div 
+                            key={cat.id} 
+                            className="admin-search-result-item"
+                            onClick={() => {
+                              setActiveNav('Categories');
+                              setIsSearchDropdownOpen(false);
+                            }}
+                          >
+                            <div className="admin-search-item-left">
+                              <div className="admin-search-item-icon-box">
+                                <Layers size={15} />
+                              </div>
+                              <div className="admin-search-item-meta">
+                                <span className="admin-search-item-title">{cat.name}</span>
+                                <span className="admin-search-item-sub">{cat.count} products</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Right Header Actions */}
           <div className="admin-header-actions">
-            <button className="admin-date-btn">
-              <Calendar size={15} style={{ color: '#15803D' }} />
-              <span>28 Aug 2026</span>
-              <ChevronDown size={14} style={{ color: '#94A3B8' }} />
-            </button>
-
+            {/* Live Sync Status & Manual Refresh Button */}
             <button
-              className="admin-icon-btn"
-              title="Help & Support"
-              onClick={() => showToast('Help documentation available at docs.AgriEra.agri')}
+              className="admin-sync-btn"
+              onClick={handleLiveRefresh}
+              title={`Database is live. Last synced at ${lastSyncedTime}. Click to refresh now.`}
             >
-              <HelpCircle size={18} />
+              <span className="admin-live-pulse-dot" />
+              <RefreshCw size={13} className={isLiveSyncing ? 'spinning' : ''} />
+              <span>{isLiveSyncing ? 'Syncing...' : 'Live'}</span>
             </button>
 
-            <button
-              className="admin-icon-btn"
-              title="Notifications"
-              onClick={() => showToast('5 new pending alerts awaiting action')}
-            >
-              <Bell size={18} />
-              <span className="admin-notif-dot">5</span>
-            </button>
+            {/* Interactive Live Date / Date Range Selector */}
+            <div className="admin-date-picker-wrapper" ref={dateDropdownRef}>
+              <button 
+                className="admin-date-btn"
+                onClick={() => setIsDateDropdownOpen((prev) => !prev)}
+                title="Filter Dashboard by Date Range"
+              >
+                <Calendar size={15} style={{ color: '#15803D' }} />
+                <span>
+                  {dateRange === 'Today (Live)' 
+                    ? `Today, ${liveTodayFormatted}` 
+                    : dateRange === 'Last 30 Days'
+                    ? `${liveTodayFormatted} • 30D`
+                    : dateRange}
+                </span>
+                <ChevronDown size={14} style={{ color: '#94A3B8' }} />
+              </button>
 
-            <div className="admin-header-profile" onClick={() => setActiveNav('Settings')}>
-              {/* <img
-                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
-                alt="AgriEra Admin"
-                className="admin-header-profile-img"
-              /> */}
-              <span className="admin-header-profile-name">{user?.name || 'AgriEra Admin'}</span>
-              <ChevronDown size={14} style={{ color: '#94A3B8' }} />
+              {isDateDropdownOpen && (
+                <div className="admin-date-dropdown-menu">
+                  <div className="admin-date-dropdown-header">
+                    <span>Filter Period</span>
+                    <span style={{ fontSize: '0.65rem', color: '#16A34A', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                      <span className="admin-live-pulse-dot" /> Live
+                    </span>
+                  </div>
+                  {DATE_RANGE_OPTIONS.map((opt) => (
+                    <button
+                      key={opt}
+                      className={`admin-date-option ${dateRange === opt ? 'active' : ''}`}
+                      onClick={() => {
+                        setDateRange(opt);
+                        setIsDateDropdownOpen(false);
+                      }}
+                    >
+                      <span>{opt}</span>
+                      {dateRange === opt && <Check size={14} style={{ color: '#15803D' }} />}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
+
+            
 
             <Link to="/" className="admin-view-store-btn" target="_blank" rel="noopener noreferrer">
               <span>View Store</span>
@@ -1659,10 +2243,9 @@ export const AdminPage: React.FC = () => {
                     onChange={(e) => setDateRange(e.target.value)}
                     className="admin-filter-select-btn"
                   >
-                    <option>Last 30 Days</option>
-                    <option>Last 7 Days</option>
-                    <option>This Month</option>
-                    <option>This Year</option>
+                    {DATE_RANGE_OPTIONS.map((opt) => (
+                      <option key={opt} value={opt}>{opt}</option>
+                    ))}
                   </select>
 
                   <button onClick={openAddProductCMS} className="admin-primary-btn">
@@ -1696,7 +2279,7 @@ export const AdminPage: React.FC = () => {
                     <div className="admin-kpi-icon-wrap bg-ord"><ShoppingCart size={20} /></div>
                     <div className="admin-kpi-meta">
                       <span className="admin-kpi-label">Total Orders</span>
-                      <span className="admin-kpi-value">{orders.filter((o: any) => o.status === 'Delivered').length}</span>
+                      <span className="admin-kpi-value">{dashboardOrders.length}</span>
                     </div>
                   </div>
                   <div className="admin-kpi-bottom">
@@ -1760,6 +2343,22 @@ export const AdminPage: React.FC = () => {
                     </span>
                     <svg className="admin-kpi-sparkline" viewBox="0 0 60 20" fill="none">
                       <path d="M 2 16 Q 16 6, 32 12 T 58 4" stroke="#16A34A" strokeWidth="2" fill="none" strokeLinecap="round" />
+                    </svg>
+                  </div>
+                </div>
+
+                <div className="admin-kpi-card" onClick={() => setActiveNav('Contacts')} style={{ cursor: 'pointer' }}>
+                  <div className="admin-kpi-top">
+                    <div className="admin-kpi-icon-wrap bg-msg"><Mail size={20} /></div>
+                    <div className="admin-kpi-meta">
+                      <span className="admin-kpi-label">Contact Messages</span>
+                      <span className="admin-kpi-value">{contactStats.unreadCount}</span>
+                    </div>
+                  </div>
+                  <div className="admin-kpi-bottom">
+                    <span className="admin-kpi-trend"><TrendingUp size={13} /> {contactStats.totalContacts} total</span>
+                    <svg className="admin-kpi-sparkline" viewBox="0 0 60 20" fill="none">
+                      <path d="M 2 15 Q 18 8, 30 14 T 58 6" stroke="#16A34A" strokeWidth="2" fill="none" strokeLinecap="round" />
                     </svg>
                   </div>
                 </div>
@@ -1964,33 +2563,41 @@ export const AdminPage: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {orders.slice(0, 5).map((ord) => (
-                          <tr key={ord.id}>
-                            <td>
-                              <span
-                                className="admin-order-id-link"
-                                onClick={() => { setSelectedOrder(ord); setIsInvoiceModalOpen(true); }}
-                              >
-                                {ord.id}
-                              </span>
-                            </td>
-                            <td style={{ fontWeight: 600 }}>{ord.customer}</td>
-                            <td style={{ color: '#64748B' }}>{ord.products}</td>
-                            <td style={{ fontWeight: 700 }}>{ord.amount}</td>
-                            <td>
-                              <span className={`admin-status-badge ${ord.statusClass}`}>{ord.status}</span>
-                            </td>
-                            <td style={{ color: '#64748B' }}>{ord.date.split(',')[0]}</td>
-                            <td style={{ textAlign: 'center' }}>
-                              <button
-                                className="admin-mini-btn"
-                                onClick={() => { setSelectedOrder(ord); setIsInvoiceModalOpen(true); }}
-                              >
-                                <Eye size={13} /> View
-                              </button>
+                        {dashboardRecentOrders.length === 0 ? (
+                          <tr>
+                            <td colSpan={7} style={{ textAlign: 'center', padding: '2rem 1rem', color: '#94A3B8' }}>
+                              No orders found {searchQuery ? `matching "${searchQuery}"` : `for ${dateRange}`}.
                             </td>
                           </tr>
-                        ))}
+                        ) : (
+                          dashboardRecentOrders.map((ord) => (
+                            <tr key={ord.id}>
+                              <td>
+                                <span
+                                  className="admin-order-id-link"
+                                  onClick={() => { setSelectedOrder(ord); setIsInvoiceModalOpen(true); }}
+                                >
+                                  {ord.id}
+                                </span>
+                              </td>
+                              <td style={{ fontWeight: 600 }}>{ord.customer}</td>
+                              <td style={{ color: '#64748B' }}>{ord.products}</td>
+                              <td style={{ fontWeight: 700 }}>{ord.amount}</td>
+                              <td>
+                                <span className={`admin-status-badge ${ord.statusClass}`}>{ord.status}</span>
+                              </td>
+                              <td style={{ color: '#64748B' }}>{ord.date.split(',')[0]}</td>
+                              <td style={{ textAlign: 'center' }}>
+                                <button
+                                  className="admin-mini-btn"
+                                  onClick={() => { setSelectedOrder(ord); setIsInvoiceModalOpen(true); }}
+                                >
+                                  <Eye size={13} /> View
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
@@ -2281,7 +2888,7 @@ export const AdminPage: React.FC = () => {
               </div>
 
               <div className="admin-category-grid">
-                {categories.map((cat) => (
+                {filteredCategories.map((cat) => (
                   <div key={cat.id} className="admin-cat-card">
                     <div>
                       <div className="admin-cat-icon-circle" style={{ fontSize: '1.5rem' }}>
@@ -3034,22 +3641,28 @@ export const AdminPage: React.FC = () => {
                                   Update Status
                                 </button>
                                 <button
-                                  className="admin-mini-btn btn-danger"
-                                  title="Delete Booking"
-                                  style={{ padding: '0.35rem 0.5rem' }}
-                                  onClick={async () => {
-                                    if (window.confirm(`Delete booking ${b.bookingReference} for ${b.name}?`)) {
-                                      try {
-                                        await mutateDeleteBooking(b.id);
-                                        showToast(`Booking ${b.bookingReference} deleted.`);
-                                      } catch (err: any) {
-                                        showToast(err?.message || 'Failed to delete booking');
-                                      }
-                                    }
-                                  }}
-                                >
-                                  <Trash2 size={13} />
-                                </button>
+                                   className="admin-mini-btn btn-danger"
+                                   title="Delete Booking"
+                                   style={{ padding: '0.35rem 0.5rem' }}
+                                   onClick={() => {
+                                     openConfirmModal({
+                                       title: 'Delete Service Booking?',
+                                       message: `Are you sure you want to delete service booking #${b.bookingReference} for ${b.name}? This cannot be undone.`,
+                                       confirmText: 'Delete Booking',
+                                       type: 'danger',
+                                       onConfirm: async () => {
+                                         try {
+                                           await mutateDeleteBooking(b.id);
+                                           showToast(`Booking ${b.bookingReference} deleted.`);
+                                         } catch (err: any) {
+                                           showToast(err?.message || 'Failed to delete booking');
+                                         }
+                                       },
+                                     });
+                                   }}
+                                 >
+                                   <Trash2 size={13} />
+                                 </button>
                               </div>
                             </td>
                           </tr>
@@ -3237,10 +3850,28 @@ export const AdminPage: React.FC = () => {
 
                     {/* Action buttons */}
                     <div className="admin-review-actions">
-                      <button onClick={async () => {
-                        if (!window.confirm('Delete this user review?')) return;
-                        await deleteReview({ reviewId: rev.id, productId: rev.productId });
-                      }} className="admin-btn-reject">Delete</button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          openConfirmModal({
+                            title: 'Delete Product Review?',
+                            message: `Are you sure you want to permanently delete this ${rev.rating}-star review for "${rev.product?.title || 'this product'}"?`,
+                            confirmText: 'Delete Review',
+                            type: 'danger',
+                            onConfirm: async () => {
+                              try {
+                                await deleteReview({ reviewId: rev.id, productId: rev.productId });
+                                showToast('Review deleted successfully.');
+                              } catch (err: any) {
+                                showToast(err?.message || 'Failed to delete review');
+                              }
+                            },
+                          });
+                        }}
+                        className="admin-btn-reject"
+                      >
+                        Delete
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -3250,7 +3881,139 @@ export const AdminPage: React.FC = () => {
           )}
 
           {/* ================================================================
-              VIEW 12: BLOG & AGRICULTURAL INSIGHTS (CMS)
+              VIEW 12: WEBSITE CONTACTS & INQUIRIES
+              ================================================================ */}
+          {activeNav === 'Contacts' && (
+            <div className="admin-card">
+              <div className="admin-card-header">
+                <div>
+                  <h2 className="admin-welcome-title" style={{ fontSize: '1.4rem' }}>Website Contact Submissions</h2>
+                  <p className="admin-welcome-sub">Review and respond to visitor inquiries from the "Get In Touch" contact form.</p>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
+                <div style={{ padding: '0.85rem 1.15rem', backgroundColor: '#FEF3C7', border: '1px solid #FCD34D', borderRadius: '10px' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#92400E', fontWeight: 600, textTransform: 'uppercase' }}>Total Submissions</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#92400E', marginTop: '0.2rem' }}>{contactStats.totalContacts}</div>
+                </div>
+                <div style={{ padding: '0.85rem 1.15rem', backgroundColor: '#FEE2E2', border: '1px solid #FECACA', borderRadius: '10px' }}>
+                  <div style={{ fontSize: '0.75rem', color: '#991B1B', fontWeight: 600, textTransform: 'uppercase' }}>Unread Messages</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#991B1B', marginTop: '0.2rem' }}>{contactStats.unreadCount}</div>
+                </div>
+              </div>
+
+              <div className="admin-review-list contact-inquiries-table">
+                {contacts.length > 0 && (
+                  <div className="admin-review-table-head" aria-hidden="true">
+                    <span>Name</span><span>Email</span><span>Phone</span><span>Subject</span><span>Message</span><span>Status</span><span>Action</span>
+                  </div>
+                )}
+                {filteredContacts.map((contact) => (
+                  <div key={contact.id} className={`admin-review-card-item ${!contact.isRead ? 'unread' : ''}`} style={{ opacity: contact.isRead ? 0.8 : 1 }}>
+                    {/* Name */}
+                    <div style={{ fontWeight: contact.isRead ? 500 : 700, color: '#1F2937' }}>
+                      {contact.name}
+                      <div style={{ fontSize: '0.7rem', color: '#6B7280', fontWeight: 500, marginTop: '0.2rem' }}>
+                        {new Date(contact.createdAt).toLocaleDateString('en-IN')}
+                      </div>
+                    </div>
+
+                    {/* Email */}
+                    <div style={{ fontSize: '0.85rem', color: '#4B5563', wordBreak: 'break-word' }}>
+                      {contact.email}
+                    </div>
+
+                    {/* Phone */}
+                    <div style={{ fontSize: '0.85rem', color: '#4B5563' }}>
+                      {contact.phone}
+                    </div>
+
+                    {/* Subject */}
+                    <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1F2937' }}>
+                      {contact.subject}
+                    </div>
+
+                    {/* Message Preview */}
+                    <div 
+                      className="admin-review-text-quote" 
+                      style={{ fontSize: '0.8rem', cursor: 'pointer' }}
+                      onClick={() => setViewContactModal(contact)}
+                      title="Click to view full inquiry details"
+                    >
+                      <span className="admin-review-mobile-label">Message</span>
+                      "{contact.message.substring(0, 80)}{contact.message.length > 80 ? '...' : ''}"
+                    </div>
+
+                    {/* Status */}
+                    <div>
+                      <span className="admin-review-mobile-label">Status</span>
+                      <span style={{
+                        display: 'inline-block',
+                        padding: '0.25rem 0.75rem',
+                        borderRadius: '12px',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        backgroundColor: contact.isRead ? '#E5E7EB' : '#FEE2E2',
+                        color: contact.isRead ? '#4B5563' : '#991B1B'
+                      }}>
+                        {contact.isRead ? 'Read' : 'New'}
+                      </span>
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="admin-review-actions">
+                      <button
+                        type="button"
+                        onClick={() => setViewContactModal(contact)}
+                        className="admin-mini-btn"
+                        title="View details"
+                        style={{ padding: '0.35rem 0.6rem', borderRadius: '6px' }}
+                      >
+                        <Eye size={13} /> View
+                      </button>
+                      {!contact.isRead && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            markAsRead.mutate(contact.id);
+                            showToast('Marked as read');
+                          }}
+                          className="admin-btn-approve"
+                          title="Mark as read"
+                        >
+                          <Check size={16} />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          openConfirmModal({
+                            title: 'Delete Contact Submission?',
+                            message: `Are you sure you want to delete the contact submission from "${contact.name}" (${contact.email || contact.phone})? This action cannot be undone.`,
+                            confirmText: 'Delete Submission',
+                            type: 'danger',
+                            onConfirm: () => {
+                              deleteContact.mutate(contact.id);
+                              showToast(`Contact submission from ${contact.name} deleted.`);
+                            },
+                          });
+                        }}
+                        className="admin-btn-reject"
+                        title="Delete"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {contacts.length === 0 && <div className="admin-empty-state"><Mail size={28} /><p>No contact submissions yet.</p></div>}
+              </div>
+            </div>
+          )}
+
+          {/* ================================================================
+              VIEW 13: BLOG & AGRICULTURAL INSIGHTS (CMS)
               ================================================================ */}
           {activeNav === 'Blog' && (
             <div className="admin-card">
@@ -6669,6 +7432,196 @@ export const AdminPage: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Confirmation Popup Modal Window */}
+      {confirmModal.isOpen && (
+        <div className="admin-modal-overlay" onClick={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}>
+          <div
+            className="admin-modal-card"
+            style={{ maxWidth: '440px', textAlign: 'center', padding: '1.75rem 1.5rem 1.25rem' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '50%',
+                backgroundColor: confirmModal.type === 'danger' ? '#FEE2E2' : '#FEF3C7',
+                color: confirmModal.type === 'danger' ? '#DC2626' : '#D97706',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 1.1rem',
+              }}
+            >
+              {confirmModal.icon || (confirmModal.type === 'danger' ? <Trash2 size={26} /> : <AlertTriangle size={26} />)}
+            </div>
+
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0F291B', marginBottom: '0.5rem' }}>
+              {confirmModal.title}
+            </h3>
+            <p style={{ fontSize: '0.875rem', color: '#64748B', lineHeight: 1.5, marginBottom: '1.5rem' }}>
+              {confirmModal.message}
+            </p>
+
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+              <button
+                type="button"
+                onClick={() => setConfirmModal((prev) => ({ ...prev, isOpen: false }))}
+                className="admin-quick-btn"
+                style={{ padding: '0.6rem 1.25rem', fontSize: '0.85rem' }}
+              >
+                {confirmModal.cancelText || 'Cancel'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  confirmModal.onConfirm();
+                  setConfirmModal((prev) => ({ ...prev, isOpen: false }));
+                }}
+                className="admin-primary-btn"
+                style={{
+                  backgroundColor: confirmModal.type === 'danger' ? '#DC2626' : '#15803D',
+                  padding: '0.6rem 1.25rem',
+                  fontSize: '0.85rem',
+                }}
+              >
+                {confirmModal.confirmText || 'Confirm'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: View Contact Submission Details Popup Window */}
+      {viewContactModal && (
+        <div className="admin-modal-overlay" onClick={() => setViewContactModal(null)}>
+          <div className="admin-modal-card" style={{ maxWidth: '600px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="admin-modal-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <div style={{ width: '36px', height: '36px', borderRadius: '8px', backgroundColor: '#EFF6FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Mail size={18} />
+                </div>
+                <div>
+                  <h3 className="admin-modal-title">Contact Inquiry Details</h3>
+                  <span style={{ fontSize: '0.75rem', color: '#64748B' }}>
+                    Received on {new Date(viewContactModal.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+              </div>
+              <button onClick={() => setViewContactModal(null)} className="admin-modal-close-btn">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="admin-modal-body">
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem', backgroundColor: '#F8FAFC', padding: '1rem', borderRadius: '10px', border: '1px solid #E2E8F0' }}>
+                <div>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase' }}>Farmer / Sender</span>
+                  <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#1E293B', marginTop: '2px' }}>{viewContactModal.name}</div>
+                </div>
+                <div>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase' }}>Status</span>
+                  <div style={{ marginTop: '2px' }}>
+                    <span className={`admin-status-badge ${viewContactModal.isRead ? 'in-stock' : 'pending'}`}>
+                      {viewContactModal.isRead ? 'Read' : 'New Unread'}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase' }}>Phone Number</span>
+                  <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#1E293B', marginTop: '2px' }}>
+                    <a href={`tel:${viewContactModal.phone}`} style={{ color: '#15803D', textDecoration: 'none' }}>
+                      {viewContactModal.phone}
+                    </a>
+                  </div>
+                </div>
+                <div>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94A3B8', textTransform: 'uppercase' }}>Email Address</span>
+                  <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#1E293B', marginTop: '2px' }}>
+                    <a href={`mailto:${viewContactModal.email}`} style={{ color: '#2563EB', textDecoration: 'none' }}>
+                      {viewContactModal.email}
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Subject</span>
+                <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0F291B', marginTop: '4px' }}>
+                  {viewContactModal.subject}
+                </div>
+              </div>
+
+              <div>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Message</span>
+                <div
+                  style={{
+                    backgroundColor: '#F8FAFC',
+                    border: '1px solid #E2E8F0',
+                    borderRadius: '8px',
+                    padding: '1rem',
+                    fontSize: '0.875rem',
+                    lineHeight: 1.6,
+                    color: '#334155',
+                    marginTop: '6px',
+                    whiteSpace: 'pre-wrap',
+                  }}
+                >
+                  {viewContactModal.message}
+                </div>
+              </div>
+            </div>
+            <div className="admin-modal-footer" style={{ justifyContent: 'space-between' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  const target = viewContactModal;
+                  setViewContactModal(null);
+                  openConfirmModal({
+                    title: 'Delete Contact Submission?',
+                    message: `Are you sure you want to permanently delete the inquiry from "${target.name}"? This action cannot be undone.`,
+                    confirmText: 'Delete Submission',
+                    type: 'danger',
+                    onConfirm: () => {
+                      deleteContact.mutate(target.id);
+                      showToast(`Contact submission from ${target.name} deleted.`);
+                    },
+                  });
+                }}
+                className="admin-icon-btn danger"
+                title="Delete this message"
+                style={{ width: 'auto', padding: '0.5rem 0.85rem', borderRadius: '8px', gap: '0.4rem', color: '#DC2626' }}
+              >
+                <Trash2 size={15} />
+                <span>Delete</span>
+              </button>
+
+              <div style={{ display: 'flex', gap: '0.6rem' }}>
+                {!viewContactModal.isRead && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      markAsRead.mutate(viewContactModal.id);
+                      setViewContactModal((prev) => prev ? { ...prev, isRead: true } : null);
+                      showToast('Marked as read');
+                    }}
+                    className="admin-quick-btn"
+                  >
+                    <Check size={15} /> Mark as Read
+                  </button>
+                )}
+                <a
+                  href={`mailto:${viewContactModal.email}?subject=Re: ${encodeURIComponent(viewContactModal.subject)}`}
+                  className="admin-primary-btn"
+                  style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                >
+                  <Send size={15} /> Reply via Email
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       )}

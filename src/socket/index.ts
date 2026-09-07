@@ -88,6 +88,18 @@ export const useSocketSync = () => {
     s.on('category:deleted', handleCategoryDeleted);
     s.on('booking:created', handleBookingCreated);
     s.on('booking:updated', handleBookingUpdated);
+    const handleContactCreated = (inquiry: any) => {
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['contactStats'] });
+      window.dispatchEvent(new CustomEvent('contact:created', { detail: inquiry }));
+    };
+    const handleContactUpdated = (inquiry: any) => {
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['contactStats'] });
+      window.dispatchEvent(new CustomEvent('contact:updated', { detail: inquiry }));
+    };
+    s.on('contact:created', handleContactCreated);
+    s.on('contact:updated', handleContactUpdated);
 
     return () => {
       s.off('product:created', handleProductCreated);
@@ -98,6 +110,8 @@ export const useSocketSync = () => {
       s.off('category:deleted', handleCategoryDeleted);
       s.off('booking:created', handleBookingCreated);
       s.off('booking:updated', handleBookingUpdated);
+      s.off('contact:created', handleContactCreated);
+      s.off('contact:updated', handleContactUpdated);
     };
   }, [queryClient, addToast]);
 };

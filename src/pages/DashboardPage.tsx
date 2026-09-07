@@ -229,8 +229,7 @@ export const DashboardPage: React.FC = () => {
           activeTab={activeTab}
           onSelectTab={handleSelectTab}
           onLogout={() => {
-            logout();
-            navigate('/');
+            setIsLogoutModalOpen(true);
           }}
           ordersCount={orders.length}
           wishlistCount={wishlistItems.length}
