@@ -6,7 +6,9 @@ import { CartDrawer } from './components/cart/CartDrawer';
 import { AuthModal } from './components/auth/AuthModal';
 import { ToastContainer } from './components/common/Toast';
 import { ChatWidget } from './components/chat/ChatWidget';
+import { ScrollToTop } from './components/common/ScrollToTop';
 import { useThemeStore } from './store/themeStore';
+import { LanguageProvider } from './context/LanguageContext';
 
 // Pages
 import { HomePage } from './pages/HomePage';
@@ -46,11 +48,14 @@ const AppContent: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <ScrollToTop />
       {!hideNavAndFooter && <Navbar />}
 
       <main className="main-content" style={{ padding: 0, flex: 1 }}>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/index" element={<Navigate to="/" replace />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/services" element={<ServicesPage />} />
           <Route path="/services/farm-development" element={<FarmDevelopmentPage />} />
@@ -130,7 +135,9 @@ export const App: React.FC = () => {
 
   return (
     <Router>
-      <AppContent />
+      <LanguageProvider>
+        <AppContent />
+      </LanguageProvider>
     </Router>
   );
 };

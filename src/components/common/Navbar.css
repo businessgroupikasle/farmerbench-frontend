@@ -15,15 +15,21 @@
   align-items: center;
   justify-content: space-between;
   height: 74px;
-  gap: 1rem;
+  gap: 1.25rem;
+  max-width: 1440px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 2.5vw, 2rem);
 }
 
 .agriflow-brand {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem;
   text-decoration: none;
   user-select: none;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .agriflow-logo-icon {
@@ -32,35 +38,40 @@
   justify-content: center;
   width: 38px;
   height: 32px;
+  flex-shrink: 0;
 }
 
 .agriflow-brand-text {
   color: #167338;
   font-family: var(--font-display, "Outfit", sans-serif);
   font-size: 1.45rem;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .agriflow-nav-wrapper {
   display: flex;
   align-items: center;
-  gap: 1.75rem;
+  gap: 1.35rem;
+  flex-shrink: 1;
 }
 
 .agriflow-nav-links {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
 .agriflow-nav-link {
   color: #26372d;
   font-weight: 500;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   text-decoration: none;
   transition: color 0.2s ease;
+  white-space: nowrap;
 }
 
 .agriflow-nav-link:hover {
@@ -92,6 +103,7 @@
   align-items: center;
   gap: 0.35rem;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .agriflow-dropdown-chevron {
@@ -212,48 +224,48 @@
   background-color: #F6B748;
   color: #161d19;
   border: none;
-  padding: 0.65rem 1.45rem;
-  border-radius: 6px;
+  padding: 0 1.25rem;
+  height: 38px;
+  border-radius: 8px;
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(246, 183, 72, 0.3);
+  box-shadow: 0 2px 6px rgba(246, 183, 72, 0.28);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
 .agriflow-btn-contact:hover {
   background-color: #f7c35f;
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(246, 183, 72, 0.45);
+  box-shadow: 0 4px 12px rgba(246, 183, 72, 0.4);
 }
 
 /* Header Actions (Account & Cart Group matching reference) */
 .agriflow-header-actions {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.85rem;
 }
-
-.agriflow-header-actions .agriflow-cart-widget-btn { order: 1; }
-.agriflow-header-actions .agriflow-actions-divider { order: 2; }
-.agriflow-header-actions .agriflow-account-widget { order: 3; }
 
 .agriflow-account-btn {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.55rem;
   background: transparent;
   border: none;
   color: #24362b;
   cursor: pointer;
-  padding: 0.25rem 0.4rem;
+  padding: 0.2rem 0.5rem;
   border-radius: 8px;
+  height: 38px;
   transition: all 0.2s ease;
   text-align: left;
+  white-space: nowrap;
 }
 
 .agriflow-account-btn:hover {
@@ -275,23 +287,18 @@
 
 .agriflow-account-text {
   display: flex;
-  flex-direction: column;
-  line-height: 1.2;
-}
-
-.agriflow-account-subtext {
-  font-size: 0.72rem;
-  color: #718078;
-  font-weight: 500;
+  align-items: center;
+  white-space: nowrap;
 }
 
 .agriflow-account-title {
   font-size: 0.85rem;
   font-weight: 700;
   color: #26372d;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.3rem;
+  white-space: nowrap;
 }
 
 .agriflow-actions-divider {
@@ -533,6 +540,29 @@
   }
   .agriflow-mobile-menu {
     display: none !important;
+  }
+}
+
+@media (min-width: 981px) and (max-width: 1340px) {
+  .agriflow-nav-links {
+    gap: 0.85rem;
+  }
+  .agriflow-nav-link {
+    font-size: 0.86rem;
+  }
+  .agriflow-nav-wrapper {
+    gap: 0.95rem;
+  }
+  .agriflow-header-actions {
+    gap: 0.55rem;
+  }
+  .agriflow-btn-contact {
+    padding: 0 0.95rem;
+    font-size: 0.825rem;
+  }
+  .agri-lang-trigger-btn {
+    padding: 0 0.55rem;
+    font-size: 0.8rem;
   }
 }
 

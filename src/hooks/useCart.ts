@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { cartService } from '../services/cart.service';
 import { useAuth } from './useAuth';
 import { useCartStore } from '../store/cartStore';
@@ -51,11 +52,11 @@ const resolveVariantPricing = (product: any, packSize: string, selectedAttribute
 
 export const useCart = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
   const { addToast } = useUIStore();
   const {
     guestItems,
-    addGuestItem,
     updateGuestItemQuantity,
     removeGuestItem,
     clearGuestCart,
@@ -189,39 +190,30 @@ export const useCart = () => {
 
   // Unified Actions
   const addToCart = (product: Product, quantity = 1, selectedAttributes?: Record<string, any>) => {
+    if (!isAuthenticated) {
+      addToast({
+        type: 'warning',
+        message: 'Please login now to add products to your cart or buy now.',
+      });
+      navigate('/login');
+      return false;
+    }
+
     const packSize = selectedAttributes?.packSize || '500 g';
     const pricing = resolveVariantPricing(product, packSize, selectedAttributes);
 
-    if (isAuthenticated) {
-      addToCartMutation.mutate({
-        productId: product.id,
-        quantity,
-        selectedAttributes: {
-          ...selectedAttributes,
-          packSize,
-          price: pricing.sellingPrice.toString(),
-          mrp: pricing.mrp.toString(),
-        },
-      });
-    } else {
-      addGuestItem({
-        productId: product.id,
-        quantity,
-        selectedAttributes: {
-          ...selectedAttributes,
-          packSize,
-          price: pricing.sellingPrice.toString(),
-          mrp: pricing.mrp.toString(),
-        },
-        productSnapshot: {
-          title: product.title,
-          price: pricing.mrp,
-          discountPrice: pricing.sellingPrice,
-          image: product.images[0] || '',
-        },
-      });
-      addToast({ type: 'success', message: 'Added to bag' });
-    }
+    addToCartMutation.mutate({
+      productId: product.id,
+      quantity,
+      selectedAttributes: {
+        ...selectedAttributes,
+        packSize,
+        price: pricing.sellingPrice.toString(),
+        mrp: pricing.mrp.toString(),
+      },
+    });
+
+    return true;
   };
 
   const updateQuantity = (itemId: string, productId: string, quantity: number) => {

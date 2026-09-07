@@ -24,9 +24,11 @@ import {
   Sparkles,
   Edit2,
   Trash2,
+  Share2,
 } from 'lucide-react';
 import { getUploadUrl } from '../utils/image';
 import { postalCodeService } from '../services/postalCode.service';
+import { ProductShareModal } from '../components/product/ProductShareModal';
 import './ProductDetailPage.css';
 
 export const ProductDetailPage: React.FC = () => {
@@ -84,6 +86,7 @@ export const ProductDetailPage: React.FC = () => {
   // Crop Doctor Modal
   const [isExpertModalOpen, setIsExpertModalOpen] = useState(false);
   const [expertSubmitted, setExpertSubmitted] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   if (isLoading) {
     return <LoadingSpinner fullPage message="Loading AgriEra catalog product..." />;
@@ -179,7 +182,7 @@ export const ProductDetailPage: React.FC = () => {
 
   const handleAddToCart = () => {
     if (isOutOfStock) return;
-    addToCart(
+    const wasAdded = addToCart(
       {
         ...product,
         price: currentMrp,
@@ -194,6 +197,7 @@ export const ProductDetailPage: React.FC = () => {
         sku: skuCode,
       }
     );
+    if (!wasAdded) return;
     addToast({
       type: 'success',
       message: `Added ${quantity} × ${product.title} (${selectedPackSize}) to bag at ₹${currentPrice.toFixed(2)} each!`,
@@ -202,7 +206,7 @@ export const ProductDetailPage: React.FC = () => {
 
   const handleBuyNow = () => {
     if (isOutOfStock) return;
-    addToCart(
+    const canCheckout = addToCart(
       {
         ...product,
         price: currentMrp,
@@ -217,7 +221,7 @@ export const ProductDetailPage: React.FC = () => {
         sku: skuCode,
       }
     );
-    navigate('/checkout');
+    if (canCheckout) navigate('/checkout');
   };
 
   const handleToggleWishlist = () => {
@@ -555,15 +559,29 @@ export const ProductDetailPage: React.FC = () => {
             </button>
           </div>
 
-          {/* Wishlist Button */}
-          <button
-            type="button"
-            onClick={handleToggleWishlist}
-            className={`pdp-wishlist-btn ${isWishlisted ? 'wishlisted' : ''}`}
-          >
-            <Heart size={16} fill={isWishlisted ? '#EF4444' : 'none'} color={isWishlisted ? '#EF4444' : 'currentColor'} />
-            {isWishlisted ? 'Saved in Wishlist' : 'Add to Wishlist'}
-          </button>
+          {/* Wishlist & Share Secondary Actions Row */}
+          <div className="pdp-actions-secondary-row">
+            <button
+              type="button"
+              onClick={handleToggleWishlist}
+              className={`pdp-wishlist-btn ${isWishlisted ? 'wishlisted' : ''}`}
+            >
+              <Heart size={16} fill={isWishlisted ? '#EF4444' : 'none'} color={isWishlisted ? '#EF4444' : 'currentColor'} />
+              {isWishlisted ? 'Saved in Wishlist' : 'Add to Wishlist'}
+            </button>
+
+            <span className="pdp-secondary-divider" />
+
+            <button
+              type="button"
+              onClick={() => setIsShareModalOpen(true)}
+              className="pdp-share-trigger-btn"
+              title="Share this product"
+            >
+              <Share2 size={16} />
+              Share Product
+            </button>
+          </div>
 
           {/* Check Delivery Box */}
           <div className="pdp-delivery-card">
@@ -1180,6 +1198,15 @@ export const ProductDetailPage: React.FC = () => {
             )}
           </div>
         </div>
+      )}
+
+      {/* Product Share Modal */}
+      {product && (
+        <ProductShareModal
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+          product={product}
+        />
       )}
     </div>
   );

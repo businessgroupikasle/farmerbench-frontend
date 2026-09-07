@@ -1,0 +1,254 @@
+/* Product Share Modal Styles - Compact & Fully Mobile Responsive */
+.agri-share-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 0.15rem 0;
+}
+
+/* Product Preview Row */
+.agri-share-product-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0.7rem;
+  background-color: #f8faf9;
+  border: 1px solid #e2ebe4;
+  border-radius: 10px;
+}
+
+.agri-share-product-img {
+  width: 48px;
+  height: 48px;
+  border-radius: 7px;
+  object-fit: cover;
+  background-color: #ffffff;
+  border: 1px solid #e0ece2;
+  flex-shrink: 0;
+}
+
+.agri-share-product-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.agri-share-product-cat {
+  font-size: 0.675rem;
+  font-weight: 700;
+  color: #166534;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.agri-share-product-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #1a2e22;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.agri-share-product-price {
+  font-size: 0.825rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+/* Section Title */
+.agri-share-section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.4rem;
+}
+
+/* Social Share Grid */
+.agri-share-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+@media (max-width: 480px) {
+  .agri-share-buttons-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.45rem;
+  }
+}
+
+.agri-share-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 8px;
+  font-size: 0.775rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.agri-share-btn svg {
+  flex-shrink: 0;
+}
+
+.agri-share-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Specific Social Button Colors */
+.agri-share-btn.whatsapp {
+  background-color: #e7f7ee;
+  color: #0d7a3e;
+  border-color: #bbf0cf;
+}
+.agri-share-btn.whatsapp:hover {
+  background-color: #25d366;
+  color: #ffffff;
+  border-color: #25d366;
+}
+
+.agri-share-btn.facebook {
+  background-color: #ebf3ff;
+  color: #1877f2;
+  border-color: #c9e0ff;
+}
+.agri-share-btn.facebook:hover {
+  background-color: #1877f2;
+  color: #ffffff;
+  border-color: #1877f2;
+}
+
+.agri-share-btn.twitter {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+.agri-share-btn.twitter:hover {
+  background-color: #000000;
+  color: #ffffff;
+  border-color: #000000;
+}
+
+.agri-share-btn.telegram {
+  background-color: #eaf5fc;
+  color: #0088cc;
+  border-color: #c2e5fa;
+}
+.agri-share-btn.telegram:hover {
+  background-color: #0088cc;
+  color: #ffffff;
+  border-color: #0088cc;
+}
+
+.agri-share-btn.email {
+  background-color: #fef3c7;
+  color: #b45309;
+  border-color: #fde68a;
+}
+.agri-share-btn.email:hover {
+  background-color: #d97706;
+  color: #ffffff;
+  border-color: #d97706;
+}
+
+.agri-share-btn.device {
+  background-color: #f3e8ff;
+  color: #7e22ce;
+  border-color: #e9d5ff;
+}
+.agri-share-btn.device:hover {
+  background-color: #7e22ce;
+  color: #ffffff;
+  border-color: #7e22ce;
+}
+
+/* Copy Link Row */
+.agri-share-copy-box {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: #f1f5f2;
+  padding: 0.25rem 0.25rem 0.25rem 0.65rem;
+  border-radius: 8px;
+  border: 1px solid #d5e4d8;
+}
+
+.agri-share-copy-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-size: 0.775rem;
+  color: #475569;
+  font-family: inherit;
+  outline: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.agri-share-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: #166534;
+  color: #ffffff;
+  border: none;
+  padding: 0.42rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.775rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+}
+
+.agri-share-copy-btn:hover {
+  background-color: #14532d;
+}
+
+.agri-share-copy-btn.copied {
+  background-color: #059669;
+}
+
+/* Extra mobile screen tightening */
+@media (max-width: 480px) {
+  .agri-share-modal-content {
+    gap: 0.7rem;
+  }
+
+  .agri-share-product-preview {
+    padding: 0.45rem 0.6rem;
+  }
+
+  .agri-share-product-img {
+    width: 42px;
+    height: 42px;
+  }
+
+  .agri-share-product-title {
+    font-size: 0.825rem;
+  }
+
+  .agri-share-btn {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .agri-share-copy-btn {
+    padding: 0.38rem 0.65rem;
+    font-size: 0.75rem;
+  }
+}

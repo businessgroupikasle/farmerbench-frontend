@@ -22,6 +22,7 @@ import {
 import { ServicesHero } from '../components/services/ServicesHero';
 import { ServicesFarmVisit } from '../components/services/ServicesFarmVisit';
 import { ServicesCTA } from '../components/services/ServicesCTA';
+import { serviceBookingService } from '../services/serviceBooking.service';
 import './ServicesPage.css';
 
 // Fallback images
@@ -42,12 +43,22 @@ interface ServiceItem {
   benefits: string[];
 }
 
+const serviceFormLinks: Record<string, string> = {
+  'well-development': '/services/well-development#water-assessment-form-section',
+  'drip-irrigation': '/services/drip-irrigation#drip-plan-form-section',
+  'farm-consultancy': '/services/farm-consultancy#consultancy-form-section',
+  'farm-development': '/services/farm-development#assessment-form-section',
+};
+
 export const ServicesPage: React.FC = () => {
   const [isConsultationModalOpen, setIsConsultationModalOpen] = useState(false);
   const [isExpertModalOpen, setIsExpertModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<string>('Farm Development');
   const [bookingSuccess, setBookingSuccess] = useState(false);
   const [callbackSuccess, setCallbackSuccess] = useState(false);
+  const [isBookingSubmitting, setIsBookingSubmitting] = useState(false);
+  const [bookingReference, setBookingReference] = useState('');
+  const [serviceForm, setServiceForm] = useState({ name: '', phone: '', location: '', farmSize: '', cropType: '', preferredDate: '', requestType: '', workerCount: '', duration: '', details: '' });
 
   const services: ServiceItem[] = [
     {
@@ -103,6 +114,26 @@ export const ServicesPage: React.FC = () => {
     setIsConsultationModalOpen(true);
   };
 
+  const handleServiceBookingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const phone = serviceForm.phone.replace(/\D/g, '');
+    if (phone.length !== 10) { alert('Please enter a valid 10-digit Indian mobile number.'); return; }
+    const isLabour = selectedService.toLowerCase().includes('labour');
+    setIsBookingSubmitting(true);
+    try {
+      const response = await serviceBookingService.createBooking({
+        serviceSlug: isLabour ? 'labour' : 'smart-advisory',
+        serviceName: isLabour ? 'Farm Labour Connect' : 'Smart Advisory',
+        name: serviceForm.name.trim(), phone, location: serviceForm.location.trim(),
+        farmSize: serviceForm.farmSize.trim() || null, cropType: serviceForm.cropType.trim() || null,
+        preferredDate: serviceForm.preferredDate || null,
+        message: JSON.stringify({ requestType: serviceForm.requestType, workerCount: isLabour ? serviceForm.workerCount : undefined, duration: isLabour ? serviceForm.duration : undefined, details: serviceForm.details }),
+      });
+      setBookingReference(response.data?.bookingReference || '');
+      setBookingSuccess(true);
+    } catch (error: any) { alert(error.message || 'Unable to submit request. Please try again.'); }
+    finally { setIsBookingSubmitting(false); }
+  };
   const handleOpenExpertModal = () => {
     setCallbackSuccess(false);
     setIsExpertModalOpen(true);
@@ -165,9 +196,8 @@ export const ServicesPage: React.FC = () => {
                           <span>View Details</span>
                           <ArrowRight size={16} />
                         </Link>
-                        <button
-                          type="button"
-                          onClick={() => handleOpenConsultation(item.title)}
+                        <Link
+                          to={serviceFormLinks[item.id]}
                           className="services-card-cta-btn"
                           style={{
                             flex: '1 1 120px',
@@ -178,11 +208,11 @@ export const ServicesPage: React.FC = () => {
                           }}
                         >
                           <span>Consult</span>
-                        </button>
+                        </Link>
                       </>
                     ) : (
                       <button
-                        onClick={() => handleOpenConsultation(item.title)}
+                        onClick={() => handleOpenConsultation(item.benefits[0])}
                         className="services-card-cta-btn"
                         style={{ width: '100%', justifyContent: 'center' }}
                       >
@@ -305,7 +335,7 @@ export const ServicesPage: React.FC = () => {
                   Consultation Booked!
                 </h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.98rem', marginBottom: '1.75rem', lineHeight: 1.6 }}>
-                  Thank you! Our regional agriculture specialist will contact you shortly to confirm the appointment and field visit details.
+                  Your request has been stored successfully. Our team will contact you shortly.{bookingReference && <> Booking reference: <strong>{bookingReference}</strong>.</>}
                 </p>
                 <button
                   onClick={() => setIsConsultationModalOpen(false)}
@@ -330,72 +360,22 @@ export const ServicesPage: React.FC = () => {
                   Fill in your farming requirements and our agronomists will provide personalized guidance.
                 </p>
 
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    setBookingSuccess(true);
-                  }}
-                  style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
-                >
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
-                      Farmer / Business Name *
-                    </label>
-                    <input required type="text" placeholder="e.g. Ramesh Kumar" className="services-modal-input" />
-                  </div>
-
+                <form onSubmit={handleServiceBookingSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div><label className="services-modal-label">Farmer / Business Name *</label><input required value={serviceForm.name} onChange={(e) => setServiceForm({ ...serviceForm, name: e.target.value })} className="services-modal-input" placeholder="Full name" /></div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
-                        Phone Number *
-                      </label>
-                      <input required type="tel" placeholder="+91 98765 43210" className="services-modal-input" />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
-                        Farm Size (Acres)
-                      </label>
-                      <input type="number" placeholder="e.g. 5" className="services-modal-input" />
-                    </div>
+                    <div><label className="services-modal-label">Phone Number *</label><input required type="tel" maxLength={10} value={serviceForm.phone} onChange={(e) => setServiceForm({ ...serviceForm, phone: e.target.value.replace(/\D/g, '') })} className="services-modal-input" placeholder="9876543210" /></div>
+                    <div><label className="services-modal-label">Farm Size</label><input value={serviceForm.farmSize} onChange={(e) => setServiceForm({ ...serviceForm, farmSize: e.target.value })} className="services-modal-input" placeholder="e.g. 5 acres" /></div>
                   </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
-                      Service Needed *
-                    </label>
-                    <select
-                      value={selectedService}
-                      onChange={(e) => setSelectedService(e.target.value)}
-                      className="services-modal-input"
-                    >
-                      {services.flatMap((group) => group.benefits).map((service) => (
-                        <option key={service} value={service}>{service}</option>
-                      ))}
-                    </select>
-                  </div>
-
+                  <div><label className="services-modal-label">Service Needed *</label><input readOnly value={selectedService} className="services-modal-input" /></div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
-                        Current Crops
-                      </label>
-                      <input type="text" placeholder="e.g. Cotton, Maize, Paddy" className="services-modal-input" />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
-                        Preferred Date
-                      </label>
-                      <input type="date" className="services-modal-input" />
-                    </div>
+                    <div><label className="services-modal-label">Crop Type *</label><input required value={serviceForm.cropType} onChange={(e) => setServiceForm({ ...serviceForm, cropType: e.target.value })} className="services-modal-input" placeholder="Cotton, Paddy..." /></div>
+                    <div><label className="services-modal-label">Preferred Date</label><input type="date" value={serviceForm.preferredDate} onChange={(e) => setServiceForm({ ...serviceForm, preferredDate: e.target.value })} className="services-modal-input" /></div>
                   </div>
-
-                  <button
-                    type="submit"
-                    className="services-btn-primary"
-                    style={{ marginTop: '0.75rem', width: '100%', gap: '0.5rem' }}
-                  >
-                    <Send size={16} /> Confirm Consultation Request
-                  </button>
+                  <div><label className="services-modal-label">Farm / Work Location *</label><input required value={serviceForm.location} onChange={(e) => setServiceForm({ ...serviceForm, location: e.target.value })} className="services-modal-input" placeholder="Village, District" /></div>
+                  <div><label className="services-modal-label">{selectedService.toLowerCase().includes('labour') ? 'Labour Work Type *' : 'Advisory Topic *'}</label><select required value={serviceForm.requestType} onChange={(e) => setServiceForm({ ...serviceForm, requestType: e.target.value })} className="services-modal-input"><option value="">Select</option>{selectedService.toLowerCase().includes('labour') ? <><option>Planting</option><option>Weeding</option><option>Harvesting</option><option>Farm Maintenance</option></> : <><option>Crop Planning</option><option>Pest & Disease</option><option>Soil & Nutrition</option><option>Yield Improvement</option></>}</select></div>
+                  {selectedService.toLowerCase().includes('labour') && <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}><div><label className="services-modal-label">Workers Required *</label><input required type="number" min="1" value={serviceForm.workerCount} onChange={(e) => setServiceForm({ ...serviceForm, workerCount: e.target.value })} className="services-modal-input" /></div><div><label className="services-modal-label">Duration *</label><input required value={serviceForm.duration} onChange={(e) => setServiceForm({ ...serviceForm, duration: e.target.value })} className="services-modal-input" placeholder="e.g. 3 days" /></div></div>}
+                  <div><label className="services-modal-label">Additional Requirements</label><textarea rows={3} value={serviceForm.details} onChange={(e) => setServiceForm({ ...serviceForm, details: e.target.value })} className="services-modal-input" /></div>
+                  <button type="submit" disabled={isBookingSubmitting} className="services-btn-primary" style={{ width: '100%' }}><Send size={16} /> {isBookingSubmitting ? 'Submitting...' : 'Submit Service Request'}</button>
                 </form>
               </div>
             )}

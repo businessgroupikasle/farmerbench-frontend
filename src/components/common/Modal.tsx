@@ -1,5 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
+import './Modal.css';
 
 interface ModalProps {
   isOpen: boolean;
@@ -14,81 +16,58 @@ export const Modal: React.FC<ModalProps> = ({
   onClose,
   title,
   children,
-  maxWidth = '500px',
+  maxWidth = '440px',
 }) => {
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
   useEffect(() => {
+    if (!isOpen) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) {
-        onClose();
+      if (e.key === 'Escape') {
+        onCloseRef.current();
       }
     };
 
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      window.addEventListener('keydown', handleKeyDown);
-    }
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      document.body.style.overflow = '';
+      document.body.style.overflow = originalOverflow;
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
-  return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 9999,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1rem',
-        backgroundColor: 'rgba(0, 0, 0, 0.65)',
-        backdropFilter: 'blur(4px)',
-      }}
-      onClick={onClose}
-    >
+  return createPortal(
+    <div className="agri-modal-overlay" onClick={onClose}>
       <div
-        className="card animate-fade-in"
-        style={{
-          width: '100%',
-          maxWidth,
-          maxHeight: '90vh',
-          overflowY: 'auto',
-          position: 'relative',
-          padding: '1.75rem',
-          boxShadow: 'var(--shadow-xl)',
-        }}
+        className="agri-modal-window animate-fade-in"
+        style={{ maxWidth }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: '1.25rem',
-            borderBottom: title ? '1px solid var(--border-color)' : 'none',
-            paddingBottom: title ? '0.75rem' : '0',
-          }}
-        >
-          {title && <h3 style={{ fontSize: '1.2rem', fontWeight: 700 }}>{title}</h3>}
+        <div className={`agri-modal-header ${title ? '' : 'no-border'}`}>
+          {title && (
+            <div className="agri-modal-title">
+              {title}
+            </div>
+          )}
           <button
             onClick={onClose}
-            className="btn btn-secondary btn-icon"
-            style={{ marginLeft: 'auto', width: '32px', height: '32px', padding: 0 }}
+            className="agri-modal-close-btn"
             aria-label="Close modal"
           >
-            <X size={18} />
+            <X size={17} />
           </button>
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
+
+export default Modal;

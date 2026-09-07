@@ -1,0 +1,95 @@
+/* Common Modal Component Styles */
+.agri-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.agri-modal-window {
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  padding: 1.4rem;
+  box-shadow: 0 20px 35px -5px rgba(0, 0, 0, 0.25), 0 10px 15px -5px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.agri-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.agri-modal-header.no-border {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.agri-modal-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0;
+  color: #166534;
+}
+
+.agri-modal-close-btn {
+  margin-left: auto;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #64748b;
+  transition: all 0.15s ease;
+}
+
+.agri-modal-close-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 640px) {
+  .agri-modal-overlay {
+    padding: 0.65rem;
+  }
+
+  .agri-modal-window {
+    padding: 1rem !important;
+    border-radius: 12px !important;
+    max-height: 85vh !important;
+  }
+
+  .agri-modal-header {
+    margin-bottom: 0.65rem !important;
+    padding-bottom: 0.5rem !important;
+  }
+
+  .agri-modal-title {
+    font-size: 0.975rem !important;
+  }
+
+  .agri-modal-close-btn {
+    width: 28px !important;
+    height: 28px !important;
+  }
+}

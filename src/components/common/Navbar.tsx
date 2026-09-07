@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import farmerLogo from '../../assets/AgriEra-logo.png';
 import { LogoutModal } from './LogoutModal';
+import { LanguageSelector } from './LanguageSelector';
 import './Navbar.css';
 
 export const Navbar: React.FC = () => {
@@ -49,7 +50,7 @@ export const Navbar: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const isHome = location.pathname === '/';
+  const isHome = location.pathname === '/' || location.pathname === '/home';
   const isAbout = location.pathname === '/about';
   const isServices = location.pathname === '/services';
   const isCropServices = location.pathname.includes('crop') || location.hash.includes('crop');
@@ -62,13 +63,13 @@ export const Navbar: React.FC = () => {
       <header className="agriflow-header">
         <div className="container agriflow-nav-container">
           {/* Brand Logo - AgriEra */}
-          <Link to="/" className="agriflow-brand" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', textDecoration: 'none' }}>
+          <Link to="/" className="agriflow-brand" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', textDecoration: 'none', flexShrink: 0, whiteSpace: 'nowrap' }}>
             <img
               src={farmerLogo}
               alt="AgriEra Logo"
-              style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'contain' }}
+              style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'contain', flexShrink: 0 }}
             />
-            <span className="agriflow-brand-text" style={{ fontSize: '1.45rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#165B33' }}>
+            <span className="agriflow-brand-text" style={{ fontSize: '1.45rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#165B33', whiteSpace: 'nowrap', flexShrink: 0 }}>
               AgriEra
             </span>
           </Link>
@@ -177,9 +178,21 @@ export const Navbar: React.FC = () => {
               Contact Us
             </Link>
 
-            {/* Right Action Group: Cart first, then My Account */}
+            {/* Right Action Group: Cart, My Account, Language Selector */}
             <div className="agriflow-header-actions">
-              {/* Account Widget */}
+              {/* Cart Widget */}
+              <Link to="/cart" className="agriflow-cart-widget-btn" aria-label="View shopping cart" style={{ textDecoration: 'none' }}>
+                <div className="agriflow-cart-icon-box">
+                  <ShoppingCart size={18} strokeWidth={2.2} />
+                  <span className="agriflow-cart-green-badge">{totalItems}</span>
+                </div>
+                <span className="agriflow-cart-widget-title">Cart</span>
+              </Link>
+
+              {/* Vertical Divider */}
+              <div className="agriflow-actions-divider" />
+
+              {/* Account Widget (Login / Register) */}
               <div ref={userMenuRef} className="agriflow-account-widget" style={{ position: 'relative' }}>
                 <button
                   onClick={() => {
@@ -204,11 +217,9 @@ export const Navbar: React.FC = () => {
                     )}
                   </div>
                   <div className="agriflow-account-text">
-                    <span className="agriflow-account-subtext">
-                      {isAuthenticated && user ? `Hi, ${user.name.split(' ')[0]}` : 'Login / Register'}
-                    </span>
                     <span className="agriflow-account-title">
-                      My Account <ChevronDown size={13} strokeWidth={2.6} />
+                      {isAuthenticated && user ? `Hi, ${user.name.split(' ')[0]}` : 'Login / Register'}
+                      <ChevronDown size={13} strokeWidth={2.6} />
                     </span>
                   </div>
                 </button>
@@ -248,22 +259,14 @@ export const Navbar: React.FC = () => {
                 )}
               </div>
 
-              {/* Vertical Divider */}
-              <div className="agriflow-actions-divider" />
-
-              {/* Cart Widget */}
-              <Link to="/cart" className="agriflow-cart-widget-btn" aria-label="View shopping cart" style={{ textDecoration: 'none' }}>
-                <div className="agriflow-cart-icon-box">
-                  <ShoppingCart size={18} strokeWidth={2.2} />
-                  <span className="agriflow-cart-green-badge">{totalItems}</span>
-                </div>
-                <span className="agriflow-cart-widget-title">Cart</span>
-              </Link>
+              {/* Language Selector (Directly next to Login / Account button) */}
+              <LanguageSelector />
             </div>
           </div>
 
           {/* Mobile Menu & Cart */}
-          <div style={{ display: 'none', alignItems: 'center', gap: '0.75rem' }} className="show-mobile-flex">
+          <div style={{ display: 'none', alignItems: 'center', gap: '0.6rem' }} className="show-mobile-flex">
+            <LanguageSelector />
             <Link to="/cart" className="agriflow-cart-widget-btn" aria-label="View shopping cart" style={{ textDecoration: 'none' }}>
               <div className="agriflow-cart-icon-box">
                 <ShoppingCart size={18} strokeWidth={2.2} />
@@ -283,6 +286,10 @@ export const Navbar: React.FC = () => {
         {/* Mobile Dropdown Drawer */}
         {isMobileMenuOpen && (
           <div className="agriflow-mobile-menu animate-fade-in">
+            {/* Mobile Language Selector */}
+            <div style={{ marginBottom: '0.75rem', paddingBottom: '0.75rem', borderBottom: '1px solid rgba(255, 255, 255, 0.1)' }}>
+              <LanguageSelector isMobile />
+            </div>
             <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className={`agriflow-nav-link ${isHome ? 'active-text' : ''}`}>
               Home
             </Link>

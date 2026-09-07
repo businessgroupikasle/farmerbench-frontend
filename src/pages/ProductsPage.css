@@ -770,6 +770,16 @@
   border-color: #86efac;
 }
 
+.fb-share-btn:hover {
+  background-color: #e7f7ee;
+  border-color: #bbf0cf;
+}
+
+.fb-share-btn:hover svg {
+  color: #166534 !important;
+  stroke: #166534;
+}
+
 /* Card Content */
 .fb-card-content {
   padding: 1.15rem;

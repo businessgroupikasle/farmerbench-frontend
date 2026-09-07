@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Product } from '@formerbench/shared';
 import { RatingStars } from './RatingStars';
-import { ShoppingBag, Heart, Check, Layers, Zap } from 'lucide-react';
+import { ShoppingBag, Heart, Check, Layers, Zap, Share2 } from 'lucide-react';
+import { ProductShareModal } from './ProductShareModal';
 import { useCart } from '../../hooks/useCart';
 import { useWishlistStore } from '../../store/wishlistStore';
 import { useCompareStore } from '../../store/compareStore';
@@ -55,8 +56,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     e.preventDefault();
     e.stopPropagation();
     if (!isOutOfStock) {
-      addToCart(product, 1);
-      navigate('/checkout');
+      const canCheckout = addToCart(product, 1);
+      if (canCheckout) navigate('/checkout');
     }
   };
 
@@ -86,6 +87,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       });
     }
   };
+
+  const [isShareOpen, setIsShareOpen] = useState(false);
+
+  const handleShareClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsShareOpen(true);
+  };
+
+  const handleCloseShare = useCallback(() => {
+    setIsShareOpen(false);
+  }, []);
 
   const primaryImage = getUploadUrl(product.images?.[0], FALLBACK_IMAGE);
 
@@ -160,6 +173,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             ) : (
               <Layers size={16} color="#52695c" strokeWidth={2} />
             )}
+          </button>
+
+          {/* Share Button */}
+          <button
+            type="button"
+            onClick={handleShareClick}
+            className="fb-card-action-btn fb-share-btn"
+            title="Share product"
+            aria-label="Share product"
+          >
+            <Share2 size={15} color="#52695c" strokeWidth={2} />
           </button>
         </div>
       </div>
@@ -249,6 +273,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </div>
         </div>
       </div>
+
+      {/* Share Product Modal */}
+      {isShareOpen && (
+        <ProductShareModal
+          isOpen={isShareOpen}
+          onClose={handleCloseShare}
+          product={product}
+        />
+      )}
     </div>
   );
 };

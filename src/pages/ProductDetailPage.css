@@ -596,6 +596,40 @@
   color: #ef4444;
 }
 
+/* Secondary Actions Row (Wishlist & Share) */
+.pdp-actions-secondary-row {
+  display: flex;
+  align-items: center;
+  gap: 1.15rem;
+  padding: 0.25rem 0;
+}
+
+.pdp-secondary-divider {
+  width: 1px;
+  height: 18px;
+  background-color: #cbd5e1;
+}
+
+.pdp-share-trigger-btn {
+  background: none;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #475569;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease, transform 0.15s ease;
+  width: fit-content;
+}
+
+.pdp-share-trigger-btn:hover {
+  color: #166534;
+  transform: translateY(-1px);
+}
+
 /* Check Delivery Box */
 .pdp-delivery-card {
   background-color: #f7fbf8;

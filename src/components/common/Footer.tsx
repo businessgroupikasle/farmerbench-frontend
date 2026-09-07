@@ -2,11 +2,35 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin } from 'lucide-react';
 import farmerLogo from '../../assets/AgriEra-logo.png';
+import { useCategories } from '../../hooks/useCategories';
 import './Footer.css';
 
+const formatCategoryName = (name: string) => {
+  if (!name) return '';
+  return name
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+};
+
 export const Footer: React.FC = () => {
+  const { data: categories = [] } = useCategories();
+  const activeCategories = (categories || []).filter((c) => c.isActive !== false);
+
   return (
-    <footer className="AgriEra-footer">
+    <footer
+      className="AgriEra-footer"
+      onClick={(e) => {
+        const target = e.target as HTMLElement;
+        const anchor = target.closest('a');
+        // Only scroll for internal links, not external links like social media
+        if (anchor && !anchor.getAttribute('target')) {
+          window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+          if (document.documentElement) document.documentElement.scrollTop = 0;
+          if (document.body) document.body.scrollTop = 0;
+        }
+      }}
+    >
       <div className="AgriEra-footer-container">
         {/* Main 6-Column Footer Grid */}
         <div className="AgriEra-footer-grid">
@@ -66,20 +90,36 @@ export const Footer: React.FC = () => {
             <ul className="AgriEra-footer-links-list">
               <li><Link to="/about" className="AgriEra-footer-link">About Us</Link></li>
               <li><Link to="/about#mission" className="AgriEra-footer-link">Our Mission</Link></li>
-              {/* <li><Link to="/about#careers" className="AgriEra-footer-link">Careers</Link></li> */}
-              <li><Link to="/privacy" className="AgriEra-footer-link">Privacy Policy</Link></li>
+              <li><Link to="/terms" className="AgriEra-footer-link">Privacy Policy</Link></li>
               <li><Link to="/terms" className="AgriEra-footer-link">Terms & Conditions</Link></li>
             </ul>
           </div>
 
-          {/* 3. Products Column */}
+          {/* 3. Categories / Products Column */}
           <div>
-            <h4 className="AgriEra-footer-col-title">Products</h4>
+            <h4 className="AgriEra-footer-col-title">Categories</h4>
             <ul className="AgriEra-footer-links-list">
-              <li><Link to="/products?category=fertilizers" className="AgriEra-footer-link">Fertilizers</Link></li>
-              <li><Link to="/products?category=biostimulants" className="AgriEra-footer-link">Biostimulants</Link></li>
-              <li><Link to="/products?category=pesticides" className="AgriEra-footer-link">Pesticides</Link></li>
-              <li><Link to="/products?category=crop-nutrition" className="AgriEra-footer-link">Crop Nutrition</Link></li>
+              {activeCategories.length > 0 ? (
+                activeCategories.slice(0, 6).map((cat) => (
+                  <li key={cat.id}>
+                    <Link
+                      to={`/products?category=${cat.slug || cat.id}`}
+                      className="AgriEra-footer-link"
+                    >
+                      {formatCategoryName(cat.name)}
+                    </Link>
+                  </li>
+                ))
+              ) : (
+                <>
+                  <li><Link to="/products?category=organic-farming" className="AgriEra-footer-link">Organic Farming</Link></li>
+                  <li><Link to="/products?category=chemical" className="AgriEra-footer-link">Chemical</Link></li>
+                  <li><Link to="/products?category=traps" className="AgriEra-footer-link">Traps</Link></li>
+                  <li><Link to="/products?category=seedlings" className="AgriEra-footer-link">Seedlings</Link></li>
+                  <li><Link to="/products?category=seeds" className="AgriEra-footer-link">Seeds</Link></li>
+                  <li><Link to="/products?category=farm-equipment" className="AgriEra-footer-link">Farm Equipment</Link></li>
+                </>
+              )}
               <li><Link to="/products" className="AgriEra-footer-link">All Products</Link></li>
             </ul>
           </div>
@@ -88,10 +128,11 @@ export const Footer: React.FC = () => {
           <div>
             <h4 className="AgriEra-footer-col-title">Services</h4>
             <ul className="AgriEra-footer-links-list">
-              <li><Link to="/services" className="AgriEra-footer-link">Crop Consultation</Link></li>
-              <li><Link to="/services" className="AgriEra-footer-link">Soil Testing</Link></li>
-              <li><Link to="/services" className="AgriEra-footer-link">Crop Nutrition</Link></li>
-              <li><Link to="/services" className="AgriEra-footer-link">Pest Control</Link></li>
+              <li><Link to="/services/farm-development" className="AgriEra-footer-link">Farm Development</Link></li>
+              <li><Link to="/services/well-development" className="AgriEra-footer-link">Well Development</Link></li>
+              <li><Link to="/services/drip-irrigation" className="AgriEra-footer-link">Drip Irrigation</Link></li>
+              <li><Link to="/services/farm-consultancy" className="AgriEra-footer-link">Farm Consultancy</Link></li>
+              <li><Link to="/crop-doctor" className="AgriEra-footer-link">Crop Doctor</Link></li>
               <li><Link to="/services" className="AgriEra-footer-link">All Services</Link></li>
             </ul>
           </div>
@@ -100,11 +141,10 @@ export const Footer: React.FC = () => {
           <div>
             <h4 className="AgriEra-footer-col-title">Resources</h4>
             <ul className="AgriEra-footer-links-list">
-              <li><Link to="/about#blog" className="AgriEra-footer-link">Blog</Link></li>
+              <li><Link to="/blog" className="AgriEra-footer-link">Blog</Link></li>
               <li><Link to="/faq" className="AgriEra-footer-link">FAQs</Link></li>
               <li><Link to="/shipping" className="AgriEra-footer-link">Shipping Policy</Link></li>
               <li><Link to="/returns" className="AgriEra-footer-link">Return Policy</Link></li>
-              {/* <li><Link to="/dashboard?tab=orders" className="AgriEra-footer-link">Track Order</Link></li> */}
             </ul>
           </div>
 
