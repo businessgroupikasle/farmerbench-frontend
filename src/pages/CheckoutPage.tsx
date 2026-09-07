@@ -76,7 +76,7 @@ export const CheckoutPage: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('RAZORPAY');
 
   // Calculations
-  const freeDeliveryThreshold = 999;
+  const freeDeliveryThreshold = 5000;
   const isFreeDelivery = subtotal >= freeDeliveryThreshold;
   const deliveryFee = isFreeDelivery || items.length === 0 ? 0 : 80;
   const discountAmount = coupon ? Math.min(subtotal, coupon.discountAmount) : 0;

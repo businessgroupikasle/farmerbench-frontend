@@ -1,58 +1,48 @@
-.product-hero-banner { width: 100%; margin: 0; }
+.product-hero-banner {
+  width: calc(100% + 2rem);
+  margin: -1rem -1rem 0;
+}
 
 .product-hero-container {
-  position: relative; display: flex; align-items: center; min-height: 250px;
-  overflow: hidden; padding: 23px 5.15%; border: 1px solid #e4eadf;
-  border-radius: 11px; box-shadow: 0 3px 12px rgb(49 77 49 / 5%);
+  position: relative; display: flex; align-items: center; min-height: 440px;
+  overflow: hidden; padding: 3.2rem max(1.5rem, calc((100% - 1200px) / 2)); border: 0;
+  border-radius: 0; box-shadow: none;
   background: radial-gradient(circle at 72% 46%, rgb(211 228 190 / 60%), transparent 34%), linear-gradient(100deg, #f7faf4 0%, #f4f8ef 42%, #edf4e8 100%);
 }
 
 .product-hero-left {
-  position: relative; z-index: 3; display: flex; flex: 0 0 39%;
-  flex-direction: column; align-items: flex-start; max-width: 410px;
+  position: relative; z-index: 3; display: flex; flex: 0 0 43%;
+  flex-direction: column; align-items: flex-start; max-width: 475px;
 }
 
-.product-hero-brand-tag { display: inline-flex; align-items: center; gap: 4px; margin-bottom: 10px; color: #28713b; }
-.product-hero-brand-text { font-family: var(--font-display, 'Outfit', sans-serif); font-size: 10px; font-weight: 800; letter-spacing: .015em; text-transform: uppercase; }
+.product-hero-brand-tag { display: inline-flex; align-items: center; gap: 5px; margin-bottom: .8rem; color: #165b2e; }
+.product-hero-brand-text { font-family: var(--font-display, 'Outfit', sans-serif); font-size: .85rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .product-hero-leaf-icon { flex: none; transform: rotate(-12deg); }
 
 .product-hero-title {
-  display: flex; flex-direction: column; margin: 0 0 9px; color: #121713;
-  font-family: var(--font-display, 'Outfit', sans-serif); font-size: clamp(1.85rem, 3vw, 2.15rem);
-  font-weight: 800; line-height: 1.08; letter-spacing: -.035em;
+  display: flex; flex-direction: column; margin: 0 0 1.2rem; color: #111713;
+  font-family: var(--font-display, 'Outfit', sans-serif); font-size: clamp(2.55rem, 4.6vw, 3.55rem);
+  font-weight: 800; line-height: 1.08; letter-spacing: -.03em;
 }
-.product-hero-title-highlight { color: inherit; }
-.product-hero-description { max-width: 370px; margin: 0 0 14px; color: #4c594f; font-size: 12px; font-weight: 500; line-height: 1.5; }
-
-.product-hero-search-form {
-  display: flex; align-items: stretch; width: 100%; max-width: 343px; height: 32px;
-  margin: 0 0 14px; overflow: hidden; border: 1px solid #d7dfd4; border-radius: 5px;
-  background: #fff; box-shadow: 0 2px 6px rgb(24 52 31 / 7%);
-}
-.product-hero-search-form:focus-within { border-color: #1d6d36; box-shadow: 0 0 0 2px rgb(29 109 54 / 12%); }
-.product-hero-input-wrapper { position: relative; display: flex; flex: 1; min-width: 0; align-items: center; }
-.product-hero-input { width: 100%; height: 100%; padding: 0 11px; border: 0; outline: 0; background: transparent; color: #17251e; font: inherit; font-size: 10px; }
-.product-hero-input::placeholder { color: #777f79; }
-.product-hero-clear-btn { display: grid; flex: none; width: 22px; height: 22px; margin-right: 4px; padding: 0; place-items: center; border: 0; border-radius: 50%; background: #eef3ed; color: #637168; cursor: pointer; }
-.product-hero-submit-btn { flex: none; min-width: 99px; padding: 0 13px; border: 0; background: #096b2e; color: #fff; font-family: inherit; font-size: 10px; font-weight: 700; cursor: pointer; transition: background-color .2s ease; }
-.product-hero-submit-btn:hover { background: #075625; }
+.product-hero-title-highlight { color: #176332; }
+.product-hero-description { max-width: 455px; margin: 0 0 1.4rem; color: #39443d; font-size: 1rem; font-weight: 600; line-height: 1.58; }
 
 .product-hero-badges-row { display: flex; align-items: center; gap: 18px; }
-.product-hero-badge { display: inline-flex; min-height: 28px; padding: 5px 9px; align-items: center; gap: 7px; border: 1px solid #e2e9df; border-radius: 5px; background: rgb(255 255 255 / 84%); box-shadow: 0 2px 7px rgb(31 57 36 / 5%); }
+.product-hero-badge { display: inline-flex; min-height: 38px; padding: 7px 12px; align-items: center; gap: 7px; border: 1px solid #e2e9df; border-radius: 7px; background: rgb(255 255 255 / 88%); box-shadow: 0 3px 10px rgb(31 57 36 / 7%); }
 .product-hero-badge-icon { display: flex; color: #277b45; }
-.product-hero-badge-text { color: #33423a; font-size: 9px; font-weight: 700; white-space: nowrap; }
+.product-hero-badge-text { color: #33423a; font-size: .75rem; font-weight: 700; white-space: nowrap; }
 
-.product-hero-right { position: absolute; z-index: 1; inset: 0 0 0 auto; width: 61%; }
+.product-hero-right { position: absolute; z-index: 1; inset: 0 0 0 auto; width: 58%; }
 .product-hero-image-wrapper { position: absolute; inset: 0; }
 .product-hero-image { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 58%; mix-blend-mode: multiply; }
 .product-hero-image-gradient-overlay { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, #f4f8ef 0%, rgb(244 248 239 / 45%) 8%, transparent 23%); }
 
 @media (max-width: 900px) {
-  .product-hero-container { min-height: 440px; padding: 30px; align-items: flex-start; }
-  .product-hero-left { flex-basis: 58%; }
-  .product-hero-right { top: auto; width: 100%; height: 210px; }
+  .product-hero-container { min-height: 420px; padding: 2.5rem 1.5rem; }
+  .product-hero-left { flex-basis: 52%; }
+  .product-hero-right { width: 55%; }
   .product-hero-image { object-position: center 55%; }
-  .product-hero-image-gradient-overlay { background: linear-gradient(180deg, #f4f8ef 0%, transparent 25%); }
+  .product-hero-image-gradient-overlay { background: linear-gradient(90deg, #f4f8ef 0%, rgb(244 248 239 / 50%) 12%, transparent 32%); }
 }
 
 @media (max-width: 560px) {
@@ -66,6 +56,11 @@
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;
+  }
+
+  .product-hero-banner {
+    width: 100%;
+    margin: -1rem 0 0;
   }
 
   .product-hero-left {
@@ -99,22 +94,6 @@
     color: rgba(255, 255, 255, .93);
     font-size: .68rem;
     line-height: 1.4;
-  }
-
-  .product-hero-search-form {
-    max-width: 330px;
-    height: 32px;
-    margin-bottom: 9px;
-  }
-
-  .product-hero-input {
-    font-size: .6rem;
-  }
-
-  .product-hero-submit-btn {
-    min-width: 88px;
-    padding-inline: 9px;
-    font-size: .6rem;
   }
 
   .product-hero-badges-row {

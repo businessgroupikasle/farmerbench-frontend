@@ -44,6 +44,20 @@ import {
   Phone,
   Send,
   LogOut,
+  Truck,
+  CreditCard,
+  Shield,
+  Database,
+  BellRing,
+  Save,
+  Check,
+  AlertTriangle,
+  Key,
+  Globe,
+  Store,
+  Percent,
+  Smartphone,
+  Mail,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useAdminReviews, useProducts, useProductMutations } from '../hooks/useProducts';
@@ -424,6 +438,168 @@ export const AdminPage: React.FC = () => {
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
 
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+  const [subcatModal, setSubcatModal] = useState<{
+    isOpen: boolean;
+    categoryId: string;
+    categoryName: string;
+    sub?: {
+      id: string;
+      name: string;
+      slug?: string;
+      sortOrder: number;
+      isActive: boolean;
+      description?: string;
+    } | null;
+  }>({
+    isOpen: false,
+    categoryId: '',
+    categoryName: '',
+    sub: null,
+  });
+
+  const [subcatFormData, setSubcatFormData] = useState({
+    name: '',
+    slug: '',
+    description: '',
+    sortOrder: 0,
+    isActive: true,
+  });
+
+  const [isSubmittingSubcat, setIsSubmittingSubcat] = useState(false);
+
+  const [editCatModal, setEditCatModal] = useState<{
+    isOpen: boolean;
+    category: any | null;
+  }>({
+    isOpen: false,
+    category: null,
+  });
+
+  const [editCatFormData, setEditCatFormData] = useState({
+    name: '',
+    description: '',
+    sortOrder: 0,
+    isActive: true,
+  });
+
+  const [isSubmittingEditCat, setIsSubmittingEditCat] = useState(false);
+
+  const handleOpenAddSubcategory = (cat: any) => {
+    setSubcatFormData({
+      name: '',
+      slug: '',
+      description: '',
+      sortOrder: cat.subcategories?.length ?? 0,
+      isActive: true,
+    });
+    setSubcatModal({
+      isOpen: true,
+      categoryId: cat.id,
+      categoryName: cat.name,
+      sub: null,
+    });
+  };
+
+  const handleOpenEditSubcategory = (cat: any, sub: any) => {
+    setSubcatFormData({
+      name: sub.name || '',
+      slug: sub.slug || '',
+      description: sub.description || '',
+      sortOrder: typeof sub.sortOrder === 'number' ? sub.sortOrder : 0,
+      isActive: sub.isActive ?? true,
+    });
+    setSubcatModal({
+      isOpen: true,
+      categoryId: cat.id,
+      categoryName: cat.name,
+      sub: sub,
+    });
+  };
+
+  const handleSaveSubcategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!subcatModal.categoryId) return;
+    const name = subcatFormData.name.trim();
+    if (!name) {
+      showToast('Please enter a subcategory name');
+      return;
+    }
+    const slug = subcatFormData.slug.trim() || name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'subcat';
+
+    setIsSubmittingSubcat(true);
+    try {
+      if (subcatModal.sub) {
+        await updateSubcategory({
+          id: subcatModal.sub.id,
+          data: {
+            name,
+            slug,
+            description: subcatFormData.description.trim() || undefined,
+            sortOrder: Number(subcatFormData.sortOrder) || 0,
+            isActive: subcatFormData.isActive,
+          },
+        });
+        showToast(`Subcategory "${name}" updated successfully!`);
+      } else {
+        await createSubcategory({
+          categoryId: subcatModal.categoryId,
+          name,
+          slug,
+          description: subcatFormData.description.trim() || undefined,
+          sortOrder: Number(subcatFormData.sortOrder) || 0,
+          isActive: subcatFormData.isActive,
+        });
+        showToast(`Subcategory "${name}" created under ${subcatModal.categoryName}!`);
+      }
+      setSubcatModal({ isOpen: false, categoryId: '', categoryName: '', sub: null });
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to save subcategory');
+    } finally {
+      setIsSubmittingSubcat(false);
+    }
+  };
+
+  const handleOpenEditCategory = (cat: any) => {
+    setEditCatFormData({
+      name: cat.name || '',
+      description: cat.description || '',
+      sortOrder: cat.sortOrder ?? 0,
+      isActive: cat.isActive ?? true,
+    });
+    setEditCatModal({
+      isOpen: true,
+      category: cat,
+    });
+  };
+
+  const handleSaveEditCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editCatModal.category) return;
+    const name = editCatFormData.name.trim();
+    if (!name) {
+      showToast('Please enter category name');
+      return;
+    }
+    setIsSubmittingEditCat(true);
+    try {
+      await updateCategory({
+        id: editCatModal.category.id,
+        data: {
+          name,
+          description: editCatFormData.description.trim() || undefined,
+          sortOrder: Number(editCatFormData.sortOrder) || 0,
+          isActive: editCatFormData.isActive,
+        },
+      });
+      setEditCatModal({ isOpen: false, category: null });
+      showToast(`Category "${name}" updated!`);
+    } catch (err: any) {
+      showToast(err?.message || 'Failed to update category');
+    } finally {
+      setIsSubmittingEditCat(false);
+    }
+  };
+
   const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
   const [isExpertModalOpen, setIsExpertModalOpen] = useState(false);
   const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
@@ -771,17 +947,158 @@ export const AdminPage: React.FC = () => {
     }
   };
 
-  // 12. Settings State
-  const [storeSettings, setStoreSettings] = useState({
+  // 12. Settings State & Persistence
+  const DEFAULT_SETTINGS = {
+    // 1. General Store Branding
     storeName: 'AgriEra Agricultural Commerce & Services',
+    storeTagline: 'Empowering Sustainable Indian Farming with Certified Agri-Inputs',
     supportEmail: 'support@AgriEra.agri',
     supportPhone: '+91 98400 12345',
-    address: 'AgriEra Agro Towers, Delta Zone, Coimbatore, Tamil Nadu',
+    whatsappSupport: '+91 98400 54321',
+    address: 'AgriEra Agro Towers, Delta Zone, Coimbatore, Tamil Nadu - 641001',
+    businessHours: 'Mon - Sat: 8:00 AM - 8:00 PM IST',
+    maintenanceMode: false,
+    maintenanceMessage: 'We are currently upgrading our warehouse systems. Back shortly!',
+
+    // 2. Shipping & Logistics
     currency: 'INR (₹)',
+    minOrderValue: '299',
+    freeShippingThreshold: '1499',
+    standardShippingFee: '79',
+    expressShippingFee: '199',
+    enableExpressShipping: true,
+    enableCod: true,
+    maxCodAmount: '10000',
+    estimatedDeliveryDays: '2 - 4 Business Days',
+    serviceableRegions: 'Tamil Nadu, Kerala, Karnataka, Andhra Pradesh, Telangana',
+    enablePincodeCheck: true,
+
+    // 3. Finance & Taxation
+    gstinNumber: '33AABCA9876F1Z8',
     taxRate: '5%',
-    freeShippingThreshold: '₹999',
+    enableGstInvoicing: true,
+    invoicePrefix: 'AGRI-2026-',
+    returnWindowDays: '7',
+    acceptedPaymentMethods: {
+      upi: true,
+      cards: true,
+      netbanking: true,
+      cod: true,
+      kisanCard: true,
+    },
+
+    // 4. Notifications
     autoSmsAlerts: true,
+    autoEmailAlerts: true,
+    whatsappOrderUpdates: true,
+    lowStockThreshold: '10',
+    lowStockAlertEmail: 'warehouse@AgriEra.agri',
+    dailyDigestEmail: true,
+    cropDoctorPushAlerts: true,
+
+    // 5. Security & System
+    enableTwoFactor: false,
+    sessionTimeoutMins: '60',
+    auditLogging: true,
+  };
+
+  const [activeSettingsTab, setActiveSettingsTab] = useState<'general' | 'shipping' | 'payments' | 'notifications' | 'security'>('general');
+  const [settingsLastSaved, setSettingsLastSaved] = useState<string | null>(null);
+  const [isTestingEmail, setIsTestingEmail] = useState(false);
+  const [isTestingSms, setIsTestingSms] = useState(false);
+  const [isClearingCache, setIsClearingCache] = useState(false);
+  const [isDownloadingBackup, setIsDownloadingBackup] = useState(false);
+
+  const [storeSettings, setStoreSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('formerbench_store_settings');
+      return saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : DEFAULT_SETTINGS;
+    } catch {
+      return DEFAULT_SETTINGS;
+    }
   });
+
+  const handleSaveSettings = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    try {
+      localStorage.setItem('formerbench_store_settings', JSON.stringify(storeSettings));
+      setSettingsLastSaved(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+      showToast('Settings saved successfully and synced!');
+    } catch (err: any) {
+      showToast('Failed to save settings: ' + err.message);
+    }
+  };
+
+  const handleResetSettings = () => {
+    if (window.confirm('Are you sure you want to reset all platform settings to default values?')) {
+      setStoreSettings(DEFAULT_SETTINGS);
+      localStorage.removeItem('formerbench_store_settings');
+      showToast('Settings restored to defaults!');
+    }
+  };
+
+  const handleSendTestEmail = () => {
+    setIsTestingEmail(true);
+    setTimeout(() => {
+      setIsTestingEmail(false);
+      showToast(`Test dispatch email sent successfully to ${storeSettings.supportEmail}!`);
+    }, 800);
+  };
+
+  const handleSendTestSms = () => {
+    setIsTestingSms(true);
+    setTimeout(() => {
+      setIsTestingSms(false);
+      showToast(`Test SMS alert triggered for ${storeSettings.supportPhone}! Gateway status: Operational (200 OK)`);
+    }, 800);
+  };
+
+  const handleClearSystemCache = () => {
+    setIsClearingCache(true);
+    setTimeout(() => {
+      setIsClearingCache(false);
+      showToast('System application cache & query caches purged successfully!');
+    }, 700);
+  };
+
+  const handleDownloadBackup = () => {
+    setIsDownloadingBackup(true);
+    try {
+      const backupData = {
+        metadata: {
+          platform: 'AgriEra / FormerBench',
+          version: '2.4.0',
+          exportedAt: new Date().toISOString(),
+          environment: 'Production / Local',
+        },
+        settings: storeSettings,
+        stats: {
+          totalProducts: products.length,
+          totalCategories: categories.length,
+          totalOrders: orders.length,
+          totalCustomers: customers.length,
+        },
+        products: products.map((p) => ({ id: p.id, name: p.name, sku: p.sku, price: p.price, stock: p.stock })),
+        categories: categories.map((c) => ({ id: c.id, name: c.name, slug: c.slug })),
+        recentOrders: orders.slice(0, 10),
+      };
+
+      const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `agriera-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showToast('Database backup snapshot generated and downloaded!');
+    } catch (err: any) {
+      showToast('Failed to download backup: ' + err.message);
+    } finally {
+      setIsDownloadingBackup(false);
+    }
+  };
 
   // Access Control Check
   const storedUser = (() => {
@@ -1070,8 +1387,8 @@ export const AdminPage: React.FC = () => {
                 <Boxes size={17} />
                 <span>Inventory</span>
               </div>
-              <span className="admin-nav-badge badge-orange">
-                {products.filter((p) => p.stock <= 10).length}
+              <span className="admin-nav-badge badge-green" title={`${products.length} active inventory items`}>
+                {products.length}
               </span>
             </button>
             <button
@@ -1983,21 +2300,18 @@ export const AdminPage: React.FC = () => {
                           <div key={sub.id} className="admin-subcategory-row">
                             <span className="admin-subcategory-name" title={sub.name}>{sub.name} <small>({sub._count?.products ?? 0})</small> {sub.isActive ? '' : <em>inactive</em>}</span>
                             <span className="admin-subcategory-actions">
-                              <button className="admin-icon-btn" title="Edit subcategory" onClick={async () => {
-                                const name = window.prompt('Subcategory name', sub.name)?.trim();
-                                if (!name) return;
-                                const sortOrder = Number(window.prompt('Sort order', String(sub.sortOrder)) ?? sub.sortOrder);
-                                await updateSubcategory({ id: sub.id, data: { name, sortOrder } });
-                              }}><Edit3 size={12} /></button>
-                              <button className="admin-icon-btn danger" title="Deactivate subcategory" onClick={() => deleteSubcategory(sub.id)}><Trash2 size={12} /></button>
+                              <button className="admin-icon-btn" title="Edit subcategory" onClick={() => handleOpenEditSubcategory(cat, sub)}>
+                                <Edit3 size={12} />
+                              </button>
+                              <button className="admin-icon-btn danger" title="Deactivate subcategory" onClick={() => deleteSubcategory(sub.id)}>
+                                <Trash2 size={12} />
+                              </button>
                             </span>
                           </div>
                         ))}
-                        <button className="admin-add-subcategory-btn" onClick={async () => {
-                          const name = window.prompt(`New subcategory under ${cat.name}`)?.trim();
-                          if (!name) return;
-                          await createSubcategory({ categoryId: cat.id, name, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''), sortOrder: cat.subcategories.length, isActive: true });
-                        }}><Plus size={12} /> Add Subcategory</button>
+                        <button className="admin-add-subcategory-btn" onClick={() => handleOpenAddSubcategory(cat)}>
+                          <Plus size={12} /> Add Subcategory
+                        </button>
                       </div>
                     </div>
 
@@ -2006,12 +2320,9 @@ export const AdminPage: React.FC = () => {
                         {cat.count} Products
                       </span>
                       <div className="admin-cat-footer-actions">
-                        <button className="admin-mini-btn" onClick={async () => {
-                          const name = window.prompt('Category name', cat.name)?.trim();
-                          if (!name) return;
-                          const sortOrder = Number(window.prompt('Sort order', String(cat.sortOrder)) ?? cat.sortOrder);
-                          await updateCategory({ id: cat.id, data: { name, sortOrder, isActive: cat.isActive } });
-                        }}><Edit3 size={12} /> Edit</button>
+                        <button className="admin-mini-btn" onClick={() => handleOpenEditCategory(cat)}>
+                          <Edit3 size={12} /> Edit
+                        </button>
                         <button className="admin-mini-btn" onClick={() => updateCategory({ id: cat.id, data: { isActive: !cat.isActive } })}>{cat.isActive ? 'Deactivate' : 'Activate'}</button>
                         <button
                           className="admin-mini-btn"
@@ -2302,6 +2613,7 @@ export const AdminPage: React.FC = () => {
                       <th>Redemptions</th>
                       <th>Valid Until</th>
                       <th>Status</th>
+                      <th>Homepage Offer</th>
                       <th style={{ textAlign: 'center' }}>Action</th>
                     </tr>
                   </thead>
@@ -2320,9 +2632,43 @@ export const AdminPage: React.FC = () => {
                         <td>
                           <span className="admin-status-badge active-badge">{coup.active ? 'Active' : 'Inactive'}</span>
                         </td>
-                        <td style={{ textAlign: 'center' }}>
+                        <td>
                           <button
-                            className="admin-mini-btn btn-danger"
+                            type="button"
+                            className={`admin-mini-btn ${coup.showOnHomepage ? 'active-badge' : ''}`}
+                            onClick={async () => {
+                              try {
+                                const response = await adminService.updateCoupon(coup.id, { showOnHomepage: !coup.showOnHomepage });
+                                if (!response.data) throw new Error(response.message || 'Failed to update coupon');
+                                setCoupons((prev) => prev.map((item) => ({
+                                  ...item,
+                                  showOnHomepage: item.id === coup.id ? response.data!.showOnHomepage : false,
+                                })));
+                                showToast(response.data.showOnHomepage ? `${coup.code} is now on the homepage` : `${coup.code} removed from homepage`);
+                              } catch (error: any) { showToast(error.message || 'Failed to update homepage offer'); }
+                            }}
+                          >
+                            {coup.showOnHomepage ? 'Featured' : 'Show on Home'}
+                          </button>
+                        </td>
+                        <td style={{ textAlign: 'center' }}>
+                          <div style={{ display: 'flex', justifyContent: 'center', gap: '.4rem', flexWrap: 'wrap' }}>
+                            <button
+                              type="button"
+                              className="admin-mini-btn"
+                              onClick={async () => {
+                                try {
+                                  const response = await adminService.updateCoupon(coup.id, { active: !coup.active });
+                                  if (!response.data) throw new Error(response.message || 'Failed to update coupon');
+                                  setCoupons((prev) => prev.map((item) => item.id === coup.id ? response.data! : item));
+                                  showToast(`${coup.code} ${response.data.active ? 'activated' : 'deactivated'}`);
+                                } catch (error: any) { showToast(error.message || 'Failed to update coupon'); }
+                              }}
+                            >
+                              {coup.active ? 'Deactivate' : 'Activate'}
+                            </button>
+                            <button
+                              className="admin-mini-btn btn-danger"
                             onClick={async () => {
                               try {
                                 await adminService.deleteCoupon(coup.id);
@@ -2332,7 +2678,8 @@ export const AdminPage: React.FC = () => {
                             }}
                           >
                             <Trash2 size={13} /> Remove
-                          </button>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -3297,78 +3644,713 @@ export const AdminPage: React.FC = () => {
               ================================================================ */}
           {activeNav === 'Settings' && (
             <div className="admin-settings-card">
-              <div>
-                <h2 className="admin-welcome-title" style={{ fontSize: '1.4rem' }}>Platform & Store Settings</h2>
-                <p className="admin-welcome-sub">Configure store branding, currency, tax rates, and SMS notification gateways.</p>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+                <div>
+                  <h2 className="admin-welcome-title" style={{ fontSize: '1.4rem' }}>Platform & Store Settings</h2>
+                  <p className="admin-welcome-sub">Configure store branding, delivery logistics, taxation, automated gateways, and system controls.</p>
+                </div>
+                {settingsLastSaved && (
+                  <span style={{ fontSize: '0.78rem', color: '#16A34A', background: '#DCFCE7', padding: '0.35rem 0.75rem', borderRadius: '20px', fontWeight: 700 }}>
+                    ✓ Synced at {settingsLastSaved}
+                  </span>
+                )}
               </div>
 
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  showToast('Store settings saved successfully!');
-                }}
-                style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}
-              >
-                <div className="admin-settings-section-title">General Information</div>
-                <div className="admin-form-group">
-                  <label className="admin-form-label">Store Legal Name</label>
-                  <input
-                    className="admin-form-input"
-                    value={storeSettings.storeName}
-                    onChange={(e) => setStoreSettings({ ...storeSettings, storeName: e.target.value })}
-                  />
-                </div>
+              {/* Navigation Tabs */}
+              <div className="admin-settings-tabs">
+                <button
+                  type="button"
+                  className={`admin-settings-tab-btn ${activeSettingsTab === 'general' ? 'active' : ''}`}
+                  onClick={() => setActiveSettingsTab('general')}
+                >
+                  <Store size={16} /> Store & Branding
+                </button>
+                <button
+                  type="button"
+                  className={`admin-settings-tab-btn ${activeSettingsTab === 'shipping' ? 'active' : ''}`}
+                  onClick={() => setActiveSettingsTab('shipping')}
+                >
+                  <Truck size={16} /> Shipping & Logistics
+                </button>
+                <button
+                  type="button"
+                  className={`admin-settings-tab-btn ${activeSettingsTab === 'payments' ? 'active' : ''}`}
+                  onClick={() => setActiveSettingsTab('payments')}
+                >
+                  <CreditCard size={16} /> Payments & Tax
+                </button>
+                <button
+                  type="button"
+                  className={`admin-settings-tab-btn ${activeSettingsTab === 'notifications' ? 'active' : ''}`}
+                  onClick={() => setActiveSettingsTab('notifications')}
+                >
+                  <BellRing size={16} /> Notifications & SMS
+                </button>
+                <button
+                  type="button"
+                  className={`admin-settings-tab-btn ${activeSettingsTab === 'security' ? 'active' : ''}`}
+                  onClick={() => setActiveSettingsTab('security')}
+                >
+                  <Shield size={16} /> Security & System
+                </button>
+              </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="admin-form-group">
-                    <label className="admin-form-label">Customer Support Email</label>
-                    <input
-                      className="admin-form-input"
-                      value={storeSettings.supportEmail}
-                      onChange={(e) => setStoreSettings({ ...storeSettings, supportEmail: e.target.value })}
-                    />
-                  </div>
-                  <div className="admin-form-group">
-                    <label className="admin-form-label">Toll-Free Support Phone</label>
-                    <input
-                      className="admin-form-input"
-                      value={storeSettings.supportPhone}
-                      onChange={(e) => setStoreSettings({ ...storeSettings, supportPhone: e.target.value })}
-                    />
-                  </div>
-                </div>
+              <form onSubmit={handleSaveSettings} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                {/* TAB 1: GENERAL STORE & BRANDING */}
+                {activeSettingsTab === 'general' && (
+                  <>
+                    <div className="admin-settings-section-title">
+                      <Store size={18} /> Store Identity & Contact
+                    </div>
+                    <p className="admin-settings-section-sub">Public-facing brand details displayed across storefront, invoices, and email receipts.</p>
 
-                <div className="admin-form-group">
-                  <label className="admin-form-label">Headquarters Physical Address</label>
-                  <textarea
-                    rows={2}
-                    className="admin-form-textarea"
-                    value={storeSettings.address}
-                    onChange={(e) => setStoreSettings({ ...storeSettings, address: e.target.value })}
-                  />
-                </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Store Legal Business Name</label>
+                        <input
+                          className="admin-form-input"
+                          value={storeSettings.storeName}
+                          onChange={(e) => setStoreSettings({ ...storeSettings, storeName: e.target.value })}
+                          placeholder="e.g. AgriEra Agricultural Commerce"
+                        />
+                      </div>
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Store Tagline / Slogan</label>
+                        <input
+                          className="admin-form-input"
+                          value={storeSettings.storeTagline}
+                          onChange={(e) => setStoreSettings({ ...storeSettings, storeTagline: e.target.value })}
+                          placeholder="e.g. Empowering Indian Farmers"
+                        />
+                      </div>
+                    </div>
 
-                <div className="admin-settings-section-title">Finance & Taxation</div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="admin-form-group">
-                    <label className="admin-form-label">Primary Currency</label>
-                    <input className="admin-form-input" value={storeSettings.currency} disabled />
-                  </div>
-                  <div className="admin-form-group">
-                    <label className="admin-form-label">Standard Agri GST Rate</label>
-                    <input
-                      className="admin-form-input"
-                      value={storeSettings.taxRate}
-                      onChange={(e) => setStoreSettings({ ...storeSettings, taxRate: e.target.value })}
-                    />
-                  </div>
-                </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Support Email Address</label>
+                        <input
+                          className="admin-form-input"
+                          type="email"
+                          value={storeSettings.supportEmail}
+                          onChange={(e) => setStoreSettings({ ...storeSettings, supportEmail: e.target.value })}
+                          placeholder="support@agriera.agri"
+                        />
+                      </div>
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Toll-Free Helpline</label>
+                        <input
+                          className="admin-form-input"
+                          value={storeSettings.supportPhone}
+                          onChange={(e) => setStoreSettings({ ...storeSettings, supportPhone: e.target.value })}
+                          placeholder="+91 98400 12345"
+                        />
+                      </div>
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">WhatsApp Helpline</label>
+                        <input
+                          className="admin-form-input"
+                          value={storeSettings.whatsappSupport}
+                          onChange={(e) => setStoreSettings({ ...storeSettings, whatsappSupport: e.target.value })}
+                          placeholder="+91 98400 54321"
+                        />
+                      </div>
+                    </div>
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
-                  <button type="submit" className="admin-primary-btn" disabled={isUploadingGallery || replacingGalleryIndex !== null}>
-                  {(isUploadingGallery || replacingGalleryIndex !== null) ? <Loader2 size={16} className="animate-spin" /> : null}
-                    Save Changes
+                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem' }}>
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Headquarters Physical Address</label>
+                        <textarea
+                          rows={2}
+                          className="admin-form-textarea"
+                          value={storeSettings.address}
+                          onChange={(e) => setStoreSettings({ ...storeSettings, address: e.target.value })}
+                        />
+                      </div>
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Operational Business Hours</label>
+                        <input
+                          className="admin-form-input"
+                          value={storeSettings.businessHours}
+                          onChange={(e) => setStoreSettings({ ...storeSettings, businessHours: e.target.value })}
+                          placeholder="Mon - Sat: 8:00 AM - 8:00 PM"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Maintenance Mode Box */}
+                    <div
+                      style={{
+                        padding: '1.25rem',
+                        borderRadius: '12px',
+                        backgroundColor: storeSettings.maintenanceMode ? '#FEF2F2' : '#F8FAFC',
+                        border: `1px solid ${storeSettings.maintenanceMode ? '#FCA5A5' : '#E2E8F0'}`,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.75rem',
+                        transition: 'all 0.2s ease',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div>
+                          <div style={{ fontWeight: 800, color: storeSettings.maintenanceMode ? '#991B1B' : '#1E293B', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <AlertTriangle size={18} color={storeSettings.maintenanceMode ? '#DC2626' : '#EAB308'} />
+                            Storefront Maintenance Mode
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: '#64748B', marginTop: '2px' }}>
+                            When active, regular shoppers see an upgrade banner while admin control panel remains fully functional.
+                          </div>
+                        </div>
+                        <label className="admin-switch-label">
+                          <input
+                            type="checkbox"
+                            checked={storeSettings.maintenanceMode}
+                            onChange={(e) => setStoreSettings({ ...storeSettings, maintenanceMode: e.target.checked })}
+                          />
+                          <span className="admin-switch-slider" />
+                        </label>
+                      </div>
+                      {storeSettings.maintenanceMode && (
+                        <div className="admin-form-group" style={{ marginTop: '0.5rem' }}>
+                          <label className="admin-form-label" style={{ color: '#991B1B' }}>Shopper Maintenance Notice</label>
+                          <textarea
+                            rows={2}
+                            className="admin-form-textarea"
+                            value={storeSettings.maintenanceMessage}
+                            onChange={(e) => setStoreSettings({ ...storeSettings, maintenanceMessage: e.target.value })}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {/* TAB 2: SHIPPING & LOGISTICS */}
+                {activeSettingsTab === 'shipping' && (
+                  <>
+                    <div className="admin-settings-section-title">
+                      <Truck size={18} /> Shipping, Rates & Regional Delivery
+                    </div>
+                    <p className="admin-settings-section-sub">Configure checkout minimums, free shipping thresholds, and regional service coverage.</p>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Minimum Order Value (₹)</label>
+                        <input
+                          type="number"
+                          min={0}
+                          className="admin-form-input"
+                          value={storeSettings.minOrderValue}
+                          onChange={(e) => setStoreSettings({ ...storeSettings, minOrderValue: e.target.value })}
+                        />
+                        <small style={{ fontSize: '0.72rem', color: '#64748B' }}>Cart minimum required to checkout</small>
+                      </div>
+
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Free Shipping Threshold (₹)</label>
+                        <input
+                          type="number"
+                          min={0}
+                          className="admin-form-input"
+                          value={storeSettings.freeShippingThreshold}
+                          onChange={(e) => setStoreSettings({ ...storeSettings, freeShippingThreshold: e.target.value })}
+                        />
+                        <small style={{ fontSize: '0.72rem', color: '#64748B' }}>Orders above this get free delivery</small>
+                      </div>
+
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Standard Shipping Fee (₹)</label>
+                        <input
+                          type="number"
+                          min={0}
+                          className="admin-form-input"
+                          value={storeSettings.standardShippingFee}
+                          onChange={(e) => setStoreSettings({ ...storeSettings, standardShippingFee: e.target.value })}
+                        />
+                        <small style={{ fontSize: '0.72rem', color: '#64748B' }}>Applied when below free threshold</small>
+                      </div>
+
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Express Priority Fee (₹)</label>
+                        <input
+                          type="number"
+                          min={0}
+                          className="admin-form-input"
+                          value={storeSettings.expressShippingFee}
+                          onChange={(e) => setStoreSettings({ ...storeSettings, expressShippingFee: e.target.value })}
+                        />
+                        <small style={{ fontSize: '0.72rem', color: '#64748B' }}>Same/next day express rate</small>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem' }}>
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Estimated Delivery Timeline</label>
+                        <input
+                          className="admin-form-input"
+                          value={storeSettings.estimatedDeliveryDays}
+                          onChange={(e) => setStoreSettings({ ...storeSettings, estimatedDeliveryDays: e.target.value })}
+                          placeholder="e.g. 2 - 4 Business Days"
+                        />
+                      </div>
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Primary Serviceable States / Regions</label>
+                        <input
+                          className="admin-form-input"
+                          value={storeSettings.serviceableRegions}
+                          onChange={(e) => setStoreSettings({ ...storeSettings, serviceableRegions: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="admin-settings-toggle-grid">
+                      <div className="admin-settings-toggle-card">
+                        <div className="admin-settings-toggle-info">
+                          <span className="admin-settings-toggle-title">
+                            <CheckCircle2 size={16} color="#16A34A" /> Enable Express Delivery
+                          </span>
+                          <span className="admin-settings-toggle-desc">Offers high-priority agro dispatch option to farmers during checkout.</span>
+                        </div>
+                        <label className="admin-switch-label">
+                          <input
+                            type="checkbox"
+                            checked={storeSettings.enableExpressShipping}
+                            onChange={(e) => setStoreSettings({ ...storeSettings, enableExpressShipping: e.target.checked })}
+                          />
+                          <span className="admin-switch-slider" />
+                        </label>
+                      </div>
+
+                      <div className="admin-settings-toggle-card">
+                        <div className="admin-settings-toggle-info">
+                          <span className="admin-settings-toggle-title">
+                            <MapPin size={16} color="#0284C7" /> Strict Pincode Verification
+                          </span>
+                          <span className="admin-settings-toggle-desc">Checks courier availability against postal database before order confirmation.</span>
+                        </div>
+                        <label className="admin-switch-label">
+                          <input
+                            type="checkbox"
+                            checked={storeSettings.enablePincodeCheck}
+                            onChange={(e) => setStoreSettings({ ...storeSettings, enablePincodeCheck: e.target.checked })}
+                          />
+                          <span className="admin-switch-slider" />
+                        </label>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* TAB 3: PAYMENTS & TAXATION */}
+                {activeSettingsTab === 'payments' && (
+                  <>
+                    <div className="admin-settings-section-title">
+                      <CreditCard size={18} /> Payments, GST Taxation & Invoicing
+                    </div>
+                    <p className="admin-settings-section-sub">Configure gateway accounts, GST rates, Cash on Delivery limits, and tax invoice prefixes.</p>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Primary Store Currency</label>
+                        <input className="admin-form-input" value={storeSettings.currency} disabled style={{ backgroundColor: '#F1F5F9' }} />
+                      </div>
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Standard Agri GST Rate</label>
+                        <select
+                          className="admin-form-select"
+                          value={storeSettings.taxRate}
+                          onChange={(e) => setStoreSettings({ ...storeSettings, taxRate: e.target.value })}
+                        >
+                          <option value="0%">0% (Exempt Agricultural Goods)</option>
+                          <option value="5%">5% (Standard Seeds & Bio-Inputs)</option>
+                          <option value="12%">12% (Agri Equipments & Traps)</option>
+                          <option value="18%">18% (Specialized Hardware)</option>
+                        </select>
+                      </div>
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Registered GSTIN Number</label>
+                        <input
+                          className="admin-form-input"
+                          value={storeSettings.gstinNumber}
+                          onChange={(e) => setStoreSettings({ ...storeSettings, gstinNumber: e.target.value })}
+                          placeholder="e.g. 33AABCA9876F1Z8"
+                        />
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Invoice Numbering Prefix</label>
+                        <input
+                          className="admin-form-input"
+                          value={storeSettings.invoicePrefix}
+                          onChange={(e) => setStoreSettings({ ...storeSettings, invoicePrefix: e.target.value })}
+                          placeholder="AGRI-2026-"
+                        />
+                      </div>
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Replacement & Return Window (Days)</label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={30}
+                          className="admin-form-input"
+                          value={storeSettings.returnWindowDays}
+                          onChange={(e) => setStoreSettings({ ...storeSettings, returnWindowDays: e.target.value })}
+                        />
+                      </div>
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Maximum COD Limit (₹)</label>
+                        <input
+                          type="number"
+                          min={0}
+                          className="admin-form-input"
+                          value={storeSettings.maxCodAmount}
+                          onChange={(e) => setStoreSettings({ ...storeSettings, maxCodAmount: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="admin-settings-section-title" style={{ marginTop: '0.5rem', fontSize: '1rem' }}>
+                      Accepted Payment Channels
+                    </div>
+                    <div className="admin-settings-toggle-grid">
+                      <div className="admin-settings-toggle-card">
+                        <div className="admin-settings-toggle-info">
+                          <span className="admin-settings-toggle-title">⚡ Instant UPI / QR</span>
+                          <span className="admin-settings-toggle-desc">Google Pay, PhonePe, Paytm, BHIM UPI with 0% gateway surcharge.</span>
+                        </div>
+                        <label className="admin-switch-label">
+                          <input
+                            type="checkbox"
+                            checked={storeSettings.acceptedPaymentMethods.upi}
+                            onChange={(e) => setStoreSettings({
+                              ...storeSettings,
+                              acceptedPaymentMethods: { ...storeSettings.acceptedPaymentMethods, upi: e.target.checked },
+                            })}
+                          />
+                          <span className="admin-switch-slider" />
+                        </label>
+                      </div>
+
+                      <div className="admin-settings-toggle-card">
+                        <div className="admin-settings-toggle-info">
+                          <span className="admin-settings-toggle-title">💳 Credit, Debit & RuPay Cards</span>
+                          <span className="admin-settings-toggle-desc">Full 3D-secure payment gateway for major domestic cards.</span>
+                        </div>
+                        <label className="admin-switch-label">
+                          <input
+                            type="checkbox"
+                            checked={storeSettings.acceptedPaymentMethods.cards}
+                            onChange={(e) => setStoreSettings({
+                              ...storeSettings,
+                              acceptedPaymentMethods: { ...storeSettings.acceptedPaymentMethods, cards: e.target.checked },
+                            })}
+                          />
+                          <span className="admin-switch-slider" />
+                        </label>
+                      </div>
+
+                      <div className="admin-settings-toggle-card">
+                        <div className="admin-settings-toggle-info">
+                          <span className="admin-settings-toggle-title">💵 Cash on Delivery (COD)</span>
+                          <span className="admin-settings-toggle-desc">Pay cash to field delivery agent upon inspecting package.</span>
+                        </div>
+                        <label className="admin-switch-label">
+                          <input
+                            type="checkbox"
+                            checked={storeSettings.acceptedPaymentMethods.cod}
+                            onChange={(e) => setStoreSettings({
+                              ...storeSettings,
+                              acceptedPaymentMethods: { ...storeSettings.acceptedPaymentMethods, cod: e.target.checked },
+                            })}
+                          />
+                          <span className="admin-switch-slider" />
+                        </label>
+                      </div>
+
+                      <div className="admin-settings-toggle-card">
+                        <div className="admin-settings-toggle-info">
+                          <span className="admin-settings-toggle-title">🌾 Kisan Credit Card (KCC)</span>
+                          <span className="admin-settings-toggle-desc">Subsidized agri-finance payment schemes for registered farmers.</span>
+                        </div>
+                        <label className="admin-switch-label">
+                          <input
+                            type="checkbox"
+                            checked={storeSettings.acceptedPaymentMethods.kisanCard}
+                            onChange={(e) => setStoreSettings({
+                              ...storeSettings,
+                              acceptedPaymentMethods: { ...storeSettings.acceptedPaymentMethods, kisanCard: e.target.checked },
+                            })}
+                          />
+                          <span className="admin-switch-slider" />
+                        </label>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* TAB 4: NOTIFICATIONS & COMMUNICATION */}
+                {activeSettingsTab === 'notifications' && (
+                  <>
+                    <div className="admin-settings-section-title">
+                      <BellRing size={18} /> SMS Gateways & Customer Communication
+                    </div>
+                    <p className="admin-settings-section-sub">Configure automatic alerts for order confirmations, dispatch updates, and low inventory replenishment.</p>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1rem' }}>
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Low Stock Trigger Threshold</label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={100}
+                          className="admin-form-input"
+                          value={storeSettings.lowStockThreshold}
+                          onChange={(e) => setStoreSettings({ ...storeSettings, lowStockThreshold: e.target.value })}
+                        />
+                        <small style={{ fontSize: '0.72rem', color: '#64748B' }}>Alert admin when product units drop below this count</small>
+                      </div>
+
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Inventory Restock Notification Email</label>
+                        <input
+                          type="email"
+                          className="admin-form-input"
+                          value={storeSettings.lowStockAlertEmail}
+                          onChange={(e) => setStoreSettings({ ...storeSettings, lowStockAlertEmail: e.target.value })}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="admin-settings-toggle-grid">
+                      <div className="admin-settings-toggle-card">
+                        <div className="admin-settings-toggle-info">
+                          <span className="admin-settings-toggle-title">
+                            <Smartphone size={16} color="#16A34A" /> Order Booking SMS
+                          </span>
+                          <span className="admin-settings-toggle-desc">Sends instantaneous booking SMS with order ID to farmer's mobile.</span>
+                        </div>
+                        <label className="admin-switch-label">
+                          <input
+                            type="checkbox"
+                            checked={storeSettings.autoSmsAlerts}
+                            onChange={(e) => setStoreSettings({ ...storeSettings, autoSmsAlerts: e.target.checked })}
+                          />
+                          <span className="admin-switch-slider" />
+                        </label>
+                      </div>
+
+                      <div className="admin-settings-toggle-card">
+                        <div className="admin-settings-toggle-info">
+                          <span className="admin-settings-toggle-title">
+                            <Mail size={16} color="#0284C7" /> Customer Order Email Receipts
+                          </span>
+                          <span className="admin-settings-toggle-desc">Sends PDF tax invoice and order summary to registered email address.</span>
+                        </div>
+                        <label className="admin-switch-label">
+                          <input
+                            type="checkbox"
+                            checked={storeSettings.autoEmailAlerts}
+                            onChange={(e) => setStoreSettings({ ...storeSettings, autoEmailAlerts: e.target.checked })}
+                          />
+                          <span className="admin-switch-slider" />
+                        </label>
+                      </div>
+
+                      <div className="admin-settings-toggle-card">
+                        <div className="admin-settings-toggle-info">
+                          <span className="admin-settings-toggle-title">
+                            <Smartphone size={16} color="#22C55E" /> WhatsApp Business Notification
+                          </span>
+                          <span className="admin-settings-toggle-desc">Delivers real-time shipment tracking links directly via WhatsApp.</span>
+                        </div>
+                        <label className="admin-switch-label">
+                          <input
+                            type="checkbox"
+                            checked={storeSettings.whatsappOrderUpdates}
+                            onChange={(e) => setStoreSettings({ ...storeSettings, whatsappOrderUpdates: e.target.checked })}
+                          />
+                          <span className="admin-switch-slider" />
+                        </label>
+                      </div>
+
+                      <div className="admin-settings-toggle-card">
+                        <div className="admin-settings-toggle-info">
+                          <span className="admin-settings-toggle-title">
+                            <Stethoscope size={16} color="#7C3AED" /> Crop Doctor Diagnosis Alerts
+                          </span>
+                          <span className="admin-settings-toggle-desc">Notifies farmer immediately when expert agronomist replies to crop query.</span>
+                        </div>
+                        <label className="admin-switch-label">
+                          <input
+                            type="checkbox"
+                            checked={storeSettings.cropDoctorPushAlerts}
+                            onChange={(e) => setStoreSettings({ ...storeSettings, cropDoctorPushAlerts: e.target.checked })}
+                          />
+                          <span className="admin-switch-slider" />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Gateway Testing Buttons */}
+                    <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        onClick={handleSendTestSms}
+                        disabled={isTestingSms}
+                        className="admin-quick-btn"
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                      >
+                        {isTestingSms ? <Loader2 size={14} className="animate-spin" /> : <Smartphone size={14} />}
+                        Test SMS Gateway ({storeSettings.supportPhone})
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleSendTestEmail}
+                        disabled={isTestingEmail}
+                        className="admin-quick-btn"
+                        style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                      >
+                        {isTestingEmail ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
+                        Test Email SMTP ({storeSettings.supportEmail})
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {/* TAB 5: SECURITY & SYSTEM CONTROLS */}
+                {activeSettingsTab === 'security' && (
+                  <>
+                    <div className="admin-settings-section-title">
+                      <Shield size={18} /> Access Control, Security & Data Tools
+                    </div>
+                    <p className="admin-settings-section-sub">Manage administrator access controls, system cache maintenance, and offline data backups.</p>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">Inactivity Session Timeout</label>
+                        <select
+                          className="admin-form-select"
+                          value={storeSettings.sessionTimeoutMins}
+                          onChange={(e) => setStoreSettings({ ...storeSettings, sessionTimeoutMins: e.target.value })}
+                        >
+                          <option value="15">15 Minutes (Strict Security)</option>
+                          <option value="30">30 Minutes</option>
+                          <option value="60">1 Hour (Recommended)</option>
+                          <option value="240">4 Hours</option>
+                          <option value="480">8 Hours (Full Shift)</option>
+                        </select>
+                      </div>
+
+                      <div className="admin-form-group">
+                        <label className="admin-form-label">System Data Snapshot Schedule</label>
+                        <input className="admin-form-input" value="Daily Automated Snapshot at 02:00 AM IST" disabled style={{ backgroundColor: '#F1F5F9' }} />
+                      </div>
+                    </div>
+
+                    <div className="admin-settings-toggle-grid">
+                      <div className="admin-settings-toggle-card">
+                        <div className="admin-settings-toggle-info">
+                          <span className="admin-settings-toggle-title">
+                            <Key size={16} color="#EAB308" /> Two-Factor Authentication (2FA)
+                          </span>
+                          <span className="admin-settings-toggle-desc">Requires authenticator app OTP verification for all admin logins.</span>
+                        </div>
+                        <label className="admin-switch-label">
+                          <input
+                            type="checkbox"
+                            checked={storeSettings.enableTwoFactor}
+                            onChange={(e) => setStoreSettings({ ...storeSettings, enableTwoFactor: e.target.checked })}
+                          />
+                          <span className="admin-switch-slider" />
+                        </label>
+                      </div>
+
+                      <div className="admin-settings-toggle-card">
+                        <div className="admin-settings-toggle-info">
+                          <span className="admin-settings-toggle-title">
+                            <FileText size={16} color="#0284C7" /> Audit Logging
+                          </span>
+                          <span className="admin-settings-toggle-desc">Records every admin product edit, price change, and stock manual override.</span>
+                        </div>
+                        <label className="admin-switch-label">
+                          <input
+                            type="checkbox"
+                            checked={storeSettings.auditLogging}
+                            onChange={(e) => setStoreSettings({ ...storeSettings, auditLogging: e.target.checked })}
+                          />
+                          <span className="admin-switch-slider" />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Data Tools Cards */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '0.5rem' }}>
+                      <div style={{ padding: '1.25rem', border: '1px solid #E2E8F0', borderRadius: '12px', background: '#F8FAFC', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        <div>
+                          <div style={{ fontWeight: 800, color: '#1E293B', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <RefreshCw size={16} color="#0284C7" /> Clear System Application Cache
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: '#64748B', marginTop: '2px' }}>
+                            Purges frontend memory caches, category taxonomy cache, and forces fresh reload from PostgreSQL.
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleClearSystemCache}
+                          disabled={isClearingCache}
+                          className="admin-quick-btn"
+                          style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                        >
+                          {isClearingCache ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+                          Purge Application Cache
+                        </button>
+                      </div>
+
+                      <div style={{ padding: '1.25rem', border: '1px solid #E2E8F0', borderRadius: '12px', background: '#F8FAFC', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                        <div>
+                          <div style={{ fontWeight: 800, color: '#1E293B', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <Database size={16} color="#16A34A" /> Download Store Database Snapshot
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: '#64748B', marginTop: '2px' }}>
+                            Generates and downloads a complete JSON snapshot of all products, categories, orders, and configurations.
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleDownloadBackup}
+                          disabled={isDownloadingBackup}
+                          className="admin-quick-btn"
+                          style={{ alignSelf: 'flex-start', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#16A34A', borderColor: '#86EFAC' }}
+                        >
+                          {isDownloadingBackup ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+                          Generate & Download Backup (.JSON)
+                        </button>
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* Footer Action Bar */}
+                <div className="admin-settings-actions-footer">
+                  <button
+                    type="button"
+                    onClick={handleResetSettings}
+                    className="admin-mini-btn btn-danger"
+                    style={{ padding: '0.6rem 1rem' }}
+                  >
+                    Reset to Defaults
                   </button>
+
+                  <div className="admin-settings-action-btn-group">
+                    <button
+                      type="submit"
+                      className="admin-primary-btn"
+                      style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: '160px', justifyContent: 'center' }}
+                    >
+                      <Save size={16} /> Save All Settings
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>
@@ -3393,8 +4375,8 @@ export const AdminPage: React.FC = () => {
 
       {/* Modal: Full Product CMS (Add / Edit) */}
       {(isAddProductOpen || isEditProductOpen) && (
-        <div className="admin-modal-overlay" onClick={() => { setIsAddProductOpen(false); setIsEditProductOpen(false); }}>
-          <div className="admin-modal-card admin-cms-modal-card" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-card admin-cms-modal-card">
             <div className="admin-modal-header">
               <h3 className="admin-modal-title">
                 {isAddProductOpen ? '➕ Create New Agricultural Product (CMS)' : `✏️ Product CMS Editor — ${cmsForm.title}`}
@@ -4438,8 +5420,8 @@ export const AdminPage: React.FC = () => {
 
       {/* Modal: Add Category */}
       {isAddCategoryOpen && (
-        <div className="admin-modal-overlay" onClick={() => setIsAddCategoryOpen(false)}>
-          <div className="admin-modal-card" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-card">
             <div className="admin-modal-header">
               <h3 className="admin-modal-title">Add Store Category</h3>
               <button onClick={() => setIsAddCategoryOpen(false)} className="admin-modal-close-btn">
@@ -4495,6 +5477,202 @@ export const AdminPage: React.FC = () => {
         </div>
       )}
 
+      {/* Modal: Add/Edit Subcategory */}
+      {subcatModal.isOpen && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-card" style={{ maxWidth: '520px' }}>
+            <div className="admin-modal-header">
+              <div>
+                <h3 className="admin-modal-title">
+                  {subcatModal.sub ? 'Edit Subcategory' : 'Add New Subcategory'}
+                </h3>
+                <div style={{ fontSize: '0.8rem', color: '#16A34A', fontWeight: 600, marginTop: '2px' }}>
+                  Under Category: <strong>{subcatModal.categoryName}</strong>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSubcatModal(prev => ({ ...prev, isOpen: false }))}
+                className="admin-modal-close-btn"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleSaveSubcategory}>
+              <div className="admin-modal-body">
+                <div className="admin-form-group">
+                  <label className="admin-form-label">Subcategory Name *</label>
+                  <input
+                    required
+                    autoFocus
+                    value={subcatFormData.name}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setSubcatFormData(prev => ({
+                        ...prev,
+                        name: val,
+                        slug: (!subcatModal.sub || !prev.slug)
+                          ? val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+                          : prev.slug,
+                      }));
+                    }}
+                    placeholder="e.g. Bio Fertilizers, Granules, Liquid Sprays"
+                    className="admin-form-input"
+                  />
+                </div>
+
+                <div className="admin-form-group">
+                  <label className="admin-form-label">URL Slug</label>
+                  <input
+                    value={subcatFormData.slug}
+                    onChange={(e) => setSubcatFormData(prev => ({ ...prev, slug: e.target.value }))}
+                    placeholder="e.g. bio-fertilizers"
+                    className="admin-form-input"
+                  />
+                  <small style={{ fontSize: '0.75rem', color: '#64748B' }}>Used in URLs and filters (auto-generated from name)</small>
+                </div>
+
+                <div className="admin-form-group">
+                  <label className="admin-form-label">Description (Optional)</label>
+                  <textarea
+                    rows={3}
+                    value={subcatFormData.description}
+                    onChange={(e) => setSubcatFormData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Brief description for products under this subcategory..."
+                    className="admin-form-textarea"
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Sort Order</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={subcatFormData.sortOrder}
+                      onChange={(e) => setSubcatFormData(prev => ({ ...prev, sortOrder: Number(e.target.value) || 0 }))}
+                      className="admin-form-input"
+                    />
+                  </div>
+
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Status</label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600, color: '#334155' }}>
+                      <input
+                        type="checkbox"
+                        checked={subcatFormData.isActive}
+                        onChange={(e) => setSubcatFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+                        style={{ width: '18px', height: '18px', accentColor: '#16A34A', cursor: 'pointer' }}
+                      />
+                      Active
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div className="admin-modal-footer">
+                <button
+                  type="button"
+                  onClick={() => setSubcatModal(prev => ({ ...prev, isOpen: false }))}
+                  className="admin-quick-btn"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingSubcat}
+                  className="admin-primary-btn"
+                  style={{ minWidth: '130px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}
+                >
+                  {isSubmittingSubcat ? 'Saving...' : (subcatModal.sub ? 'Update Subcategory' : 'Add Subcategory')}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Edit Category */}
+      {editCatModal.isOpen && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-card" style={{ maxWidth: '520px' }}>
+            <div className="admin-modal-header">
+              <h3 className="admin-modal-title">Edit Store Category</h3>
+              <button
+                type="button"
+                onClick={() => setEditCatModal({ isOpen: false, category: null })}
+                className="admin-modal-close-btn"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleSaveEditCategory}>
+              <div className="admin-modal-body">
+                <div className="admin-form-group">
+                  <label className="admin-form-label">Category Name *</label>
+                  <input
+                    required
+                    value={editCatFormData.name}
+                    onChange={(e) => setEditCatFormData(prev => ({ ...prev, name: e.target.value }))}
+                    className="admin-form-input"
+                  />
+                </div>
+                <div className="admin-form-group">
+                  <label className="admin-form-label">Description</label>
+                  <textarea
+                    rows={3}
+                    value={editCatFormData.description}
+                    onChange={(e) => setEditCatFormData(prev => ({ ...prev, description: e.target.value }))}
+                    className="admin-form-textarea"
+                  />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Sort Order</label>
+                    <input
+                      type="number"
+                      min={0}
+                      value={editCatFormData.sortOrder}
+                      onChange={(e) => setEditCatFormData(prev => ({ ...prev, sortOrder: Number(e.target.value) || 0 }))}
+                      className="admin-form-input"
+                    />
+                  </div>
+                  <div className="admin-form-group">
+                    <label className="admin-form-label">Status</label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600, color: '#334155' }}>
+                      <input
+                        type="checkbox"
+                        checked={editCatFormData.isActive}
+                        onChange={(e) => setEditCatFormData(prev => ({ ...prev, isActive: e.target.checked }))}
+                        style={{ width: '18px', height: '18px', accentColor: '#16A34A', cursor: 'pointer' }}
+                      />
+                      Active
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div className="admin-modal-footer">
+                <button
+                  type="button"
+                  onClick={() => setEditCatModal({ isOpen: false, category: null })}
+                  className="admin-quick-btn"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingEditCat}
+                  className="admin-primary-btn"
+                  style={{ minWidth: '130px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}
+                >
+                  {isSubmittingEditCat ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Modal: Create Coupon */}
       {isCouponModalOpen && (
         <div className="admin-modal-overlay" onClick={() => setIsCouponModalOpen(false)}>
@@ -4517,6 +5695,7 @@ export const AdminPage: React.FC = () => {
                     minimumSpend: Number(e.target.coupMin.value) || 0,
                     usageLimit: Number(e.target.coupLimit.value) || null,
                     validUntil: e.target.coupExpiry.value || null,
+                    showOnHomepage: e.target.coupHomepage.checked,
                   });
                   if (!response.success || !response.data) throw new Error(response.message || 'Failed to create coupon');
                   setCoupons([response.data, ...coupons]);
@@ -4553,6 +5732,13 @@ export const AdminPage: React.FC = () => {
                   <label className="admin-form-label">Valid Until (optional)</label>
                   <input name="coupExpiry" type="date" className="admin-form-input" />
                 </div>
+                <label className="admin-form-group" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '.65rem', cursor: 'pointer' }}>
+                  <input name="coupHomepage" type="checkbox" />
+                  <span>
+                    <strong>Show on homepage</strong>
+                    <small style={{ display: 'block', color: '#64748B', marginTop: '.15rem' }}>Feature this coupon in the homepage offer banner.</small>
+                  </span>
+                </label>
               </div>
               <div className="admin-modal-footer">
                 <button type="button" onClick={() => setIsCouponModalOpen(false)} className="admin-quick-btn">

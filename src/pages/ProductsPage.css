@@ -24,6 +24,9 @@
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid var(--border-color, #e2e8f0);
 }
@@ -122,6 +125,65 @@
   align-items: center;
   gap: 0.75rem;
 }
+
+.fb-catalog-search {
+  display: flex;
+  width: min(360px, 32vw);
+  min-width: 260px;
+  height: 42px;
+  align-items: center;
+  gap: 0.55rem;
+  padding-left: 0.8rem;
+  overflow: hidden;
+  border: 1px solid #d5e2d7;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #477052;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.fb-catalog-search:focus-within {
+  border-color: #166534;
+  box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.1);
+}
+
+.fb-catalog-search input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #17251e;
+  font: inherit;
+  font-size: 0.875rem;
+}
+
+.fb-catalog-search input::-webkit-search-cancel-button { display: none; }
+
+.fb-catalog-search-clear {
+  display: grid;
+  flex: 0 0 auto;
+  padding: 0.2rem;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.fb-catalog-search-submit {
+  align-self: stretch;
+  padding: 0 1rem;
+  border: 0;
+  background: #166534;
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.fb-catalog-search-submit:hover { background: #0f4e27; }
 
 /* Quick Sort Box */
 .fb-catalog-quick-sort {
@@ -234,6 +296,9 @@
   display: grid;
   grid-template-columns: 260px 1fr;
   gap: 2rem;
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
   align-items: start;
 }
 
@@ -1485,8 +1550,15 @@
 
   .fb-catalog-toolbar-actions {
     width: 100%;
+    flex-wrap: wrap;
     justify-content: space-between;
     gap: .5rem;
+  }
+
+  .fb-catalog-search {
+    width: 100%;
+    min-width: 0;
+    order: -1;
   }
 
   .fb-pagination-container {

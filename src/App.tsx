@@ -65,14 +65,7 @@ const AppContent: React.FC = () => {
           <Route path="/services/consult" element={<Navigate to="/services/farm-consultancy" replace />} />
           <Route path="/services/crop-doctor" element={<CropDoctorPage />} />
           <Route path="/crop-doctor" element={<CropDoctorPage />} />
-          <Route
-            path="/products"
-            element={
-              <div className="container" style={{ padding: '2rem 1.5rem' }}>
-                <ProductsPage />
-              </div>
-            }
-          />
+          <Route path="/products" element={<ProductsPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:idOrSlug" element={<BlogDetailPage />} />
           <Route path="/contact" element={<ContactPage />} />

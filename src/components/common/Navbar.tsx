@@ -237,7 +237,7 @@ export const Navbar: React.FC = () => {
                     <button
                       onClick={() => {
                         setIsUserMenuOpen(false);
-                        logout();
+                        setIsLogoutModalOpen(true);
                       }}
                       className="agriflow-user-menu-item"
                       style={{ background: 'transparent', border: 'none', color: '#f87171', borderTop: '1px solid rgba(255,255,255,0.08)', width: '100%', cursor: 'pointer' }}

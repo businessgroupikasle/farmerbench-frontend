@@ -36,6 +36,7 @@ export interface CouponRecord {
   usageCount: number;
   validUntil?: string | null;
   active: boolean;
+  showOnHomepage: boolean;
 }
 
 export const adminService = {
@@ -81,6 +82,10 @@ export const adminService = {
 
   async createCoupon(data: Omit<CouponRecord, 'id' | 'usageCount' | 'active'>): Promise<ApiResponse<CouponRecord>> {
     return apiClient.post('/admin/coupons', data);
+  },
+
+  async updateCoupon(id: string, data: Pick<Partial<CouponRecord>, 'active' | 'showOnHomepage'>): Promise<ApiResponse<CouponRecord>> {
+    return apiClient.patch(`/admin/coupons/${id}`, data);
   },
 
   async deleteCoupon(id: string): Promise<ApiResponse<null>> {

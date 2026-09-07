@@ -199,9 +199,7 @@ export const ServicesPage: React.FC = () => {
       </section>
 
       {/* 4. Most Requested Service Spotlight: Expert Guidance, Right at Your Farm (On-Field Farm Visit) */}
-      <ServicesFarmVisit
-        onScheduleVisit={() => handleOpenConsultation('On-Field Crop Consultation & Farm Visit')}
-      />
+      <ServicesFarmVisit />
 
       {/* 5. How We Work - 4 Step Process Roadmap */}
       <section className="services-workflow-section">

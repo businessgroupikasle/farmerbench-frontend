@@ -93,7 +93,7 @@ export const CartPage: React.FC = () => {
   };
 
   // Calculations
-  const freeDeliveryThreshold = 999;
+  const freeDeliveryThreshold = 5000;
   const isFreeDelivery = subtotal >= freeDeliveryThreshold;
   const deliveryFee = isFreeDelivery || items.length === 0 ? 0 : 80;
   const effectiveDiscount = subtotal > 0 && appliedCoupon ? Math.min(discountAmount, subtotal) : 0;

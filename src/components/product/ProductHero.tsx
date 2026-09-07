@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Leaf, ShieldCheck, UserRoundCheck, X } from 'lucide-react';
+import React from 'react';
+import { Leaf, ShieldCheck, UserRoundCheck } from 'lucide-react';
 import heroProductsImg from '../../assets/product-hero-products.jpg';
 import './ProductHero.css';
 import { useHeroBanners } from '../../hooks/useHeroBanners';
@@ -13,31 +13,9 @@ interface ProductHeroProps {
 }
 
 export const ProductHero: React.FC<ProductHeroProps> = ({
-  initialSearch = '',
-  onSearch,
   storeName = 'GREENLA AGRI STORE',
 }) => {
-  const [searchInput, setSearchInput] = useState(initialSearch);
   const { data: banners = [] } = useHeroBanners('PRODUCTS');
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (onSearch) {
-      onSearch(searchInput.trim());
-    }
-    // Smooth scroll to catalog section
-    const catalogEl = document.getElementById('products-catalog-section') || document.querySelector('.products-main-grid');
-    if (catalogEl) {
-      catalogEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
-  const handleClear = () => {
-    setSearchInput('');
-    if (onSearch) {
-      onSearch('');
-    }
-  };
 
   const renderHero = (banner?: any) => (
     <section
@@ -64,33 +42,6 @@ export const ProductHero: React.FC<ProductHeroProps> = ({
           <p className="product-hero-description">
             {banner?.description || 'Explore genuine crop nutrition, protection and growth solutions selected by agriculture experts.'}
           </p>
-
-          {/* Search Box Form */}
-          <form onSubmit={handleSubmit} className="product-hero-search-form" role="search">
-            <div className="product-hero-input-wrapper">
-              <input
-                type="text"
-                placeholder="What does your crop need?"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="product-hero-input"
-                aria-label="Search crop products"
-              />
-              {searchInput && (
-                <button
-                  type="button"
-                  onClick={handleClear}
-                  className="product-hero-clear-btn"
-                  aria-label="Clear search text"
-                >
-                  <X size={15} />
-                </button>
-              )}
-            </div>
-            <button type="submit" className="product-hero-submit-btn">
-              Find Products
-            </button>
-          </form>
 
           {/* Trust Badges */}
           <div className="product-hero-badges-row">

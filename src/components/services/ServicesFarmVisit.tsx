@@ -1,11 +1,7 @@
 import React from 'react';
 import farmVisitImg from '../../assets/farm-visit-inspection.jpg';
 
-interface ServicesFarmVisitProps {
-  onScheduleVisit?: () => void;
-}
-
-export const ServicesFarmVisit: React.FC<ServicesFarmVisitProps> = ({ onScheduleVisit }) => {
+export const ServicesFarmVisit: React.FC = () => {
   const points = [
     {
       id: 'on-field-assessment',
@@ -122,26 +118,6 @@ export const ServicesFarmVisit: React.FC<ServicesFarmVisitProps> = ({ onSchedule
               ))}
             </div>
 
-            {/* Action CTA & Pricing */}
-            <div className="services-farm-visit-action-wrap">
-              <button
-                onClick={onScheduleVisit}
-                className="services-farm-visit-cta-btn"
-                id="schedule-farm-visit-btn"
-              >
-                Schedule a Farm Visit
-              </button>
-
-              <div className="services-farm-visit-pricing-note">
-                <span className="services-price-text">
-                  Starting from <strong className="services-price-green">₹499</strong>
-                </span>
-                <span className="services-pricing-bullet">•</span>
-                <span className="services-location-note">
-                  Available in selected locations
-                </span>
-              </div>
-            </div>
           </div>
         </div>
       </div>

@@ -5,6 +5,7 @@ import { HomeLatestNews } from '../components/home/HomeLatestNews';
 import { HomeSmartHub } from '../components/home/HomeSmartHub';
 import { HomeMarketPrices } from '../components/home/HomeMarketPrices';
 import { HomeCategories } from '../components/home/HomeCategories';
+import { HomeCouponOffer } from '../components/home/HomeCouponOffer';
 import './HomePage.css';
 
 export const HomePage: React.FC = () => {
@@ -15,6 +16,10 @@ export const HomePage: React.FC = () => {
 
       {/* Shop by Categories Carousel */}
       <HomeCategories />
+
+      <div className="container home-coupon-offer-wrap">
+        <HomeCouponOffer />
+      </div>
 
       {/* 2. Main AgriFlow Sections */}
       <div className="container homepage-sections-container">

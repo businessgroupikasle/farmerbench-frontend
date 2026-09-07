@@ -509,66 +509,6 @@
   flex-shrink: 0;
 }
 
-.services-farm-visit-action-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.75rem;
-}
-
-.services-farm-visit-cta-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #165B2E;
-  color: #ffffff;
-  padding: 0.85rem 2.25rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(22, 91, 46, 0.28);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.services-farm-visit-cta-btn:hover {
-  background-color: #0e3d1f;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(22, 91, 46, 0.38);
-}
-
-.services-farm-visit-pricing-note {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.88rem;
-  color: var(--text-muted, #64748B);
-}
-
-.services-price-text {
-  color: var(--text-secondary, #4B5563);
-}
-
-.services-price-green {
-  color: #165B2E;
-  font-weight: 800;
-  font-size: 0.98rem;
-}
-
-[data-theme='dark'] .services-price-green {
-  color: #4ade80;
-}
-
-.services-pricing-bullet {
-  color: var(--text-muted, #94a3b8);
-  font-weight: 900;
-}
-
-.services-location-note {
-  color: var(--text-muted, #64748B);
-}
-
 @media (max-width: 960px) {
   .services-farm-visit-card {
     grid-template-columns: 1fr;

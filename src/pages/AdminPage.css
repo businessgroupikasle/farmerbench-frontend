@@ -1395,17 +1395,59 @@
   border-bottom: 1px dashed #F1F5F9;
 }
 
-/* Settings Form Grid */
+/* Settings Form Grid & Tabs */
 .admin-settings-card {
   background-color: #FFFFFF;
   border: 1px solid #E5ECE5;
-  border-radius: 14px;
-  padding: 1.75rem;
+  border-radius: 16px;
+  padding: 2rem;
   box-shadow: var(--admin-card-shadow);
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  max-width: 800px;
+  gap: 1.75rem;
+  max-width: 1050px;
+  width: 100%;
+}
+
+.admin-settings-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid #F1F5F9;
+  padding-bottom: 0.75rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.admin-settings-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.admin-settings-tab-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.15rem;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: #F8FAFC;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #64748B;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.admin-settings-tab-btn:hover {
+  background-color: #F1F5F9;
+  color: #0F291B;
+}
+
+.admin-settings-tab-btn.active {
+  background-color: #E8F5E9;
+  color: #0F4726;
+  border-color: #B9E6C3;
+  box-shadow: 0 2px 8px rgba(15, 71, 38, 0.08);
 }
 
 .admin-settings-section-title {
@@ -1414,7 +1456,123 @@
   color: #0F291B;
   border-bottom: 1px solid #E2E8F0;
   padding-bottom: 0.65rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-settings-section-sub {
+  font-size: 0.825rem;
+  color: #64748B;
+  margin-top: -0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.admin-settings-toggle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.admin-settings-toggle-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background-color: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  gap: 1rem;
+  transition: all 0.2s ease;
+}
+
+.admin-settings-toggle-card:hover {
+  border-color: #CBD5E1;
+  background-color: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.admin-settings-toggle-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.admin-settings-toggle-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #1E293B;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.admin-settings-toggle-desc {
+  font-size: 0.75rem;
+  color: #64748B;
+  line-height: 1.35;
+}
+
+/* Custom iOS/Modern Toggle Switch */
+.admin-switch-label {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.admin-switch-label input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.admin-switch-slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: #CBD5E1;
+  transition: 0.25s ease;
+  border-radius: 24px;
+}
+
+.admin-switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.25s ease;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.admin-switch-label input:checked + .admin-switch-slider {
+  background-color: #16A34A;
+}
+
+.admin-switch-label input:checked + .admin-switch-slider:before {
+  transform: translateX(20px);
+}
+
+.admin-settings-actions-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1.25rem;
+  border-top: 1px solid #E2E8F0;
+  margin-top: 1rem;
+}
+
+.admin-settings-action-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 /* Modals */

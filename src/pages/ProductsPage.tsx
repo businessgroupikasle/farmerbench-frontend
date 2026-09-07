@@ -8,7 +8,7 @@ import { ProductFilters } from '../components/product/ProductFilters';
 import { ProductHero } from '../components/product/ProductHero';
 import { CompareDrawer } from '../components/product/CompareDrawer';
 import { Pagination } from '../components/common/Pagination';
-import { X, SlidersHorizontal, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, Search, SlidersHorizontal, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import './ProductsPage.css';
 
 export const ProductsPage: React.FC = () => {
@@ -29,7 +29,12 @@ export const ProductsPage: React.FC = () => {
 
   const { data: apiCategories = [] } = useCategories();
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+  const [catalogSearch, setCatalogSearch] = useState(filters.search || '');
   const categoryPillsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setCatalogSearch(filters.search || '');
+  }, [filters.search]);
 
   const scrollCategoryPills = (direction: -1 | 1) => {
     categoryPillsRef.current?.scrollBy({
@@ -223,6 +228,42 @@ export const ProductsPage: React.FC = () => {
           </div>
 
           <div className="fb-catalog-toolbar-actions">
+            <form
+              className="fb-catalog-search"
+              role="search"
+              onSubmit={(event) => {
+                event.preventDefault();
+                handleHeroSearch(catalogSearch.trim());
+              }}
+            >
+              <Search size={17} aria-hidden="true" />
+              <label className="sr-only" htmlFor="catalog-product-search">Search products</label>
+              <input
+                id="catalog-product-search"
+                type="search"
+                value={catalogSearch}
+                onChange={(event) => setCatalogSearch(event.target.value)}
+                placeholder="Search products..."
+                autoComplete="off"
+              />
+              {catalogSearch && (
+                <button
+                  type="button"
+                  className="fb-catalog-search-clear"
+                  aria-label="Clear product search"
+                  onClick={() => {
+                    setCatalogSearch('');
+                    handleHeroSearch('');
+                  }}
+                >
+                  <X size={15} />
+                </button>
+              )}
+              <button type="submit" className="fb-catalog-search-submit">
+                Search
+              </button>
+            </form>
+
             {/* Quick Sort dropdown */}
             <div className="fb-catalog-quick-sort">
               <ArrowUpDown size={15} className="fb-sort-icon" />
