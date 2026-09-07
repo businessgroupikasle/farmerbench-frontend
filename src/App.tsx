@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
 import { CartDrawer } from './components/cart/CartDrawer';
@@ -9,6 +9,7 @@ import { ChatWidget } from './components/chat/ChatWidget';
 import { ScrollToTop } from './components/common/ScrollToTop';
 import { useThemeStore } from './store/themeStore';
 import { LanguageProvider } from './context/LanguageContext';
+import { AlertTriangle, Clock3, Sprout } from 'lucide-react';
 
 // Pages
 import { HomePage } from './pages/HomePage';
@@ -37,14 +38,69 @@ import { ReturnPolicyPage } from './pages/ReturnPolicyPage';
 import { FaqPage } from './pages/FaqPage';
 import { useSocketSync } from './socket';
 
+interface MaintenanceSettings {
+  maintenanceMode: boolean;
+  maintenanceMessage: string;
+  storeName: string;
+  businessHours: string;
+  supportEmail: string;
+}
+
+const getMaintenanceSettings = (): MaintenanceSettings => {
+  const defaults: MaintenanceSettings = {
+    maintenanceMode: false,
+    maintenanceMessage: 'We are currently upgrading our warehouse systems. Back shortly!',
+    storeName: 'AgriEra Agricultural Commerce & Services',
+    businessHours: 'Mon - Sat: 8:00 AM - 8:00 PM IST',
+    supportEmail: 'support@AgriEra.agri',
+  };
+  try {
+    const saved = localStorage.getItem('formerbench_store_settings');
+    return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
+  } catch {
+    return defaults;
+  }
+};
+
+const MaintenanceScreen: React.FC<{ settings: MaintenanceSettings }> = ({ settings }) => (
+  <main style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', padding: '2rem', background: 'linear-gradient(145deg, #f4fbf2 0%, #ffffff 48%, #eef7e9 100%)' }}>
+    <section style={{ width: 'min(680px, 100%)', padding: 'clamp(2rem, 6vw, 4rem)', textAlign: 'center', borderRadius: '28px', background: 'rgba(255,255,255,.94)', border: '1px solid #d9e9d4', boxShadow: '0 24px 70px rgba(20,70,35,.12)' }}>
+      <div style={{ width: 76, height: 76, margin: '0 auto 1.5rem', borderRadius: 22, display: 'grid', placeItems: 'center', color: '#176b37', background: '#eaf7e8' }}><Sprout size={40} /></div>
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '.45rem', padding: '.45rem .8rem', borderRadius: 999, color: '#9a6700', background: '#fff8db', fontWeight: 800, fontSize: '.78rem', textTransform: 'uppercase', letterSpacing: '.06em' }}><AlertTriangle size={15} /> Scheduled maintenance</div>
+      <h1 style={{ margin: '1.25rem 0 .8rem', color: '#123d24', fontSize: 'clamp(2rem, 6vw, 3.4rem)', lineHeight: 1.05 }}>We’ll be back growing soon.</h1>
+      <p style={{ maxWidth: 530, margin: '0 auto', color: '#52675a', fontSize: '1.05rem', lineHeight: 1.75 }}>{settings.maintenanceMessage}</p>
+      <div style={{ margin: '1.8rem auto', padding: '1rem', borderRadius: 14, background: '#f7faf6', color: '#486052', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '.5rem' }}><Clock3 size={18} /> {settings.businessHours}</div>
+      <p style={{ color: '#758278', fontSize: '.9rem' }}>Need assistance? <a href={`mailto:${settings.supportEmail}`} style={{ color: '#176b37', fontWeight: 800 }}>{settings.supportEmail}</a></p>
+      <Link to="/admin" style={{ display: 'inline-block', marginTop: '1rem', color: '#176b37', fontWeight: 800, textDecoration: 'none' }}>Administrator access →</Link>
+    </section>
+  </main>
+);
+
 const AppContent: React.FC = () => {
   useSocketSync();
   const location = useLocation();
+  const [maintenanceSettings, setMaintenanceSettings] = useState(getMaintenanceSettings);
+
+  useEffect(() => {
+    const refreshMaintenanceSettings = (event?: Event) => {
+      const customSettings = (event as CustomEvent)?.detail;
+      setMaintenanceSettings(customSettings ? { ...getMaintenanceSettings(), ...customSettings } : getMaintenanceSettings());
+    };
+    window.addEventListener('storage', refreshMaintenanceSettings);
+    window.addEventListener('store-settings:updated', refreshMaintenanceSettings);
+    return () => {
+      window.removeEventListener('storage', refreshMaintenanceSettings);
+      window.removeEventListener('store-settings:updated', refreshMaintenanceSettings);
+    };
+  }, []);
   const isAuthPage = ['/login', '/signin', '/signup', '/register'].some((path) =>
     location.pathname.startsWith(path)
   );
   const isAdminPage = location.pathname.startsWith('/admin');
   const hideNavAndFooter = isAuthPage || isAdminPage;
+  if (maintenanceSettings.maintenanceMode && !isAdminPage && !isAuthPage) {
+    return <MaintenanceScreen settings={maintenanceSettings} />;
+  }
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>

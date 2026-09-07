@@ -1191,6 +1191,7 @@ export const AdminPage: React.FC = () => {
     if (e) e.preventDefault();
     try {
       localStorage.setItem('formerbench_store_settings', JSON.stringify(storeSettings));
+      window.dispatchEvent(new CustomEvent('store-settings:updated', { detail: storeSettings }));
       setSettingsLastSaved(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
       showToast('Settings saved successfully and synced!');
     } catch (err: any) {
@@ -1207,6 +1208,7 @@ export const AdminPage: React.FC = () => {
       onConfirm: () => {
         setStoreSettings(DEFAULT_SETTINGS);
         localStorage.removeItem('formerbench_store_settings');
+        window.dispatchEvent(new CustomEvent('store-settings:updated', { detail: DEFAULT_SETTINGS }));
         showToast('Settings restored to defaults!');
       },
     });
@@ -4567,7 +4569,12 @@ export const AdminPage: React.FC = () => {
                           <input
                             type="checkbox"
                             checked={storeSettings.maintenanceMode}
-                            onChange={(e) => setStoreSettings({ ...storeSettings, maintenanceMode: e.target.checked })}
+                            onChange={(e) => {
+                              const nextSettings = { ...storeSettings, maintenanceMode: e.target.checked };
+                              setStoreSettings(nextSettings);
+                              localStorage.setItem('formerbench_store_settings', JSON.stringify(nextSettings));
+                              window.dispatchEvent(new CustomEvent('store-settings:updated', { detail: nextSettings }));
+                            }}
                           />
                           <span className="admin-switch-slider" />
                         </label>
