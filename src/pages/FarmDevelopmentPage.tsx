@@ -245,8 +245,13 @@ export const FarmDevelopmentPage: React.FC = () => {
     setPostalStatus('Finding location...');
     postalCodeService.lookup(formData.pincode).then((place) => {
       if (!active) return;
-      setFormData((current) => ({ ...current, location: `${place.postOffice || place.city}, ${place.district}, ${place.state}` }));
-      setPostalStatus('Location verified');
+      const cleanPostOffice = place.postOffice ? place.postOffice.replace(/\s+(B\.O|S\.O|H\.O)$/i, '').trim() : '';
+      const town = (place.city && place.city.toLowerCase() !== (place.district || '').toLowerCase())
+        ? place.city
+        : (cleanPostOffice || place.city || place.district || '');
+      const fullLoc = [town, place.district, place.state].filter(Boolean).join(', ');
+      setFormData((current) => ({ ...current, location: fullLoc }));
+      setPostalStatus(`✓ ${fullLoc}`);
     }).catch((error) => active && setPostalStatus(error.message || 'Pincode not found'));
     return () => { active = false; };
   }, [formData.pincode]);

@@ -218,7 +218,7 @@ export const Navbar: React.FC = () => {
                   </div>
                   <div className="agriflow-account-text">
                     <span className="agriflow-account-title">
-                      {isAuthenticated && user ? `Hi, ${user.name.split(' ')[0]}` : 'Login / Register'}
+                      {isAuthenticated && user ? `Hi, ${(user.name || user.email?.split('@')[0] || 'Farmer').split(' ')[0]}` : 'Login / Register'}
                       <ChevronDown size={13} strokeWidth={2.6} />
                     </span>
                   </div>
@@ -227,9 +227,11 @@ export const Navbar: React.FC = () => {
                 {/* Dropdown menu when logged in */}
                 {isAuthenticated && user && isUserMenuOpen && (
                   <div className="agriflow-user-menu animate-fade-in">
-                    <div style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                      <p style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ffffff' }}>{user.name}</p>
-                      <p style={{ fontSize: '0.75rem', color: '#94A3B8', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div style={{ padding: '0.6rem 0.75rem', borderBottom: '1px solid #E2E8F0', marginBottom: '0.25rem' }}>
+                      <p style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0F4726', margin: 0, lineHeight: 1.3 }}>
+                        {user.name || user.email?.split('@')[0] || 'Farmer'}
+                      </p>
+                      <p style={{ fontSize: '0.78rem', color: '#64748B', margin: '0.2rem 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {user.email}
                       </p>
                     </div>
@@ -241,7 +243,7 @@ export const Navbar: React.FC = () => {
                       <PackageCheck size={15} /> My Orders
                     </Link>
                     {isAdmin && (
-                      <Link to="/admin" onClick={() => setIsUserMenuOpen(false)} className="agriflow-user-menu-item" style={{ color: '#F6B748', fontWeight: 600 }}>
+                      <Link to="/admin" onClick={() => setIsUserMenuOpen(false)} className="agriflow-user-menu-item" style={{ color: '#D97706', fontWeight: 600 }}>
                         <ShieldCheck size={15} /> Admin Portal
                       </Link>
                     )}
@@ -251,7 +253,7 @@ export const Navbar: React.FC = () => {
                         setIsLogoutModalOpen(true);
                       }}
                       className="agriflow-user-menu-item"
-                      style={{ background: 'transparent', border: 'none', color: '#f87171', borderTop: '1px solid rgba(255,255,255,0.08)', width: '100%', cursor: 'pointer' }}
+                      style={{ background: 'transparent', border: 'none', color: '#DC2626', borderTop: '1px solid #E2E8F0', marginTop: '0.25rem', paddingTop: '0.6rem', width: '100%', cursor: 'pointer' }}
                     >
                       <LogOut size={15} /> Sign Out
                     </button>

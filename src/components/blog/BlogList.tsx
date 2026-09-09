@@ -49,6 +49,10 @@ export const BlogList: React.FC = () => {
     setSearchParams({});
   };
 
+  const totalAllCount =
+    categories.find((c) => c.slug === 'all')?.count ??
+    categories.filter((c) => c.slug !== 'all').reduce((sum, c) => sum + (c.count || 0), 0);
+
   return (
     <section className="blog-list-section" aria-label="Agricultural Articles">
       <div className="container">
@@ -60,7 +64,8 @@ export const BlogList: React.FC = () => {
               onClick={() => handleCategoryClick('all')}
               className={`blog-cat-chip ${selectedCategory === 'all' ? 'active' : ''}`}
             >
-              All Articles
+              <span>All Articles</span>
+              <span className="blog-cat-count-pill">{totalAllCount}</span>
             </button>
             {categories
               .filter((c) => c.slug !== 'all')

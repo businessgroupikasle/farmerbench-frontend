@@ -283,7 +283,7 @@ export const DashboardPage: React.FC = () => {
 
                   <NeedHelpCard
                     onContactSupport={() => {
-                      window.open('https://wa.me/919876543210', '_blank');
+                      window.open('https://wa.me/9193607 63060', '_blank');
                     }}
                   />
                 </div>

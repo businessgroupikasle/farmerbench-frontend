@@ -30,21 +30,40 @@ declare global {
   }
 }
 
+let razorpayScriptPromise: Promise<boolean> | null = null;
+
 const loadRazorpayCheckout = (): Promise<boolean> => {
   if (typeof window.Razorpay === 'function') return Promise.resolve(true);
+  if (razorpayScriptPromise) return razorpayScriptPromise;
 
-  return new Promise((resolve) => {
-    const staleScript = document.getElementById('razorpay-checkout-script');
-    staleScript?.remove();
+  razorpayScriptPromise = new Promise((resolve) => {
+    const existing = document.getElementById('razorpay-checkout-script') as HTMLScriptElement | null;
+    if (existing) {
+      if (typeof window.Razorpay === 'function') {
+        resolve(true);
+        return;
+      }
+      existing.addEventListener('load', () => resolve(typeof window.Razorpay === 'function'));
+      existing.addEventListener('error', () => {
+        razorpayScriptPromise = null;
+        resolve(false);
+      });
+      return;
+    }
 
     const script = document.createElement('script');
     script.id = 'razorpay-checkout-script';
     script.src = 'https://checkout.razorpay.com/v1/checkout.js';
     script.async = true;
     script.onload = () => resolve(typeof window.Razorpay === 'function');
-    script.onerror = () => resolve(false);
+    script.onerror = () => {
+      razorpayScriptPromise = null;
+      resolve(false);
+    };
     document.body.appendChild(script);
   });
+
+  return razorpayScriptPromise;
 };
 
 export const CheckoutPage: React.FC = () => {
@@ -67,6 +86,7 @@ export const CheckoutPage: React.FC = () => {
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
   const [city, setCity] = useState(user?.location || '');
+  const [district, setDistrict] = useState('');
   const [state, setState] = useState('');
   const [pincode, setPincode] = useState('');
   const [postalStatus, setPostalStatus] = useState('');
@@ -82,21 +102,63 @@ export const CheckoutPage: React.FC = () => {
   const discountAmount = coupon ? Math.min(subtotal, coupon.discountAmount) : 0;
   const grandTotal = Math.max(0, subtotal - discountAmount + deliveryFee);
 
-  // Load Razorpay script dynamically
+  // Preload Razorpay only when user enters the payment step with Razorpay selected
   useEffect(() => {
-    void loadRazorpayCheckout();
-  }, []);
+    if (step === 2 && paymentMethod === 'RAZORPAY') {
+      void loadRazorpayCheckout();
+    }
+  }, [step, paymentMethod]);
+
+  const [availableCities, setAvailableCities] = useState<string[]>([]);
 
   useEffect(() => {
-    if (pincode.length !== 6) { setPostalStatus(''); return; }
+    if (pincode.length !== 6) {
+      setPostalStatus('');
+      setAvailableCities([]);
+      return;
+    }
     let active = true;
     setPostalStatus('Finding location...');
     postalCodeService.lookup(pincode).then((place) => {
       if (!active) return;
-      setCity(place.postOffice || place.city);
-      setState(place.state);
-      setPostalStatus(`${place.district}, ${place.state}`);
-    }).catch((error) => active && setPostalStatus(error.message || 'Pincode not found'));
+
+      // 1. Separate District
+      const dist = place.district ? place.district.trim() : '';
+      setDistrict(dist);
+
+      // 2. Separate City / Town
+      const cleanPostOffice = place.postOffice ? place.postOffice.replace(/\s+(B\.O|S\.O|H\.O)$/i, '').trim() : '';
+      const bestCity = (place.city && place.city.toLowerCase() !== dist.toLowerCase())
+        ? place.city
+        : (cleanPostOffice || place.city || dist);
+
+      if (bestCity) {
+        setCity(bestCity);
+      }
+
+      // 3. Separate State
+      if (place.state) {
+        const formattedState = place.state.length > 2
+          ? place.state.split(' ').map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')
+          : place.state;
+        setState(formattedState);
+      }
+
+      // City / Town suggestions for datalist
+      const allSuggestions: string[] = [];
+      if (bestCity && !allSuggestions.includes(bestCity)) allSuggestions.push(bestCity);
+      if (cleanPostOffice && !allSuggestions.includes(cleanPostOffice)) allSuggestions.push(cleanPostOffice);
+      if (place.postOffices && place.postOffices.length > 0) {
+        place.postOffices.forEach((po) => {
+          const cpo = po.replace(/\s+(B\.O|S\.O|H\.O)$/i, '').trim();
+          if (cpo && !allSuggestions.includes(cpo)) allSuggestions.push(cpo);
+        });
+      }
+      setAvailableCities(allSuggestions);
+      setPostalStatus(`✓ ${dist || bestCity}, ${place.state}`);
+    }).catch((error) => {
+      if (active) setPostalStatus(error.message || 'Pincode not found (You can type City, District & State manually)');
+    });
     return () => { active = false; };
   }, [pincode]);
 
@@ -149,7 +211,11 @@ export const CheckoutPage: React.FC = () => {
       return;
     }
     if (!city.trim()) {
-      setErrorMsg('Please enter City/Town');
+      setErrorMsg('Please enter City / Town');
+      return;
+    }
+    if (!district.trim()) {
+      setErrorMsg('Please enter District');
       return;
     }
     if (!state.trim()) {
@@ -171,10 +237,14 @@ export const CheckoutPage: React.FC = () => {
       ? `${addressLine1.trim()}, ${addressLine2.trim()}`
       : addressLine1.trim();
 
+    const combinedCity = district.trim() && !city.toLowerCase().includes(district.toLowerCase())
+      ? `${city.trim()}, ${district.trim()}`
+      : city.trim();
+
     return {
       fullName: fullName.trim(),
       street: fullStreet,
-      city: city.trim(),
+      city: combinedCity,
       state: state.trim(),
       postalCode: pincode.trim(),
       country: 'India',
@@ -465,34 +535,9 @@ export const CheckoutPage: React.FC = () => {
                   />
                 </div>
 
-                {/* City, State, Pincode */}
-                <div className="checkout-form-row-3">
-                  <div className="checkout-field">
-                    <label className="checkout-label">City / Town *</label>
-                    <input
-                      type="text"
-                      required
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      placeholder="e.g. Coimbatore"
-                      className="checkout-input"
-                    />
-                  </div>
-                  <div className="checkout-field">
-                    <label className="checkout-label">State *</label>
-                    <select
-                      value={state}
-                      onChange={(e) => setState(e.target.value)}
-                      className="checkout-select"
-                    >
-                      <option value="Tamil Nadu">Tamil Nadu</option>
-                      <option value="Kerala">Kerala</option>
-                      <option value="Karnataka">Karnataka</option>
-                      <option value="Andhra Pradesh">Andhra Pradesh</option>
-                      <option value="Telangana">Telangana</option>
-                      <option value="Maharashtra">Maharashtra</option>
-                    </select>
-                  </div>
+                {/* Pincode, City / Town, District, State */}
+                <div className="checkout-form-row-4">
+                  {/* 1. Pincode */}
                   <div className="checkout-field">
                     <label className="checkout-label">Pincode *</label>
                     <input
@@ -501,14 +546,83 @@ export const CheckoutPage: React.FC = () => {
                       maxLength={6}
                       value={pincode}
                       onChange={(e) => setPincode(e.target.value.replace(/[^0-9]/g, ''))}
-                      placeholder="613001"
+                      placeholder="e.g. 613001"
                       className="checkout-input"
                     />
                     {postalStatus && (
-                      <small style={{ color: postalStatus.toLowerCase().includes('not found') ? '#b91c1c' : '#15803d' }}>
+                      <small style={{ color: postalStatus.toLowerCase().includes('not found') ? '#b91c1c' : '#15803d', fontSize: '0.75rem', marginTop: '0.2rem', fontWeight: 600 }}>
                         {postalStatus}
                       </small>
                     )}
+                  </div>
+
+                  {/* 2. City / Town */}
+                  <div className="checkout-field">
+                    <label className="checkout-label">City / Town *</label>
+                    <input
+                      type="text"
+                      required
+                      list="checkout-city-list"
+                      value={city}
+                      onChange={(e) => setCity(e.target.value)}
+                      placeholder="e.g. Bericiyala"
+                      className="checkout-input"
+                    />
+                    {availableCities.length > 0 && (
+                      <datalist id="checkout-city-list">
+                        {availableCities.map((c, idx) => (
+                          <option key={idx} value={c} />
+                        ))}
+                      </datalist>
+                    )}
+                  </div>
+
+                  {/* 3. District */}
+                  <div className="checkout-field">
+                    <label className="checkout-label">District *</label>
+                    <input
+                      type="text"
+                      required
+                      value={district}
+                      onChange={(e) => setDistrict(e.target.value)}
+                      placeholder="e.g. Coimbatore"
+                      className="checkout-input"
+                    />
+                  </div>
+
+                  {/* 4. State */}
+                  <div className="checkout-field">
+                    <label className="checkout-label">State *</label>
+                    <input
+                      type="text"
+                      required
+                      list="checkout-state-list"
+                      value={state}
+                      onChange={(e) => setState(e.target.value)}
+                      placeholder="e.g. Tamil Nadu"
+                      className="checkout-input"
+                    />
+                    <datalist id="checkout-state-list">
+                      <option value="Tamil Nadu" />
+                      <option value="Kerala" />
+                      <option value="Karnataka" />
+                      <option value="Andhra Pradesh" />
+                      <option value="Telangana" />
+                      <option value="Maharashtra" />
+                      <option value="Puducherry" />
+                      <option value="Goa" />
+                      <option value="Gujarat" />
+                      <option value="Madhya Pradesh" />
+                      <option value="Rajasthan" />
+                      <option value="Punjab" />
+                      <option value="Haryana" />
+                      <option value="Delhi" />
+                      <option value="Uttar Pradesh" />
+                      <option value="West Bengal" />
+                      <option value="Odisha" />
+                      <option value="Bihar" />
+                      <option value="Assam" />
+                    </datalist>
                   </div>
                 </div>
 
@@ -571,7 +685,7 @@ export const CheckoutPage: React.FC = () => {
                     {fullName} (+91{phone.replace(/^(\+91|91|0)/, '')})
                   </p>
                   <p className="checkout-deliver-address">
-                    {addressLine1}, {city}, {state} - {pincode}
+                    {addressLine1}, {city}{district ? `, ${district}` : ''}, {state} - {pincode}
                   </p>
                 </div>
                 <button

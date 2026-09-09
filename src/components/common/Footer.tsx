@@ -154,7 +154,7 @@ export const Footer: React.FC = () => {
             <ul className="AgriEra-contact-list">
               <li className="AgriEra-contact-item">
                 <Phone size={15} className="AgriEra-contact-icon" />
-                <a href="tel:+919876543210">+91 98765 43210</a>
+                <a href="tel:+9193607 63060">+91 93607 63060</a>
               </li>
               <li className="AgriEra-contact-item">
                 <Mail size={15} className="AgriEra-contact-icon" />

@@ -176,7 +176,7 @@ export const ContactPage: React.FC = () => {
                 </div>
 
                 <button type="submit" className="contact-btn-submit" disabled={isSubmitting}>
-                  {isSubmitting ? <><span className="contact-submit-spinner" /> Sending…</> : <><Send size={16} /> Send Message</>}
+                  {isSubmitting ? <><span className="contact-submit-spinner" /> Sendingï¿½</> : <><Send size={16} /> Send Message</>}
                 </button>
 
                 <div className="contact-security-text">
@@ -203,7 +203,7 @@ export const ContactPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="contact-info-heading">Call Us</p>
-                  <a href="tel:+919876543210" className="contact-info-value">+91 98765 43210</a>
+                  <a href="tel:+9193607 63060" className="contact-info-value">+91 93607 63060</a>
                   <p className="contact-info-subtext">Mon - Sat (9:00 AM - 6:00 PM)</p>
                 </div>
               </div>
@@ -215,7 +215,7 @@ export const ContactPage: React.FC = () => {
                 </div>
                 <div>
                   <p className="contact-info-heading">WhatsApp Support</p>
-                  <a href="https://whatsapp.com" target="_blank" rel="noreferrer" className="contact-info-value">+91 98765 43210</a>
+                  <a href="https://whatsapp.com" target="_blank" rel="noreferrer" className="contact-info-value">+91 93607 63060</a>
                   <p className="contact-info-subtext">Chat with us on WhatsApp</p>
                 </div>
               </div>

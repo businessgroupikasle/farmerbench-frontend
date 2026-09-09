@@ -197,6 +197,25 @@
   width: 100%;
 }
 
+.checkout-form-row-4 {
+  display: grid;
+  grid-template-columns: 0.95fr 1.15fr 1.1fr 1.1fr;
+  gap: 1rem;
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .checkout-form-row-4 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 540px) {
+  .checkout-form-row-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
 .checkout-field {
   display: flex;
   flex-direction: column;

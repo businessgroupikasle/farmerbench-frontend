@@ -218,7 +218,7 @@ export const ProductsPage: React.FC = () => {
                 ? `Results for "${filters.search}"`
                 : filters.category
                 ? `${apiCategories.find((c) => c.slug === filters.category || c.id === filters.category)?.name || filters.category} Catalog`
-                : 'All Agricultural Catalog'}
+                : 'All Agricultural Catalogue'}
             </h2>
             <span className="fb-catalog-count-text">
               {pagination

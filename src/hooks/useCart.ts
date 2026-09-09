@@ -144,7 +144,7 @@ export const useCart = () => {
         .toFixed(2)
     );
 
-    totalItems = items.reduce((sum: number, item: any) => sum + item.quantity, 0);
+    totalItems = new Set(items.map((item: any) => item.productId)).size;
   } else {
     items = guestItems.map((g) => {
       const packSize = g.selectedAttributes?.packSize || '500 g';
@@ -185,7 +185,7 @@ export const useCart = () => {
         .toFixed(2)
     );
 
-    totalItems = guestItems.reduce((sum, item) => sum + item.quantity, 0);
+    totalItems = new Set(guestItems.map((item) => item.productId)).size;
   }
 
   // Unified Actions

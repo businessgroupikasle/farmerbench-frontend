@@ -217,7 +217,7 @@ export const blogService = {
   async getBlogs(params?: BlogQueryParams): Promise<ApiResponse<{ blogs: BlogPost[]; total: number; page: number; totalPages: number }>> {
     try {
       const res: any = await apiClient.get('/blogs', { params });
-      if (res?.data && Array.isArray(res.data.blogs)) {
+      if (res?.data && Array.isArray(res.data.blogs) && res.data.blogs.length > 0) {
         return res;
       }
     } catch {
@@ -353,6 +353,15 @@ export const blogService = {
    * Fetch category list with live blog counts
    */
   async getCategories(): Promise<ApiResponse<BlogCategory[]>> {
+    try {
+      const res: any = await apiClient.get('/blogs/categories');
+      if (res?.data && Array.isArray(res.data) && res.data.length > 1) {
+        return res;
+      }
+    } catch {
+      // Fallback to local computation
+    }
+
     const all = getStoredBlogs().filter((b) => b.status === 'PUBLISHED');
     const countMap: Record<string, { name: string; count: number }> = {};
 
@@ -366,7 +375,7 @@ export const blogService = {
     });
 
     const list: BlogCategory[] = [
-      { slug: 'all', name: 'All Categories', count: all.length },
+      { slug: 'all', name: 'All Articles', count: all.length },
       ...Object.entries(countMap).map(([slug, data]) => ({
         slug,
         name: data.name,

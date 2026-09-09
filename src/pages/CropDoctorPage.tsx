@@ -112,7 +112,7 @@ export const CropDoctorPage: React.FC = () => {
 
     // 4. Contact & Response
     farmerName: 'Ramanathan',
-    phone: '9876543210',
+    phone: '93607 63060',
     email: '',
     responseMethod: 'WhatsApp',
     preferredLanguage: 'Tamil',
@@ -1202,7 +1202,7 @@ export const CropDoctorPage: React.FC = () => {
                           type="tel"
                           required
                           maxLength={10}
-                          placeholder="+91 98765 43210"
+                          placeholder="+91 93607 63060"
                           value={formData.phone}
                           onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })}
                           className="crop-doctor-field-input"
@@ -1407,12 +1407,12 @@ export const CropDoctorPage: React.FC = () => {
                 <PhoneCall size={18} style={{ color: '#16A34A' }} />
                 <h4 className="crop-doctor-sidebar-title">Need Immediate Help?</h4>
               </div>
-              <a href="tel:+919876543210" className="crop-doctor-contact-btn">
+              <a href="tel:+9193607 63060" className="crop-doctor-contact-btn">
                 <Phone size={17} style={{ color: '#0F4726' }} />
-                <span>+91 98765 43210</span>
+                <span>+91 93607 63060</span>
               </a>
               <a
-                href="https://wa.me/919876543210?text=Hello%20AgriEra%20Crop%20Doctor,%20I%20need%20urgent%20help%20with%20my%20crop."
+                href="https://wa.me/9193607 63060?text=Hello%20AgriEra%20Crop%20Doctor,%20I%20need%20urgent%20help%20with%20my%20crop."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="crop-doctor-contact-btn whatsapp"

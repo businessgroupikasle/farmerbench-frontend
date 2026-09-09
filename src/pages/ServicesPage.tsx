@@ -363,7 +363,7 @@ export const ServicesPage: React.FC = () => {
                 <form onSubmit={handleServiceBookingSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                   <div><label className="services-modal-label">Farmer / Business Name *</label><input required value={serviceForm.name} onChange={(e) => setServiceForm({ ...serviceForm, name: e.target.value })} className="services-modal-input" placeholder="Full name" /></div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div><label className="services-modal-label">Phone Number *</label><input required type="tel" maxLength={10} value={serviceForm.phone} onChange={(e) => setServiceForm({ ...serviceForm, phone: e.target.value.replace(/\D/g, '') })} className="services-modal-input" placeholder="9876543210" /></div>
+                    <div><label className="services-modal-label">Phone Number *</label><input required type="tel" maxLength={10} value={serviceForm.phone} onChange={(e) => setServiceForm({ ...serviceForm, phone: e.target.value.replace(/\D/g, '') })} className="services-modal-input" placeholder="93607 63060" /></div>
                     <div><label className="services-modal-label">Farm Size</label><input value={serviceForm.farmSize} onChange={(e) => setServiceForm({ ...serviceForm, farmSize: e.target.value })} className="services-modal-input" placeholder="e.g. 5 acres" /></div>
                   </div>
                   <div><label className="services-modal-label">Service Needed *</label><input readOnly value={selectedService} className="services-modal-input" /></div>
@@ -455,7 +455,7 @@ export const ServicesPage: React.FC = () => {
                 >
                   <Clock size={20} style={{ color: '#165B2E', flexShrink: 0 }} />
                   <div style={{ fontSize: '0.88rem', color: '#165B2E', fontWeight: 600 }}>
-                    Helpline Active: Call us directly at <a href="tel:+919876543210" style={{ color: '#165B2E', textDecoration: 'underline' }}>+91 98765 43210</a> or request a callback below.
+                    Helpline Active: Call us directly at <a href="tel:+9193607 63060" style={{ color: '#165B2E', textDecoration: 'underline' }}>+91 93607 63060</a> or request a callback below.
                   </div>
                 </div>
 
@@ -477,7 +477,7 @@ export const ServicesPage: React.FC = () => {
                     <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '0.35rem' }}>
                       Mobile Number *
                     </label>
-                    <input required type="tel" placeholder="+91 98765 43210" className="services-modal-input" />
+                    <input required type="tel" placeholder="+91 93607 63060" className="services-modal-input" />
                   </div>
 
                   <div>

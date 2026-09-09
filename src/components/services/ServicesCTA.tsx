@@ -45,12 +45,12 @@ export const ServicesCTA: React.FC<ServicesCTAProps> = ({
           </button>
 
           <a
-            href="tel:+919876543210"
+            href="tel:+9193607 63060"
             className="services-compact-btn-secondary"
             id="compact-cta-call-btn"
           >
             <PhoneCall size={17} />
-            <span>+91 98765 43210</span>
+            <span>+91 93607 63060</span>
           </a>
         </div>
       </div>

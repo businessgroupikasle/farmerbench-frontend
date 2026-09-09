@@ -20,11 +20,11 @@ export const NeedHelpCard: React.FC<NeedHelpCardProps> = ({ onContactSupport }) 
       <div className="fb-help-contacts">
         <div className="fb-help-phone">
           <Phone size={15} color="#0F4726" />
-          <span>+91 98765 43210</span>
+          <span>+91 93607 63060</span>
         </div>
 
         <a
-          href="https://wa.me/919876543210"
+          href="https://wa.me/9193607 63060"
           target="_blank"
           rel="noopener noreferrer"
           className="fb-whatsapp-link"

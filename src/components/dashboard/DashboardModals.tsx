@@ -593,7 +593,7 @@ export const CompleteProfileModal: React.FC<CompleteProfileModalProps> = ({
               <input
                 className="fb-form-input"
                 required
-                placeholder="+91 98765 43210"
+                placeholder="+91 93607 63060"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
               />

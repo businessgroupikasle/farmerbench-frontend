@@ -61,8 +61,9 @@ export const useBlogCategories = () => {
       const res = await blogService.getCategories();
       return res.data || [];
     },
-    staleTime: 1000 * 60 * 10,
-    refetchOnWindowFocus: false,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
     retry: false,
   });
 };
@@ -73,6 +74,7 @@ export const useBlogMutations = () => {
 
   const invalidateAll = () => {
     queryClient.invalidateQueries({ queryKey: ['blogs'] });
+    queryClient.invalidateQueries({ queryKey: ['blogs', 'categories'] });
     queryClient.invalidateQueries({ queryKey: ['blog'] });
   };
 

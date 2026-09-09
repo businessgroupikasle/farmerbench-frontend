@@ -204,7 +204,7 @@ export const CartPage: React.FC = () => {
         <div>
           <h1 className="cart-title">Your Shopping Cart</h1>
           <p className="cart-subtitle">
-            {totalItems} {totalItems === 1 ? 'item' : 'items'} in your cart
+            {totalItems} {totalItems === 1 ? 'product' : 'products'} in your cart
           </p>
         </div>
 
@@ -300,7 +300,6 @@ export const CartPage: React.FC = () => {
               items.map((item) => {
                 const prod = item.product || {};
                 const price = prod.discountPrice ?? prod.price ?? 0;
-                const originalPrice = prod.price ?? price;
                 const title = prod.title || 'Agricultural Product';
                 const category = (prod.category as any)?.name || 'Bio-Inputs & Farming';
                 const image = prod.images?.[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600';
@@ -395,9 +394,6 @@ export const CartPage: React.FC = () => {
                     {/* Price Cell */}
                     <div className="cart-price-cell">
                       <span className="cart-current-price">₹{Number(price).toFixed(2)}</span>
-                      {prod.discountPrice && (
-                        <span className="cart-original-price">₹{Number(originalPrice).toFixed(2)}</span>
-                      )}
                     </div>
 
                     {/* Total Cell */}
@@ -615,7 +611,7 @@ export const CartPage: React.FC = () => {
             {/* Price Line Items */}
             <div className="cart-summary-lines">
               <div className="cart-summary-row">
-                <span className="cart-summary-label">Subtotal ({totalItems} items)</span>
+                <span className="cart-summary-label">Subtotal ({totalItems} {totalItems === 1 ? 'product' : 'products'})</span>
                 <span className="cart-summary-val">₹{subtotal.toFixed(2)}</span>
               </div>
 
