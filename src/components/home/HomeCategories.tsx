@@ -7,7 +7,7 @@ import { getUploadUrl } from '../../utils/image';
 import organicFarmingImage from '../../assets/categories/organic-farming.png';
 import chemicalImage from '../../assets/categories/chemical.png';
 import trapsImage from '../../assets/categories/traps.jpg';
-import seedlingsImage from '../../assets/categories/seedlings.png';
+import SeedlingsImage from '../../assets/categories/Seedlings.png';
 import seedsImage from '../../assets/categories/seeds.png';
 import farmEquipmentImage from '../../assets/categories/farm-equipment.png';
 
@@ -17,7 +17,7 @@ const CATEGORY_IMAGES: Record<string, string> = {
   'organic-farming': organicFarmingImage,
   chemical: chemicalImage,
   traps: trapsImage,
-  seedlings: seedlingsImage,
+  Seedlings: SeedlingsImage,
   seeds: seedsImage,
   'farm-equipment': farmEquipmentImage,
 };

@@ -26,6 +26,7 @@ import { useUIStore } from '../store/uiStore';
 import { Product } from '@formerbench/shared';
 import { couponService } from '../services/coupon.service';
 import { PostalLocation, postalCodeService } from '../services/postalCode.service';
+import { getUploadUrl } from '../utils/image';
 import './CartPage.css';
 
 interface SavedItemData {
@@ -79,7 +80,6 @@ export const CartPage: React.FC = () => {
 
   const handleAddRecommendedToCart = (prod: Product) => {
     addToCart(prod, 1);
-    addToast({ type: 'success', message: `${prod.title} added to cart!` });
   };
 
   const handleNextRec = () => {
@@ -302,7 +302,7 @@ export const CartPage: React.FC = () => {
                 const price = prod.discountPrice ?? prod.price ?? 0;
                 const title = prod.title || 'Agricultural Product';
                 const category = (prod.category as any)?.name || 'Bio-Inputs & Farming';
-                const image = prod.images?.[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600';
+                const image = getUploadUrl(prod.images?.[0], 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600');
                 const packSize = item.selectedAttributes?.packSize || '500 g';
                 const rating = prod.rating || 4.6;
                 const reviewsCount = prod.numReviews || 14;
@@ -456,7 +456,7 @@ export const CartPage: React.FC = () => {
               <div className="cart-saved-grid">
                 {savedItems.map((sItem) => (
                   <div key={sItem.id} className="cart-saved-card">
-                    <img src={sItem.image} alt={sItem.title} className="cart-saved-img" />
+                    <img src={getUploadUrl(sItem.image)} alt={sItem.title} className="cart-saved-img" />
                     <div className="cart-saved-info">
                       <h4 className="cart-saved-title">{sItem.title}</h4>
                       <span className="cart-saved-price">₹{Number(sItem.price).toFixed(2)}</span>
@@ -507,7 +507,7 @@ export const CartPage: React.FC = () => {
                     <div key={prod.id} className="cart-rec-card">
                       <div className="cart-rec-img-wrap">
                         {prodImage ? (
-                          <img src={prodImage} alt={prod.title} className="cart-rec-img" />
+                          <img src={getUploadUrl(prodImage)} alt={prod.title} className="cart-rec-img" />
                         ) : (
                           <div
                             className="cart-rec-img"

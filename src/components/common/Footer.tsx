@@ -115,7 +115,7 @@ export const Footer: React.FC = () => {
                   <li><Link to="/products?category=organic-farming" className="AgriEra-footer-link">Organic Farming</Link></li>
                   <li><Link to="/products?category=chemical" className="AgriEra-footer-link">Chemical</Link></li>
                   <li><Link to="/products?category=traps" className="AgriEra-footer-link">Traps</Link></li>
-                  <li><Link to="/products?category=seedlings" className="AgriEra-footer-link">Seedlings</Link></li>
+                  <li><Link to="/products?category=Seedlings" className="AgriEra-footer-link">Seedlings</Link></li>
                   <li><Link to="/products?category=seeds" className="AgriEra-footer-link">Seeds</Link></li>
                   <li><Link to="/products?category=farm-equipment" className="AgriEra-footer-link">Farm Equipment</Link></li>
                 </>

@@ -7,6 +7,7 @@ import { AuthModal } from './components/auth/AuthModal';
 import { ToastContainer } from './components/common/Toast';
 import { ChatWidget } from './components/chat/ChatWidget';
 import { ScrollToTop } from './components/common/ScrollToTop';
+import { PageLoader } from './components/common/PageLoader';
 import { useThemeStore } from './store/themeStore';
 import { LanguageProvider } from './context/LanguageContext';
 import { AlertTriangle, Clock3, Sprout } from 'lucide-react';
@@ -184,17 +185,26 @@ const AppContent: React.FC = () => {
 
 export const App: React.FC = () => {
   const { theme } = useThemeStore();
+  const [isPageLoading, setIsPageLoading] = useState(true);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
+  useEffect(() => {
+    const loaderTimer = window.setTimeout(() => setIsPageLoading(false), 900);
+    return () => window.clearTimeout(loaderTimer);
+  }, []);
+
   return (
-    <Router>
-      <LanguageProvider>
-        <AppContent />
-      </LanguageProvider>
-    </Router>
+    <>
+      {isPageLoading && <PageLoader />}
+      <Router>
+        <LanguageProvider>
+          <AppContent />
+        </LanguageProvider>
+      </Router>
+    </>
   );
 };
 

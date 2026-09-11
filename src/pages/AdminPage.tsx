@@ -76,6 +76,21 @@ import { useServiceBookings, useServiceBookingStats, useServiceBookingMutations 
 import { ServiceBooking, ServiceBookingStatus } from '../types/serviceBooking';
 import { useContacts, useContactStats, useContactMutations, Contact } from '../hooks/useContacts';
 
+const normalizeProductImageUrl = (rawValue: unknown): string => {
+  if (typeof rawValue !== 'string') return '';
+
+  const value = rawValue.trim().replace(/\\/g, '/');
+  if (!value || value.includes('..')) return '';
+  if (/^https?:\/\//i.test(value)) return value;
+  if (/^[a-z][a-z\d+.-]*:/i.test(value)) return '';
+
+  const uploadsIndex = value.toLowerCase().indexOf('/uploads/');
+  if (uploadsIndex >= 0) return value.slice(uploadsIndex);
+
+  const relativePath = value.replace(/^\/+/, '').replace(/^uploads\/+/, '');
+  return relativePath ? '/uploads/' + relativePath : '';
+};
+
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, isAdmin, isLoading, logout } = useAuth();
@@ -227,6 +242,41 @@ export const AdminPage: React.FC = () => {
   const galleryFileInputRef = React.useRef<HTMLInputElement | null>(null);
   const replaceFileInputRef = React.useRef<HTMLInputElement | null>(null);
   const [activeReplaceTargetIndex, setActiveReplaceTargetIndex] = useState<number | null>(null);
+  const [uploadingResultImage, setUploadingResultImage] = useState<'beforeImage' | 'afterImage' | null>(null);
+
+  const handleUploadResultImage = async (
+    target: 'beforeImage' | 'afterImage',
+    file?: File
+  ) => {
+    if (!file) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.type)) {
+      addToast({ type: 'error', message: 'Only JPEG, PNG, WebP, GIF, SVG are supported.' });
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      addToast({ type: 'error', message: 'Image size cannot exceed 10MB.' });
+      return;
+    }
+
+    setUploadingResultImage(target);
+    try {
+      const res = await uploadService.uploadImage(file, 'products/gallery');
+      const uploadedUrl = normalizeProductImageUrl(res?.data?.url);
+      if (!uploadedUrl) throw new Error('Upload returned an invalid image path');
+
+      setCmsForm((prev: any) => ({
+        ...prev,
+        beforeAfter: { ...prev.beforeAfter, [target]: uploadedUrl },
+      }));
+      addToast({ type: 'success', message: `${target === 'beforeImage' ? 'Before' : 'After'} image uploaded successfully` });
+    } catch (err: any) {
+      addToast({ type: 'error', message: err?.message || 'Failed to upload result image' });
+    } finally {
+      setUploadingResultImage(null);
+    }
+  };
 
   const handleUploadGalleryFiles = async (files: FileList | File[]) => {
     const fileList = Array.from(files);
@@ -258,8 +308,8 @@ export const AdminPage: React.FC = () => {
         try {
           const res = await uploadService.uploadImage(file, 'products/gallery');
           if (res?.data?.url) {
-            const url = res.data.url;
-            successfullyUploaded.push(url);
+            const url = normalizeProductImageUrl(res.data.url);
+            if (url) successfullyUploaded.push(url);
           }
         } catch (err: any) {
           const errMsg = err?.message || 'Failed to upload ' + file.name;
@@ -307,7 +357,8 @@ export const AdminPage: React.FC = () => {
     try {
       const res = await uploadService.uploadImage(file, 'products/gallery');
       if (res?.data?.url) {
-        const newUrl = res.data.url;
+        const newUrl = normalizeProductImageUrl(res.data.url);
+        if (!newUrl) throw new Error('Upload returned an invalid image path');
         setCmsForm((prev: any) => {
           const updated = [...prev.images];
           updated[index] = newUrl;
@@ -1939,7 +1990,7 @@ export const AdminPage: React.FC = () => {
                             }}
                           >
                             <div className="admin-search-item-left">
-                              <img src={p.image} alt={p.name} className="admin-search-item-thumb" />
+                              <img src={getUploadUrl(p.image)} alt={p.name} className="admin-search-item-thumb" />
                               <div className="admin-search-item-meta">
                                 <span className="admin-search-item-title">{p.name}</span>
                                 <span className="admin-search-item-sub">{p.category} • {p.sku}</span>
@@ -2616,7 +2667,7 @@ export const AdminPage: React.FC = () => {
                     {products.slice(0, 4).map((prod) => (
                       <div key={prod.id} className="admin-top-product-row">
                         <div className="admin-top-product-left">
-                          <img src={prod.image} alt={prod.name} className="admin-top-product-thumb" />
+                          <img src={getUploadUrl(prod.image)} alt={prod.name} className="admin-top-product-thumb" />
                           <div style={{ minWidth: 0 }}>
                             <div className="admin-top-product-name">{prod.name}</div>
                             <div className="admin-top-product-sold">{prod.sold} sold</div>
@@ -2813,7 +2864,7 @@ export const AdminPage: React.FC = () => {
                       <tr key={prod.id}>
                         <td>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                            <img src={prod.image} alt={prod.name} className="admin-prod-thumb-cell" />
+                            <img src={getUploadUrl(prod.image)} alt={prod.name} className="admin-prod-thumb-cell" />
                             <div>
                               <div style={{ fontWeight: 700, color: '#0F291B' }}>{prod.name}</div>
                               {prod.featured && (
@@ -3013,7 +3064,7 @@ export const AdminPage: React.FC = () => {
                       <tr key={p.id}>
                         <td>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                            <img src={p.image} alt={p.name} className="admin-prod-thumb-cell" />
+                            <img src={getUploadUrl(p.image)} alt={p.name} className="admin-prod-thumb-cell" />
                             <div>
                               <div style={{ fontWeight: 700 }}>{p.name}</div>
                               <div style={{ fontSize: '0.72rem', color: '#64748B' }}>SKU: {p.sku}</div>
@@ -5228,7 +5279,9 @@ export const AdminPage: React.FC = () => {
                 const categoryId = cmsForm.categoryId || dbCategories[0]?.id;
                 const subcategoryId = cmsForm.subcategoryId || null;
                 const description = cmsForm.description.trim() || 'Premium certified organic agricultural input.';
-                const images = cmsForm.images.filter((img: string) => Boolean(img.trim()));
+                const images = Array.isArray(cmsForm.images)
+                  ? cmsForm.images.map(normalizeProductImageUrl).filter(Boolean)
+                  : [];
                 const packSizes = variants.length > 0
                   ? variants.map((v: any) => v.label)
                   : (Array.isArray(cmsForm.packSizes) ? cmsForm.packSizes.filter((p: string) => Boolean(p.trim())) : ['500 g', '1 kg', '5 kg']);
@@ -6034,31 +6087,45 @@ export const AdminPage: React.FC = () => {
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.35rem' }}>
                         <div className="admin-form-group">
                           <label className="admin-form-label" style={{ fontSize: '0.75rem' }}>Before Image URL</label>
-                          <input
-                            value={cmsForm.beforeAfter?.beforeImage || ''}
-                            onChange={(e) =>
-                              setCmsForm({
-                                ...cmsForm,
-                                beforeAfter: { ...cmsForm.beforeAfter, beforeImage: e.target.value },
-                              })
-                            }
-                            placeholder="https://..."
-                            className="admin-form-input"
-                          />
+                          <div className="admin-result-image-input-row">
+                            <input
+                              value={cmsForm.beforeAfter?.beforeImage || ''}
+                              onChange={(e) =>
+                                setCmsForm({
+                                  ...cmsForm,
+                                  beforeAfter: { ...cmsForm.beforeAfter, beforeImage: e.target.value },
+                                })
+                              }
+                              placeholder="https://..."
+                              className="admin-form-input"
+                            />
+                            <label className={`admin-result-upload-btn ${uploadingResultImage === 'beforeImage' ? 'is-uploading' : ''}`}>
+                              {uploadingResultImage === 'beforeImage' ? <Loader2 size={15} className="admin-result-upload-spinner" /> : <Upload size={15} />}
+                              <span>{uploadingResultImage === 'beforeImage' ? 'Uploading' : 'Upload'}</span>
+                              <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml" disabled={uploadingResultImage !== null} onChange={(e) => { void handleUploadResultImage('beforeImage', e.target.files?.[0]); e.currentTarget.value = ''; }} />
+                            </label>
+                          </div>
                         </div>
                         <div className="admin-form-group">
                           <label className="admin-form-label" style={{ fontSize: '0.75rem' }}>After Image URL</label>
-                          <input
-                            value={cmsForm.beforeAfter?.afterImage || ''}
-                            onChange={(e) =>
-                              setCmsForm({
-                                ...cmsForm,
-                                beforeAfter: { ...cmsForm.beforeAfter, afterImage: e.target.value },
-                              })
-                            }
-                            placeholder="https://..."
-                            className="admin-form-input"
-                          />
+                          <div className="admin-result-image-input-row">
+                            <input
+                              value={cmsForm.beforeAfter?.afterImage || ''}
+                              onChange={(e) =>
+                                setCmsForm({
+                                  ...cmsForm,
+                                  beforeAfter: { ...cmsForm.beforeAfter, afterImage: e.target.value },
+                                })
+                              }
+                              placeholder="https://..."
+                              className="admin-form-input"
+                            />
+                            <label className={`admin-result-upload-btn ${uploadingResultImage === 'afterImage' ? 'is-uploading' : ''}`}>
+                              {uploadingResultImage === 'afterImage' ? <Loader2 size={15} className="admin-result-upload-spinner" /> : <Upload size={15} />}
+                              <span>{uploadingResultImage === 'afterImage' ? 'Uploading' : 'Upload'}</span>
+                              <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml" disabled={uploadingResultImage !== null} onChange={(e) => { void handleUploadResultImage('afterImage', e.target.files?.[0]); e.currentTarget.value = ''; }} />
+                            </label>
+                          </div>
                         </div>
                       </div>
                     </div>

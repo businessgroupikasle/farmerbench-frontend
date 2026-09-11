@@ -182,7 +182,7 @@ export const ProductDetailPage: React.FC = () => {
 
   const handleAddToCart = () => {
     if (isOutOfStock) return;
-    const wasAdded = addToCart(
+    addToCart(
       {
         ...product,
         price: currentMrp,
@@ -197,11 +197,6 @@ export const ProductDetailPage: React.FC = () => {
         sku: skuCode,
       }
     );
-    if (!wasAdded) return;
-    addToast({
-      type: 'success',
-      message: `Added ${quantity} × ${product.title} (${selectedPackSize}) to bag at ₹${currentPrice.toFixed(2)} each!`,
-    });
   };
 
   const handleBuyNow = () => {

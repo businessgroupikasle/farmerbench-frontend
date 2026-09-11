@@ -5,6 +5,7 @@ import { X, Trash2, ArrowRight, ShoppingBag } from 'lucide-react';
 import { QuantitySelector } from '../product/QuantitySelector';
 import { Button } from '../common/Button';
 import { Link, useNavigate } from 'react-router-dom';
+import { getUploadUrl } from '../../utils/image';
 import './CartDrawer.css';
 
 export const CartDrawer: React.FC = () => {
@@ -109,7 +110,7 @@ export const CartDrawer: React.FC = () => {
                   }}
                 >
                   <img
-                    src={product.images[0] || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200'}
+                    src={getUploadUrl(product.images?.[0], 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200')}
                     alt={product.title}
                     style={{
                       width: '72px',

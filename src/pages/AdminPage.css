@@ -2616,3 +2616,45 @@
     display: none;
   }
 }
+/* Before / After result image URL and direct upload controls */
+.admin-result-image-input-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.admin-result-image-input-row .admin-form-input {
+  min-width: 0;
+  flex: 1;
+}
+
+.admin-result-upload-btn {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-width: 92px;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid #b9d7bf;
+  border-radius: 8px;
+  background: #eef8f0;
+  color: #0f5a2c;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-result-upload-btn:hover { background: #e1f2e5; }
+.admin-result-upload-btn.is-uploading { cursor: wait; opacity: 0.75; }
+.admin-result-upload-btn input { display: none; }
+.admin-result-upload-spinner { animation: admin-result-upload-spin 0.8s linear infinite; }
+
+@keyframes admin-result-upload-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 640px) {
+  .admin-result-image-input-row { flex-direction: column; }
+  .admin-result-upload-btn { width: 100%; }
+}

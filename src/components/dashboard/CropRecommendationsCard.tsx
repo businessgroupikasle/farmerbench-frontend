@@ -1,6 +1,7 @@
 import React from 'react';
 import { Sprout, Package } from 'lucide-react';
 import { Product } from '@formerbench/shared';
+import { getUploadUrl } from '../../utils/image';
 
 interface CropRecommendationsCardProps {
   cropName?: string;
@@ -45,7 +46,7 @@ export const CropRecommendationsCard: React.FC<CropRecommendationsCardProps> = (
                 style={{ cursor: 'pointer' }}
               >
                 {item.images?.[0] ? (
-                  <img src={item.images[0]} alt={item.title} className="fb-recom-item-img" />
+                  <img src={getUploadUrl(item.images[0])} alt={item.title} className="fb-recom-item-img" />
                 ) : (
                   <div
                     className="fb-recom-item-img"

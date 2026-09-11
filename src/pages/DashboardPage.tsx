@@ -131,7 +131,6 @@ export const DashboardPage: React.FC = () => {
       updatedAt: new Date().toISOString(),
     };
     addToCart(prodPayload, 1);
-    addToast({ type: 'success', message: `Added ${product.title} to cart!` });
   };
 
   const handleBuyAgain = (order: Order | any) => {

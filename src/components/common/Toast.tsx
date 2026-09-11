@@ -21,7 +21,7 @@ export const ToastContainer: React.FC = () => {
         width: 'calc(100% - 3rem)',
       }}
     >
-      {toasts.map((toast) => {
+      {toasts.slice(-1).map((toast) => {
         let Icon = CheckCircle2;
         let borderColor = 'var(--color-success)';
         let iconColor = 'var(--color-success)';

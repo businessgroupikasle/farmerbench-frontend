@@ -32,7 +32,8 @@ export const useUIStore = create<UIState>((set, get) => ({
     const duration = toast.duration ?? 4000;
     const newToast: ToastMessage = { ...toast, id, duration };
 
-    set({ toasts: [...get().toasts, newToast] });
+    // Keep only one active toast message at a time
+    set({ toasts: [newToast] });
 
     if (duration > 0) {
       setTimeout(() => {

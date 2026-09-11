@@ -1,0 +1,89 @@
+.agri-page-loader {
+  position: fixed;
+  z-index: 99999;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: radial-gradient(circle at 50% 42%, #f8fff4 0%, #edf8e8 48%, #e1f1dc 100%);
+}
+
+.agri-page-loader-brand {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  color: #165b33;
+}
+
+.agri-page-loader-logo-ring {
+  display: grid;
+  width: 96px;
+  height: 96px;
+  place-items: center;
+  border: 2px solid rgba(136, 207, 58, 0.35);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 14px 38px rgba(22, 91, 51, 0.16);
+  animation: agri-loader-pulse 1.4s ease-in-out infinite;
+}
+
+.agri-page-loader-logo {
+  width: 76px;
+  height: 76px;
+  object-fit: contain;
+  border-radius: 50%;
+}
+
+.agri-page-loader-name {
+  margin-top: 1rem;
+  font-family: var(--font-display, "Outfit", sans-serif);
+  font-size: 1.65rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.agri-page-loader-message {
+  margin-top: 0.25rem;
+  color: #66806f;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.agri-page-loader-progress {
+  width: 126px;
+  height: 4px;
+  margin-top: 1rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(22, 91, 51, 0.12);
+}
+
+.agri-page-loader-progress span {
+  display: block;
+  width: 45%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #165b33, #88cf3a);
+  animation: agri-loader-progress 1s ease-in-out infinite;
+}
+
+@keyframes agri-loader-pulse {
+  50% { transform: scale(1.06); box-shadow: 0 18px 46px rgba(22, 91, 51, 0.23); }
+}
+
+@keyframes agri-loader-progress {
+  from { transform: translateX(-110%); }
+  to { transform: translateX(225%); }
+}
+
+@media (max-width: 540px) {
+  .agri-page-loader-logo-ring { width: 84px; height: 84px; }
+  .agri-page-loader-logo { width: 66px; height: 66px; }
+  .agri-page-loader-name { font-size: 1.45rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .agri-page-loader-logo-ring,
+  .agri-page-loader-progress span { animation: none; }
+}

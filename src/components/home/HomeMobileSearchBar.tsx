@@ -15,7 +15,7 @@ const DEFAULT_MAIN_CATEGORIES: CategoryItem[] = [
   { id: 'organic-farming', name: 'Organic Farming', slug: 'organic-farming' },
   { id: 'chemical', name: 'Chemical', slug: 'chemical' },
   { id: 'traps', name: 'Traps', slug: 'traps' },
-  { id: 'seedlings', name: 'Seedlings', slug: 'seedlings' },
+  { id: 'Seedlings', name: 'Seedlings', slug: 'Seedlings' },
   { id: 'seeds', name: 'Seeds', slug: 'seeds' },
   { id: 'farm-equipment', name: 'Farm Equipment', slug: 'farm-equipment' },
 ];
@@ -43,7 +43,7 @@ export const HomeMobileSearchBar: React.FC = () => {
         .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
     : DEFAULT_MAIN_CATEGORIES;
 
-  // Format category name with clean Title Case (e.g. "seedlings" -> "Seedlings")
+  // Format category name with clean Title Case (e.g. "Seedlings" -> "Seedlings")
   const formatCategoryName = (name: string) => {
     if (!name) return '';
     return name

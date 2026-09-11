@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowRight, Check, Truck, Download, Eye, Package, ShoppingBag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Order } from '@formerbench/shared';
+import { getUploadUrl } from '../../utils/image';
 
 interface ActiveOrderCardProps {
   activeOrder?: Order | null;
@@ -150,7 +151,7 @@ export const ActiveOrderCard: React.FC<ActiveOrderCardProps> = ({
           {items.slice(0, 3).map((item) => (
             <div key={item.id} className="fb-order-item-thumb">
               {item.imageUrl ? (
-                <img src={item.imageUrl} alt={item.title} className="fb-order-item-img" />
+                <img src={getUploadUrl(item.imageUrl)} alt={item.title} className="fb-order-item-img" />
               ) : (
                 <div
                   className="fb-order-item-img"
