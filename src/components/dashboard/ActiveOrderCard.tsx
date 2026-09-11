@@ -133,7 +133,7 @@ export const ActiveOrderCard: React.FC<ActiveOrderCardProps> = ({
 
       {/* Meta Row */}
       <div className="fb-active-order-meta">
-        <div>
+        <div className="fb-order-meta-info">
           <span className="fb-order-id-badge">Order {orderId}</span>
           <span className="fb-order-date">Placed on {placedDate}</span>
         </div>
@@ -228,7 +228,7 @@ export const ActiveOrderCard: React.FC<ActiveOrderCardProps> = ({
 
       {/* Action Footer */}
       <div className="fb-order-actions-bar">
-        <div style={{ display: 'flex', gap: '0.65rem' }}>
+        <div className="fb-order-actions-buttons">
           <button
             className="fb-btn-primary-dark"
             onClick={() => onTrackOrder(activeOrder)}

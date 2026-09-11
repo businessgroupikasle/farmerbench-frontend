@@ -10,7 +10,7 @@ import { Order, Product } from '@formerbench/shared';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 
 // Dashboard Components
-import { DashboardSidebar } from '../components/dashboard/DashboardSidebar';
+import { DashboardSidebar, DashboardMobileBar } from '../components/dashboard/DashboardSidebar';
 import { DashboardStats } from '../components/dashboard/DashboardStats';
 import { ActiveOrderCard } from '../components/dashboard/ActiveOrderCard';
 import { DefaultAddressCard } from '../components/dashboard/DefaultAddressCard';
@@ -60,6 +60,7 @@ export const DashboardPage: React.FC = () => {
 
   // Active Tab State
   const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   // Modal States
   const [isTrackingModalOpen, setIsTrackingModalOpen] = useState(false);
@@ -216,6 +217,16 @@ export const DashboardPage: React.FC = () => {
 
   return (
     <div className="fb-dashboard-container">
+      {/* Mobile Top Navigation Trigger Bar - Directly below Navbar */}
+      <DashboardMobileBar
+        user={user}
+        activeTab={activeTab}
+        ordersCount={orders.length}
+        wishlistCount={wishlistItems.length}
+        doctorRequestsCount={cropDoctorRequestCount}
+        onOpenMenu={() => setIsMobileSidebarOpen(true)}
+      />
+
       {/* Top 4 KPI Metric Summary Cards */}
       <DashboardStats
         activeOrdersCount={activeOrdersList.length}
@@ -237,7 +248,9 @@ export const DashboardPage: React.FC = () => {
           }}
           ordersCount={orders.length}
           wishlistCount={wishlistItems.length}
-        doctorRequestsCount={cropDoctorRequestCount}
+          doctorRequestsCount={cropDoctorRequestCount}
+          isMobileOpen={isMobileSidebarOpen}
+          setIsMobileOpen={setIsMobileSidebarOpen}
         />
 
         {/* Right Main Dashboard Area */}
