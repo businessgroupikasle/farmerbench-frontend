@@ -1550,6 +1550,9 @@
   .fb-cta-label-mobile { display: inline; }
 
   .fb-catalog-controls-bar {
+    box-sizing: border-box;
+    width: 100%;
+    padding-inline: 10px;
     flex-direction: column;
     align-items: flex-start;
     gap: .8rem;

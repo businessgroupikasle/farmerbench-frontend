@@ -23,16 +23,20 @@ export const HomePage: React.FC = () => {
 
       <section
         className="home-tagline-marquee"
-        aria-label="Empowering Farmers, Growing Tomorrow"
+        aria-label="Empowering Farmers, Growing Tomorrow. Smart Farming, Better Harvests. Innovation For Better Farming. Growing Agriculture, Creating Tomorrow."
       >
         <div className="home-tagline-marquee-track" aria-hidden="true">
           <div className="home-tagline-marquee-group">
             <span>Empowering <strong>Farmers</strong>, Growing <strong>Tomorrow</strong></span>
-            <span>Empowering <strong>Farmers</strong>, Growing <strong>Tomorrow</strong></span>
+            <span>Smart <strong>Farming</strong>, Better <strong>Harvests</strong></span>
+            <span>Innovation For <strong>Better Farming</strong></span>
+            <span>Growing <strong>Agriculture</strong>, Creating <strong>Tomorrow</strong></span>
           </div>
           <div className="home-tagline-marquee-group">
             <span>Empowering <strong>Farmers</strong>, Growing <strong>Tomorrow</strong></span>
-            <span>Empowering <strong>Farmers</strong>, Growing <strong>Tomorrow</strong></span>
+            <span>Smart <strong>Farming</strong>, Better <strong>Harvests</strong></span>
+            <span>Innovation For <strong>Better Farming</strong></span>
+            <span>Growing <strong>Agriculture</strong>, Creating <strong>Tomorrow</strong></span>
           </div>
         </div>
       </section>

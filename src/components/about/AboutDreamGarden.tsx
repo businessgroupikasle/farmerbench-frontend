@@ -1,9 +1,9 @@
-﻿import React from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Sprout } from 'lucide-react';
 import greenhouseImg from '../../assets/about-garden-greenhouse.jpg';
 import gardenManImg from '../../assets/about-garden-man.jpg';
-import gardenWomanImg from '../../assets/about-garden-woman-pot.jpg';
+import gardenWomanImg from '../../assets/about-garden-woman-pot.jpeg';
 
 export const AboutDreamGarden: React.FC = () => {
   const leftFeatures = [
