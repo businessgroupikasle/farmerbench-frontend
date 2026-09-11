@@ -171,7 +171,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Copyright & Payment Badges */}
         <div className="AgriEra-footer-bottom-bar">
           <p className="AgriEra-copyright">
-            © 2024 AgriEra. All Rights Reserved.
+            © {new Date().getFullYear()} AgriEra. All Rights Reserved.
           </p>
 
           <div className="AgriEra-payment-badges">

@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import farmVisitImg from '../../assets/farm-visit-inspection.jpg';
 
 export const ServicesFarmVisit: React.FC = () => {

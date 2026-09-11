@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Star } from 'lucide-react';
+import { Star, Search, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCategories } from '../../hooks/useCategories';
 import { useProducts } from '../../hooks/useProducts';
@@ -11,20 +11,38 @@ const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1574943320219-553eb213
 export const HomeOurProducts: React.FC = () => {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState('best-selling');
+  const [searchQuery, setSearchQuery] = useState('');
   const { data: response, isLoading } = useProducts({ limit: 100 });
   const { data: categories = [] } = useCategories();
   const products = response?.data || [];
 
   const categoryTabs = useMemo(() => categories
     .filter((category) => category.isActive !== false && products.some((product) => product.categoryId === category.id))
-    .slice(0, 2), [categories, products]);
+    .slice(0, 4), [categories, products]);
 
   const visibleProducts = useMemo(() => {
-    const filtered = activeCategory === 'best-selling'
+    let list = activeCategory === 'best-selling'
       ? [...products].sort((a, b) => Number(b.featured) - Number(a.featured) || b.rating - a.rating)
       : products.filter((product) => product.categoryId === activeCategory);
-    return filtered.slice(0, 8);
-  }, [activeCategory, products]);
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      list = list.filter((product) =>
+        product.title?.toLowerCase().includes(q) ||
+        product.description?.toLowerCase().includes(q) ||
+        product.category?.name?.toLowerCase().includes(q) ||
+        product.subcategory?.name?.toLowerCase().includes(q)
+      );
+    }
+    return list.slice(0, 8);
+  }, [activeCategory, products, searchQuery]);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
   if (isLoading || products.length === 0) return null;
 
@@ -36,12 +54,65 @@ export const HomeOurProducts: React.FC = () => {
         <p>Our most loved, high-quality agricultural products recommended for your farm.</p>
       </header>
 
+      {/* Interactive Product Search Bar */}
+      <form className="agriflow-products-search" onSubmit={handleSearchSubmit} role="search">
+        <div className="agriflow-products-search-inner">
+          <Search size={18} className="agriflow-products-search-icon" aria-hidden="true" />
+          <input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search products (e.g. neem oil, seeds, traps)..."
+            aria-label="Search best selling products"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              className="agriflow-products-search-clear"
+              onClick={() => setSearchQuery('')}
+              aria-label="Clear search"
+            >
+              <X size={15} />
+            </button>
+          )}
+          <button type="submit" className="agriflow-products-search-btn">
+            Search
+          </button>
+        </div>
+      </form>
+
       <div className="agriflow-product-tabs" role="tablist" aria-label="Product categories">
-        <button type="button" className={activeCategory === 'best-selling' ? 'active' : ''} onClick={() => setActiveCategory('best-selling')}>Best Seller</button>
+        <button
+          type="button"
+          className={activeCategory === 'best-selling' ? 'active' : ''}
+          onClick={() => setActiveCategory('best-selling')}
+        >
+          Best Seller
+        </button>
         {categoryTabs.map((category) => (
-          <button key={category.id} type="button" className={activeCategory === category.id ? 'active' : ''} onClick={() => setActiveCategory(category.id)}>{category.name}</button>
+          <button
+            key={category.id}
+            type="button"
+            className={activeCategory === category.id ? 'active' : ''}
+            onClick={() => setActiveCategory(category.id)}
+          >
+            {category.name}
+          </button>
         ))}
       </div>
+
+      {visibleProducts.length === 0 && searchQuery.trim() && (
+        <div className="agriflow-products-empty-search">
+          <p>No products found matching &ldquo;{searchQuery}&rdquo; in this category.</p>
+          <button
+            type="button"
+            className="agriflow-search-catalog-btn"
+            onClick={() => navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`)}
+          >
+            Search all catalog for &ldquo;{searchQuery}&rdquo;
+          </button>
+        </div>
+      )}
 
       <div className="agriflow-products-grid">
         {visibleProducts.map((item) => {
@@ -52,7 +123,16 @@ export const HomeOurProducts: React.FC = () => {
           const packSize = item.attributes?.packSize || item.attributes?.unit || item.attributes?.weight || item.attributes?.packSizes?.[0];
 
           return (
-            <article key={item.id} className="agriflow-product-item" onClick={() => navigate(`/product/${item.slug || item.id}`)} role="link" tabIndex={0} onKeyDown={(event) => { if (event.key === 'Enter') navigate(`/product/${item.slug || item.id}`); }}>
+            <article
+              key={item.id}
+              className="agriflow-product-item"
+              onClick={() => navigate(`/product/${item.slug || item.id}`)}
+              role="link"
+              tabIndex={0}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') navigate(`/product/${item.slug || item.id}`);
+              }}
+            >
               <div className="agriflow-product-img-box">
                 <img src={image} alt={item.title} loading="lazy" onError={(event) => { event.currentTarget.src = FALLBACK_IMAGE; }} />
                 {discounted && <span className="agriflow-product-discount">{discount}% off</span>}

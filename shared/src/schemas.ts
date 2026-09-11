@@ -1,4 +1,4 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 
 const IndianMobileSchema = z
   .string()
@@ -192,7 +192,10 @@ export const CreateProductSchema = z.object({
   discountPrice: z.number().positive('Discount price must be greater than 0').optional().nullable(),
   stock: z.number().int().nonnegative('Stock cannot be negative'),
   featured: z.boolean().default(false),
-  images: z.array(z.string().url('Invalid image URL')).min(1, 'At least one image is required'),
+  images: z.array(z.string().refine(
+    (value) => /^https?:\/\//i.test(value) || value.startsWith('/uploads/'),
+    'Invalid image URL'
+  )).min(1, 'At least one image is required'),
   attributes: z.record(z.any()).optional().nullable(),
   categoryId: z.string().uuid('Invalid category ID'),
   subcategoryId: z.string().uuid('Invalid subcategory ID').optional().nullable(),
@@ -423,4 +426,3 @@ export type ServiceBookingQueryInput = z.infer<typeof ServiceBookingQuerySchema>
 export type CreateBlogSchemaInput = z.infer<typeof CreateBlogSchema>;
 export type UpdateBlogSchemaInput = z.infer<typeof UpdateBlogSchema>;
 export type BlogQuerySchemaInput = z.infer<typeof BlogQuerySchema>;
-

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../hooks/useCart';
@@ -139,13 +139,14 @@ export const Navbar: React.FC = () => {
 
               {/* 2. Crop Services Dropdown on Hover */}
               <div className="agriflow-dropdown-wrapper">
-                <Link
-                  to="/services"
+                <button
+                  type="button"
                   className={`agriflow-nav-link agriflow-dropdown-trigger ${isCropServices ? 'active-text' : ''}`}
+                  aria-haspopup="menu"
                 >
                   <span>Crop Services</span>
                   <ChevronDown size={14} className="agriflow-dropdown-chevron" />
-                </Link>
+                </button>
                 <div className="agriflow-nav-dropdown-menu">
                   <Link to="/crop-doctor" className="agriflow-dropdown-subitem">
                     <div className="agriflow-dropdown-icon-box">
@@ -319,9 +320,9 @@ export const Navbar: React.FC = () => {
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.25rem' }}>
-              <Link to="/services" onClick={() => setIsMobileMenuOpen(false)} className={`agriflow-nav-link ${isCropServices ? 'active-text' : ''}`} style={{ fontWeight: 700 }}>
+              <button type="button" className={`agriflow-nav-link ${isCropServices ? 'active-text' : ''}`} style={{ fontWeight: 700, padding: 0, border: 0, background: 'none', textAlign: 'left' }}>
                 Crop Services
-              </Link>
+              </button>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', paddingLeft: '0.75rem', borderLeft: '2px solid rgba(136, 207, 58, 0.3)' }}>
                 <Link to="/crop-doctor" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <Stethoscope size={14} color="#88CF3A" /> Crop Doctor

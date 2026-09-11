@@ -1,4 +1,4 @@
-/* Navbar Component Styles */
+﻿/* Navbar Component Styles */
 .agriflow-header {
   position: sticky;
   top: 0;
@@ -104,6 +104,13 @@
   gap: 0.35rem;
   cursor: pointer;
   white-space: nowrap;
+}
+
+button.agriflow-dropdown-trigger {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
 }
 
 .agriflow-dropdown-chevron {

@@ -47,8 +47,8 @@
 
 @media (max-width: 560px) {
   .product-hero-container {
-    min-height: 250px;
-    padding: 18px 16px;
+    min-height: 200px;
+    padding: 14px 16px;
     align-items: center;
     border: 0;
     border-radius: 0;
@@ -59,8 +59,8 @@
   }
 
   .product-hero-banner {
-    width: 100%;
-    margin: -1rem 0 0;
+    width: calc(100% - 12px);
+    margin: -1rem auto 0;
   }
 
   .product-hero-left {

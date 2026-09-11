@@ -1,0 +1,143 @@
+/* Mobile Search Bar - Home Page */
+.home-mobile-search-section {
+  display: none;
+}
+
+@media (max-width: 980px) {
+  .home-mobile-search-section {
+    display: block;
+    background: #ffffff;
+    border-bottom: 1px solid #e1ebe3;
+    padding: 0.65rem 12px 0.5rem;
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 4px 14px rgba(22, 91, 51, 0.05);
+  }
+
+  .home-mobile-search-container {
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
+  .home-mobile-search-form {
+    width: 100%;
+  }
+
+  .home-mobile-search-input-wrap {
+    display: flex;
+    align-items: center;
+    background: #f4f8f5;
+    border: 1.5px solid #cfe0d3;
+    border-radius: 999px;
+    padding: 3px 4px 3px 12px;
+    transition: all 0.2s ease;
+  }
+
+  .home-mobile-search-input-wrap:focus-within {
+    border-color: #165b33;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(22, 91, 51, 0.1);
+  }
+
+  .home-mobile-search-icon {
+    color: #165b33;
+    flex-shrink: 0;
+    margin-right: 8px;
+  }
+
+  .home-mobile-search-input-wrap input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 0.88rem;
+    color: #18281f;
+    min-width: 0;
+    padding: 6px 0;
+  }
+
+  .home-mobile-search-input-wrap input::placeholder {
+    color: #728477;
+    font-size: 0.84rem;
+  }
+
+  .home-mobile-search-clear {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: none;
+    background: #e2ede5;
+    color: #4b6152;
+    cursor: pointer;
+    margin-right: 4px;
+    flex-shrink: 0;
+  }
+
+  .home-mobile-search-btn {
+    background: #165b33;
+    color: #ffffff;
+    border: none;
+    border-radius: 999px;
+    padding: 0.45rem 1rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: background-color 0.15s ease;
+  }
+
+  .home-mobile-search-btn:hover {
+    background: #0f4625;
+  }
+
+  .home-mobile-search-chips {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+
+  .home-mobile-search-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .home-mobile-chips-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #4b6354;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+
+  .home-mobile-chip {
+    flex-shrink: 0;
+    padding: 0.22rem 0.65rem;
+    border-radius: 999px;
+    border: 1px solid #dbe6dd;
+    background: #ffffff;
+    color: #274433;
+    font-size: 0.76rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .home-mobile-chip:hover,
+  .home-mobile-chip:active {
+    border-color: #165b33;
+    background: #edf6ef;
+    color: #165b33;
+  }
+}

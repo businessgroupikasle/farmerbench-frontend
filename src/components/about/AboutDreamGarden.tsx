@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link } from 'react-router-dom';
 import { Sprout } from 'lucide-react';
 import greenhouseImg from '../../assets/about-garden-greenhouse.jpg';
@@ -71,7 +71,7 @@ export const AboutDreamGarden: React.FC = () => {
                   />
                   <text className="about-garden-stamp-text">
                     <textPath href="#stampCirclePath" startOffset="0%">
-                      MORE ABOUT US • OUR GARDENING •
+                      MORE ABOUT US â€¢ OUR GARDENING â€¢
                     </textPath>
                   </text>
                 </svg>
@@ -123,7 +123,7 @@ export const AboutDreamGarden: React.FC = () => {
             <div className="about-garden-check-col">
               {leftFeatures.map((feat, idx) => (
                 <div key={idx} className="about-garden-check-item">
-                  <span className="about-garden-chevron">»</span>
+                  <span className="about-garden-chevron">Â»</span>
                   <span className="about-garden-check-label">{feat}</span>
                 </div>
               ))}
@@ -132,7 +132,7 @@ export const AboutDreamGarden: React.FC = () => {
             <div className="about-garden-check-col">
               {rightFeatures.map((feat, idx) => (
                 <div key={idx} className="about-garden-check-item">
-                  <span className="about-garden-chevron">»</span>
+                  <span className="about-garden-chevron">Â»</span>
                   <span className="about-garden-check-label">{feat}</span>
                 </div>
               ))}

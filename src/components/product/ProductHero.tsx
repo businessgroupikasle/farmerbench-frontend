@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Leaf, ShieldCheck, UserRoundCheck } from 'lucide-react';
 import heroProductsImg from '../../assets/product-hero-products.jpg';
 import './ProductHero.css';

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FlaskConical,
@@ -416,7 +416,7 @@ export const ServicesPage: React.FC = () => {
                   Call Request Received!
                 </h3>
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.98rem', marginBottom: '1.75rem', lineHeight: 1.6 }}>
-                  Our agronomist will call you back within 15 minutes during working hours (8:00 AM – 7:00 PM).
+                  Our agronomist will call you back within 15 minutes during working hours (8:00 AM â€“ 7:00 PM).
                 </p>
                 <button
                   onClick={() => setIsExpertModalOpen(false)}
