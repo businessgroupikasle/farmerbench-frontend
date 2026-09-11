@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowDown, ArrowUp, Edit3, Image as ImageIcon, Plus, Power, Trash2, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, Edit3, Image as ImageIcon, Plus, Power, Trash2, Upload, X } from 'lucide-react';
 import { HeroBanner, HeroPage } from '@formerbench/shared';
 import { useAdminHeroBanners, useHeroBannerMutations } from '../../hooks/useHeroBanners';
 import { uploadService } from '../../services/upload.service';
@@ -14,6 +14,7 @@ export const HeroBannerManager: React.FC = () => {
   const [form, setForm] = useState<any>(empty('HOME'));
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(() => typeof window !== 'undefined' && window.innerWidth > 768);
   const { data: banners = [] } = useAdminHeroBanners(page);
   const { createBanner, updateBanner, deleteBanner, reorderBanners } = useHeroBannerMutations();
 
@@ -24,8 +25,16 @@ export const HeroBannerManager: React.FC = () => {
   const remove = async (banner: HeroBanner) => { if (!window.confirm(`Permanently delete banner "${banner.title}"? This action cannot be undone.`)) return; await deleteBanner(banner.id); };
 
   return <div className="hero-manager">
-    <div className="admin-card-header"><div><h2 className="admin-welcome-title" style={{ fontSize: '1.4rem' }}>Page Hero Banners</h2><p className="admin-welcome-sub">Manage images, content, buttons and carousel order for every main page.</p></div><button className="admin-primary-btn" onClick={() => begin()}><Plus size={16} /> Add Banner</button></div>
-    <details className="hero-banner-guide" open>
+    <div className="admin-card-header hero-manager-header">
+      <div className="hero-manager-header-info">
+        <h2 className="admin-welcome-title hero-manager-title">Page Hero Banners</h2>
+        <p className="admin-welcome-sub hero-manager-sub">Manage images, content, buttons and carousel order for every main page.</p>
+      </div>
+      <button className="admin-primary-btn hero-manager-add-btn" onClick={() => begin()}>
+        <Plus size={16} /> Add Banner
+      </button>
+    </div>
+    <details className="hero-banner-guide" open={guideOpen} onToggle={(e) => setGuideOpen(e.currentTarget.open)}>
       <summary><ImageIcon size={17} /> Hero Banner Upload Guide</summary>
       <div className="hero-banner-guide-grid">
         <div className="hero-guide-card"><strong>Desktop image</strong><span>Recommended: 1920 × 720 px</span><span>Minimum: 1440 × 540 px</span><small>Wide landscape ratio, approximately 8:3.</small></div>
@@ -42,20 +51,223 @@ export const HeroBannerManager: React.FC = () => {
     <div className="hero-manager-pages">{pages.map((item) => <button key={item} className={page === item ? 'active' : ''} onClick={() => setPage(item)}>{item.charAt(0) + item.slice(1).toLowerCase()}</button>)}</div>
     <div className="hero-manager-grid">{banners.map((banner, index) => <article key={banner.id} className="hero-manager-card"><img src={getUploadUrl(banner.desktopImage)} alt={banner.imageAlt || banner.title} /><div className="hero-manager-card-body"><div><small>{banner.eyebrow || banner.page}</small><h3>{banner.title} <span>{banner.highlightedText}</span></h3><p>{banner.description}</p></div><div className="hero-manager-meta"><span className={`admin-status-badge ${banner.isActive ? 'paid' : 'cancelled'}`}>{banner.isActive ? 'Active' : 'Inactive'}</span><span>Order {index + 1}</span><span>{banner.autoplayDuration / 1000}s</span></div><div className="hero-manager-actions"><button className="admin-mini-btn" onClick={() => move(index, -1)} disabled={index === 0}><ArrowUp size={13} /></button><button className="admin-mini-btn" onClick={() => move(index, 1)} disabled={index === banners.length - 1}><ArrowDown size={13} /></button><button className="admin-mini-btn" onClick={() => begin(banner)}><Edit3 size={13} /> Update</button><button className="admin-mini-btn" onClick={() => updateBanner({ id: banner.id, data: { isActive: !banner.isActive } })}><Power size={13} /> {banner.isActive ? 'Disable' : 'Enable'}</button><button className="admin-mini-btn hero-banner-delete-btn" onClick={() => remove(banner)}><Trash2 size={13} /> Delete</button></div></div></article>)}</div>
     {!banners.length && <div className="hero-manager-empty"><ImageIcon size={30} /><p>No {page.toLowerCase()} banners yet. The page continues using its original hero.</p></div>}
-    {open && <div className="admin-modal-overlay" onClick={() => setOpen(false)}><div className="admin-modal-card hero-manager-modal" onClick={(e) => e.stopPropagation()}><div className="admin-modal-header"><h3 className="admin-modal-title">{editing ? 'Edit' : 'Add'} {page} Hero Banner</h3><button className="admin-modal-close-btn" onClick={() => setOpen(false)}><X size={20} /></button></div><form onSubmit={save}><div className="admin-modal-body hero-manager-form">
-      <label>Eyebrow<input className="admin-form-input" value={form.eyebrow || ''} onChange={(e) => setForm({ ...form, eyebrow: e.target.value })} /></label>
-      <label>Title *<input required className="admin-form-input" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></label>
-      <label>Highlighted title<input className="admin-form-input" value={form.highlightedText || ''} onChange={(e) => setForm({ ...form, highlightedText: e.target.value })} /></label>
-      <label className="wide">Description<textarea className="admin-form-textarea" rows={3} value={form.description || ''} onChange={(e) => setForm({ ...form, description: e.target.value })} /></label>
-      <label>Desktop image *<input required className="admin-form-input" value={form.desktopImage} onChange={(e) => setForm({ ...form, desktopImage: e.target.value })} /><input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0], 'desktopImage')} /></label>
-      <label>Mobile image<input className="admin-form-input" value={form.mobileImage || ''} onChange={(e) => setForm({ ...form, mobileImage: e.target.value })} /><input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0], 'mobileImage')} /></label>
-      <label>Image alt text<input className="admin-form-input" value={form.imageAlt || ''} onChange={(e) => setForm({ ...form, imageAlt: e.target.value })} /></label>
-      <label>Text alignment<select className="admin-form-select" value={form.textAlignment} onChange={(e) => setForm({ ...form, textAlignment: e.target.value })}><option>left</option><option>center</option><option>right</option></select></label>
-      <label>Primary button text<input className="admin-form-input" value={form.primaryButtonText || ''} onChange={(e) => setForm({ ...form, primaryButtonText: e.target.value })} /></label><label>Primary button link<input className="admin-form-input" value={form.primaryButtonLink || ''} onChange={(e) => setForm({ ...form, primaryButtonLink: e.target.value })} /></label>
-      <label>Secondary button text<input className="admin-form-input" value={form.secondaryButtonText || ''} onChange={(e) => setForm({ ...form, secondaryButtonText: e.target.value })} /></label><label>Secondary button link<input className="admin-form-input" value={form.secondaryButtonLink || ''} onChange={(e) => setForm({ ...form, secondaryButtonLink: e.target.value })} /></label>
-      <label>Autoplay milliseconds<input type="number" min="2000" max="30000" className="admin-form-input" value={form.autoplayDuration} onChange={(e) => setForm({ ...form, autoplayDuration: e.target.value })} /></label><label>Overlay opacity<input type="number" min="0" max="1" step=".05" className="admin-form-input" value={form.overlayOpacity} onChange={(e) => setForm({ ...form, overlayOpacity: e.target.value })} /></label>
-      <label>Starts at<input type="datetime-local" className="admin-form-input" value={form.startsAt || ''} onChange={(e) => setForm({ ...form, startsAt: e.target.value })} /></label><label>Ends at<input type="datetime-local" className="admin-form-input" value={form.endsAt || ''} onChange={(e) => setForm({ ...form, endsAt: e.target.value })} /></label>
-      <label className="hero-manager-check"><input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} /> Active</label>
-    </div><div className="admin-modal-footer"><button type="button" className="admin-quick-btn" onClick={() => setOpen(false)}>Cancel</button><button className="admin-primary-btn" disabled={uploading}>{uploading ? 'Uploading…' : 'Save Banner'}</button></div></form></div></div>}
+    {open && <div className="admin-modal-overlay hero-modal-overlay" onClick={() => setOpen(false)}>
+      <div className="admin-modal-card hero-manager-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="admin-modal-header hero-modal-header">
+          <h3 className="admin-modal-title hero-modal-title">{editing ? 'Edit' : 'Add'} {page} Hero Banner</h3>
+          <button type="button" className="admin-modal-close-btn hero-modal-close-btn" onClick={() => setOpen(false)}>
+            <X size={20} />
+          </button>
+        </div>
+        <form onSubmit={save} className="hero-manager-modal-form">
+          <div className="admin-modal-body hero-manager-form">
+            <div className="hero-form-field">
+              <span className="hero-form-label">Eyebrow</span>
+              <input
+                className="admin-form-input"
+                placeholder="e.g. Seasonal Offer"
+                value={form.eyebrow || ''}
+                onChange={(e) => setForm({ ...form, eyebrow: e.target.value })}
+              />
+            </div>
+            <div className="hero-form-field">
+              <span className="hero-form-label">Title *</span>
+              <input
+                required
+                className="admin-form-input"
+                placeholder="e.g. Premium Agricultural Solutions"
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
+              />
+            </div>
+            <div className="hero-form-field">
+              <span className="hero-form-label">Highlighted Title</span>
+              <input
+                className="admin-form-input"
+                placeholder="e.g. for Modern Farmers"
+                value={form.highlightedText || ''}
+                onChange={(e) => setForm({ ...form, highlightedText: e.target.value })}
+              />
+            </div>
+            <div className="hero-form-field hero-field-full">
+              <span className="hero-form-label">Description</span>
+              <textarea
+                className="admin-form-textarea"
+                rows={2}
+                placeholder="Short banner summary (up to 140 characters)"
+                value={form.description || ''}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+              />
+            </div>
+            <div className="hero-form-field hero-field-full">
+              <span className="hero-form-label">Desktop Image *</span>
+              <div className="hero-input-upload-group">
+                <input
+                  required
+                  className="admin-form-input"
+                  placeholder="Image URL or click Upload"
+                  value={form.desktopImage}
+                  onChange={(e) => setForm({ ...form, desktopImage: e.target.value })}
+                />
+                <label className="hero-upload-btn">
+                  <Upload size={14} />
+                  <span>Upload</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => e.target.files?.[0] && upload(e.target.files[0], 'desktopImage')}
+                  />
+                </label>
+              </div>
+            </div>
+            <div className="hero-form-field hero-field-full">
+              <span className="hero-form-label">Mobile Image (Optional)</span>
+              <div className="hero-input-upload-group">
+                <input
+                  className="admin-form-input"
+                  placeholder="Portrait crop URL or click Upload"
+                  value={form.mobileImage || ''}
+                  onChange={(e) => setForm({ ...form, mobileImage: e.target.value })}
+                />
+                <label className="hero-upload-btn">
+                  <Upload size={14} />
+                  <span>Upload</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => e.target.files?.[0] && upload(e.target.files[0], 'mobileImage')}
+                  />
+                </label>
+              </div>
+            </div>
+            <div className="hero-form-grid-2">
+              <div className="hero-form-field">
+                <span className="hero-form-label">Image Alt Text</span>
+                <input
+                  className="admin-form-input"
+                  placeholder="Alt description"
+                  value={form.imageAlt || ''}
+                  onChange={(e) => setForm({ ...form, imageAlt: e.target.value })}
+                />
+              </div>
+              <div className="hero-form-field">
+                <span className="hero-form-label">Text Alignment</span>
+                <select
+                  className="admin-form-select"
+                  value={form.textAlignment}
+                  onChange={(e) => setForm({ ...form, textAlignment: e.target.value })}
+                >
+                  <option value="left">Left</option>
+                  <option value="center">Center</option>
+                  <option value="right">Right</option>
+                </select>
+              </div>
+            </div>
+            <div className="hero-form-grid-2">
+              <div className="hero-form-field">
+                <span className="hero-form-label">Primary Button Text</span>
+                <input
+                  className="admin-form-input"
+                  placeholder="e.g. Shop Now"
+                  value={form.primaryButtonText || ''}
+                  onChange={(e) => setForm({ ...form, primaryButtonText: e.target.value })}
+                />
+              </div>
+              <div className="hero-form-field">
+                <span className="hero-form-label">Primary Button Link</span>
+                <input
+                  className="admin-form-input"
+                  placeholder="e.g. /products"
+                  value={form.primaryButtonLink || ''}
+                  onChange={(e) => setForm({ ...form, primaryButtonLink: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="hero-form-grid-2">
+              <div className="hero-form-field">
+                <span className="hero-form-label">Secondary Button Text</span>
+                <input
+                  className="admin-form-input"
+                  placeholder="e.g. Explore Services"
+                  value={form.secondaryButtonText || ''}
+                  onChange={(e) => setForm({ ...form, secondaryButtonText: e.target.value })}
+                />
+              </div>
+              <div className="hero-form-field">
+                <span className="hero-form-label">Secondary Button Link</span>
+                <input
+                  className="admin-form-input"
+                  placeholder="e.g. /services"
+                  value={form.secondaryButtonLink || ''}
+                  onChange={(e) => setForm({ ...form, secondaryButtonLink: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="hero-form-grid-2">
+              <div className="hero-form-field">
+                <span className="hero-form-label">Autoplay (ms)</span>
+                <input
+                  type="number"
+                  min="2000"
+                  max="30000"
+                  step="500"
+                  className="admin-form-input"
+                  value={form.autoplayDuration}
+                  onChange={(e) => setForm({ ...form, autoplayDuration: e.target.value })}
+                />
+              </div>
+              <div className="hero-form-field">
+                <span className="hero-form-label">Overlay Opacity</span>
+                <input
+                  type="number"
+                  min="0"
+                  max="1"
+                  step="0.05"
+                  className="admin-form-input"
+                  value={form.overlayOpacity}
+                  onChange={(e) => setForm({ ...form, overlayOpacity: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="hero-form-grid-2">
+              <div className="hero-form-field">
+                <span className="hero-form-label">Starts At</span>
+                <input
+                  type="datetime-local"
+                  className="admin-form-input"
+                  value={form.startsAt || ''}
+                  onChange={(e) => setForm({ ...form, startsAt: e.target.value })}
+                />
+              </div>
+              <div className="hero-form-field">
+                <span className="hero-form-label">Ends At</span>
+                <input
+                  type="datetime-local"
+                  className="admin-form-input"
+                  value={form.endsAt || ''}
+                  onChange={(e) => setForm({ ...form, endsAt: e.target.value })}
+                />
+              </div>
+            </div>
+            <label className="hero-manager-check">
+              <input
+                type="checkbox"
+                checked={form.isActive}
+                onChange={(e) => setForm({ ...form, isActive: e.target.checked })}
+              />
+              <span>Active (Display in carousel)</span>
+            </label>
+          </div>
+          <div className="admin-modal-footer hero-modal-footer">
+            <button type="button" className="admin-quick-btn" onClick={() => setOpen(false)}>
+              Cancel
+            </button>
+            <button className="admin-primary-btn" disabled={uploading}>
+              {uploading ? 'Uploading…' : (editing ? 'Update Banner' : 'Save Banner')}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>}
   </div>;
 };
