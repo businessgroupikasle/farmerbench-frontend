@@ -7,13 +7,27 @@ import {
   UpdateProductInput,
   CreateReviewInput,
 } from '@formerbench/shared';
+import { capitalizeFirstLetter, normalizeNamedEntity } from '../utils/text';
+
+const normalizeProductNames = <T extends { category?: unknown; subcategory?: unknown }>(product: T): T => {
+  if (!product || typeof product !== 'object') return product;
+  return {
+    ...product,
+    category: typeof product.category === 'string'
+      ? capitalizeFirstLetter(product.category)
+      : normalizeNamedEntity(product.category),
+    subcategory: typeof product.subcategory === 'string'
+      ? capitalizeFirstLetter(product.subcategory)
+      : normalizeNamedEntity(product.subcategory),
+  } as T;
+};
 
 export const useProducts = (params?: Partial<ProductQueryInput>) => {
   return useQuery({
     queryKey: ['products', params],
     queryFn: async () => {
       const res = await productService.getProducts(params as any);
-      return res;
+      return { ...res, data: (res.data || []).map(normalizeProductNames) };
     },
     staleTime: 1000 * 60 * 2, // 2 minutes
   });
@@ -24,7 +38,7 @@ export const useFeaturedProducts = (limit: number = 8) => {
     queryKey: ['products', 'featured', limit],
     queryFn: async () => {
       const res = await productService.getFeaturedProducts(limit);
-      return res.data || [];
+      return (res.data || []).map(normalizeProductNames);
     },
     staleTime: 1000 * 60 * 5,
   });
@@ -36,7 +50,7 @@ export const useProduct = (idOrSlug: string | undefined) => {
     queryFn: async () => {
       if (!idOrSlug) return null;
       const res = await productService.getProduct(idOrSlug);
-      return res.data || null;
+      return res.data ? normalizeProductNames(res.data) : null;
     },
     enabled: !!idOrSlug,
     staleTime: 1000 * 60 * 2,
