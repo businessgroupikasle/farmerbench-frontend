@@ -34,14 +34,26 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   // Set Google Translate cookie helper
   const setGoogleTranslateCookie = (langCode: string) => {
-    const value = langCode === 'en' ? '' : `/en/${langCode}`;
-    const expires = langCode === 'en' ? 'Thu, 01 Jan 1970 00:00:00 UTC' : '';
+    const hostname = window.location.hostname;
+    const isIpAddress = /^(?:\d{1,3}\.){3}\d{1,3}$/.test(hostname);
+    const domainCandidates = new Set<string>(['']);
 
-    const domain = window.location.hostname;
-    // Set for current host and root path
-    document.cookie = `googtrans=${value}; path=/; ${expires ? `expires=${expires};` : ''}`;
-    if (domain !== 'localhost') {
-      document.cookie = `googtrans=${value}; domain=.${domain}; path=/; ${expires ? `expires=${expires};` : ''}`;
+    if (hostname && hostname !== 'localhost' && !isIpAddress) {
+      const parts = hostname.split('.');
+      for (let index = 0; index < parts.length - 1; index += 1) {
+        domainCandidates.add(`.${parts.slice(index).join('.')}`);
+      }
+    }
+
+    // Clear every possible host/parent-domain variant first. Google may create
+    // the cookie on the parent domain (for example .example.com from www.example.com).
+    domainCandidates.forEach((cookieDomain) => {
+      const domainAttribute = cookieDomain ? ` domain=${cookieDomain};` : '';
+      document.cookie = `googtrans=;${domainAttribute} path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; max-age=0; SameSite=Lax`;
+    });
+
+    if (langCode !== 'en') {
+      document.cookie = `googtrans=/en/${langCode}; path=/; SameSite=Lax`;
     }
   };
 
@@ -66,9 +78,7 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
     // especially on mobile browsers. Reload after clearing its cookie so React
     // mounts the original English markup again.
     if (langCode === 'en') {
-      window.setTimeout(() => {
-        window.location.reload();
-      }, 100);
+      window.location.reload();
       return;
     }
 
