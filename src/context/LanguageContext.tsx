@@ -47,7 +47,8 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
 
   // Switch active language
   const setLanguage = useCallback((langCode: string) => {
-    if (langCode === currentLang) return;
+    // Allow English to run again so a stale translated DOM/cookie can be reset.
+    if (langCode === currentLang && langCode !== 'en') return;
     setIsTranslating(true);
     setCurrentLangState(langCode);
     localStorage.setItem(STORAGE_KEY, langCode);
@@ -59,6 +60,17 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
 
     // Set Google Translate cookie so the DOM translation engine switches
     setGoogleTranslateCookie(langCode);
+
+    // Google Translate mutates the DOM directly and does not reliably restore
+    // the original text when its hidden select is switched back to English,
+    // especially on mobile browsers. Reload after clearing its cookie so React
+    // mounts the original English markup again.
+    if (langCode === 'en') {
+      window.setTimeout(() => {
+        window.location.reload();
+      }, 100);
+      return;
+    }
 
     // Trigger Google Translate select element if present
     const select = document.querySelector('.goog-te-combo') as HTMLSelectElement | null;
