@@ -78,7 +78,7 @@ export const ProductDetailPage: React.FC = () => {
   const imageRef = useRef<HTMLDivElement>(null);
 
   // Review Form state
-  const [newRating, setNewRating] = useState(5);
+  const [newRating, setNewRating] = useState(0);
   const [newComment, setNewComment] = useState('');
   const [hoverRating, setHoverRating] = useState(0);
   const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
@@ -258,6 +258,11 @@ export const ProductDetailPage: React.FC = () => {
       return;
     }
 
+    if (newRating === 0) {
+      addToast({ type: 'warning', message: 'Please select a star rating before submitting.' });
+      return;
+    }
+
     if (!newComment.trim()) return;
 
     try {
@@ -271,6 +276,7 @@ export const ProductDetailPage: React.FC = () => {
           },
         });
         setEditingReviewId(null);
+        setNewRating(0);
         setNewComment('');
         addToast({ type: 'success', message: 'Your review has been updated successfully!' });
       } else {
@@ -279,6 +285,7 @@ export const ProductDetailPage: React.FC = () => {
           rating: newRating,
           comment: newComment.trim(),
         });
+        setNewRating(0);
         setNewComment('');
         addToast({ type: 'success', message: 'Thank you! Your review has been published.' });
       }
@@ -299,7 +306,7 @@ export const ProductDetailPage: React.FC = () => {
 
   const handleCancelEdit = () => {
     setEditingReviewId(null);
-    setNewRating(5);
+    setNewRating(0);
     setNewComment('');
   };
 

@@ -88,6 +88,12 @@ export const serviceBookingService = {
   },
 
   /**
+   * Signed-in user: Own service and Crop Doctor requests
+   */
+  async getMyBookings(): Promise<ApiResponse<ServiceBookingRecord[]>> {
+    return apiClient.get('/service-bookings/mine');
+  },
+  /**
    * Admin: List all bookings with search, status filtering, and pagination
    */
   async getAllBookings(

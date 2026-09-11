@@ -29,17 +29,14 @@ import {
   Check,
   TrendingDown,
   Loader2,
-  X,
 } from 'lucide-react';
 import './CropDoctorPage.css';
 import { serviceBookingService } from '../services/serviceBooking.service';
 import { postalCodeService } from '../services/postalCode.service';
+import { authService } from '../services/auth.service';
 
-// Assets for Hero & Sample Diagnostic Upload Previews
+// Hero asset
 import cropDoctorHeroImg from '../assets/crop-doctor-hero.jpg';
-import burntLeavesImg from '../assets/burnt-leaves.jpg';
-import cropMonitoringImg from '../assets/crop-monitoring.jpg';
-import fieldWideImg from '../assets/sustainable-farm.jpg';
 
 interface PreviewPhoto {
   id: string;
@@ -111,8 +108,8 @@ export const CropDoctorPage: React.FC = () => {
     treatmentUsed: 'Neem oil spray - 5 days ago',
 
     // 4. Contact & Response
-    farmerName: 'Ramanathan',
-    phone: '93607 63060',
+    farmerName: '',
+    phone: '',
     email: '',
     responseMethod: 'WhatsApp',
     preferredLanguage: 'Tamil',
@@ -121,27 +118,7 @@ export const CropDoctorPage: React.FC = () => {
     termsConfirmed: true,
   });
 
-  // Initial 3 uploaded photos exactly as shown in screenshot
-  const [previewPhotos, setPreviewPhotos] = useState<PreviewPhoto[]>([
-    {
-      id: 'photo-1',
-      name: 'leaf_spots_closeup.jpg',
-      size: '420 KB',
-      src: burntLeavesImg,
-    },
-    {
-      id: 'photo-2',
-      name: 'plant_overview.jpg',
-      size: '1.2 MB',
-      src: cropMonitoringImg,
-    },
-    {
-      id: 'photo-3',
-      name: 'field_wide_view.jpg',
-      size: '1.5 MB',
-      src: fieldWideImg,
-    },
-  ]);
+  const [previewPhotos, setPreviewPhotos] = useState<PreviewPhoto[]>([]);
 
   const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -151,7 +128,6 @@ export const CropDoctorPage: React.FC = () => {
   const [formError, setFormError] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [hasDraft, setHasDraft] = useState(false);
-  const [selectedModalPhoto, setSelectedModalPhoto] = useState<PreviewPhoto | null>(null);
 
   // Live Postal Code State
   const [postalFeedback, setPostalFeedback] = useState<PostalFeedback>({
@@ -164,6 +140,41 @@ export const CropDoctorPage: React.FC = () => {
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Prefill contact details from the signed-in account and refresh them from the API.
+  useEffect(() => {
+    let isCurrent = true;
+
+    const applyAccountDetails = (account: { name?: string; phone?: string | null; email?: string }) => {
+      if (!isCurrent) return;
+      const phone = (account.phone || '').replace(/\D/g, '').slice(-10);
+      setFormData((current) => ({
+        ...current,
+        farmerName: current.farmerName || account.name || '',
+        phone: current.phone || phone,
+        email: current.email || account.email || '',
+      }));
+    };
+
+    try {
+      const storedUser = localStorage.getItem('formerbench_auth_user');
+      if (storedUser) applyAccountDetails(JSON.parse(storedUser));
+    } catch {
+      // The API refresh below remains the source of truth.
+    }
+
+    if (localStorage.getItem('formerbench_auth_token')) {
+      authService.getMe().then((response) => {
+        if (response.data) applyAccountDetails(response.data);
+      }).catch(() => {
+        // Keep any locally available account details if the refresh is unavailable.
+      });
+    }
+
+    return () => {
+      isCurrent = false;
+    };
+  }, []);
 
   // Check for saved local draft on mount
   useEffect(() => {
@@ -364,10 +375,6 @@ export const CropDoctorPage: React.FC = () => {
       src: URL.createObjectURL(file),
     }));
     setPreviewPhotos((prev) => [...prev, ...newItems].slice(0, 5));
-  };
-
-  const removePhoto = (id: string) => {
-    setPreviewPhotos((prev) => prev.filter((p) => p.id !== id));
   };
 
   const handleSubmitDiagnosis = async (e: React.FormEvent) => {
@@ -1118,42 +1125,6 @@ export const CropDoctorPage: React.FC = () => {
                     <span className="crop-doctor-dropzone-limit">JPG, PNG or WEBP • Maximum 10 MB each</span>
                   </div>
 
-                  {/* 3 Uploaded Image Previews as in screenshot */}
-                  {previewPhotos.length > 0 && (
-                    <div className="crop-doctor-previews-grid">
-                      {previewPhotos.map((photo) => (
-                        <div key={photo.id} className="crop-doctor-preview-card animate-scale-in">
-                          <div
-                            className="crop-doctor-preview-thumb-wrap"
-                            onClick={() => setSelectedModalPhoto(photo)}
-                            title="Click to zoom inspect"
-                            style={{ cursor: 'pointer' }}
-                          >
-                            <img src={photo.src} alt={photo.name} className="crop-doctor-preview-thumb" />
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                removePhoto(photo.id);
-                              }}
-                              className="crop-doctor-preview-remove-btn"
-                              title="Remove photo"
-                            >
-                              ×
-                            </button>
-                          </div>
-                          <div className="crop-doctor-preview-details">
-                            <div onClick={() => setSelectedModalPhoto(photo)} style={{ cursor: 'pointer' }}>
-                              <div className="crop-doctor-preview-name">{photo.name}</div>
-                              <div className="crop-doctor-preview-size">{photo.size}</div>
-                            </div>
-                            <CheckCircle2 size={16} className="crop-doctor-check-circle" />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
                   {/* Helper Tip Box */}
                   <div className="crop-doctor-tip-banner">
                     <Sparkles size={18} className="crop-doctor-tip-icon" />
@@ -1177,7 +1148,7 @@ export const CropDoctorPage: React.FC = () => {
                       <input
                         type="text"
                         required
-                        placeholder="Ramanathan"
+                        placeholder="Enter farmer name"
                         value={formData.farmerName}
                         onChange={(e) => setFormData({ ...formData, farmerName: e.target.value })}
                         className="crop-doctor-field-input"
@@ -1202,7 +1173,7 @@ export const CropDoctorPage: React.FC = () => {
                           type="tel"
                           required
                           maxLength={10}
-                          placeholder="+91 93607 63060"
+                          placeholder="Enter 10-digit mobile number"
                           value={formData.phone}
                           onChange={(e) => setFormData({ ...formData, phone: e.target.value.replace(/\D/g, '') })}
                           className="crop-doctor-field-input"
@@ -1217,7 +1188,7 @@ export const CropDoctorPage: React.FC = () => {
                       <label className="crop-doctor-field-label">Email Address</label>
                       <input
                         type="email"
-                        placeholder="e.g., ramanathan@email.com (optional)"
+                        placeholder="Email address (optional)"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         className="crop-doctor-field-input"
@@ -1444,31 +1415,6 @@ export const CropDoctorPage: React.FC = () => {
         <div className="crop-doctor-toast animate-slide-up">
           <CheckCircle2 size={18} className="crop-doctor-toast-icon" />
           <span>{toastMessage}</span>
-        </div>
-      )}
-
-      {/* Enlarged Photo Inspection Modal */}
-      {selectedModalPhoto && (
-        <div className="crop-doctor-modal-backdrop" onClick={() => setSelectedModalPhoto(null)}>
-          <div className="crop-doctor-modal-content animate-zoom-in" onClick={(e) => e.stopPropagation()}>
-            <div className="crop-doctor-modal-header">
-              <div className="crop-doctor-modal-title">
-                <h4>{selectedModalPhoto.name}</h4>
-                <span className="crop-doctor-modal-meta">{selectedModalPhoto.size}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedModalPhoto(null)}
-                className="crop-doctor-modal-close"
-                title="Close"
-              >
-                <X size={20} />
-              </button>
-            </div>
-            <div className="crop-doctor-modal-body">
-              <img src={selectedModalPhoto.src} alt={selectedModalPhoto.name} className="crop-doctor-modal-img" />
-            </div>
-          </div>
         </div>
       )}
     </div>

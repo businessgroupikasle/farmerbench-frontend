@@ -21,6 +21,9 @@ import { ReviewsFeedbackCard } from '../components/dashboard/ReviewsFeedbackCard
 import { CropRecommendationsCard } from '../components/dashboard/CropRecommendationsCard';
 import { ProfileCompletionCard } from '../components/dashboard/ProfileCompletionCard';
 import { TrustBadgesFooter } from '../components/dashboard/TrustBadgesFooter';
+import { CropDoctorRequestsPanel } from '../components/dashboard/CropDoctorRequestsPanel';
+import { useMyServiceBookings } from '../hooks/useServiceBookings';
+import { ServiceBookingRecord } from '../services/serviceBooking.service';
 
 // Modals
 import {
@@ -52,6 +55,8 @@ export const DashboardPage: React.FC = () => {
   const { addToCart } = useCart();
   const { items: wishlistItems, removeFromWishlist } = useWishlistStore();
   const { addToast } = useUIStore();
+  const { data: myServiceBookings = [], isLoading: isBookingsLoading } = useMyServiceBookings();
+  const cropDoctorRequestCount = myServiceBookings.filter((booking: ServiceBookingRecord) => booking.serviceSlug === 'crop-doctor').length;
 
   // Active Tab State
   const [activeTab, setActiveTab] = useState<string>('dashboard');
@@ -232,6 +237,7 @@ export const DashboardPage: React.FC = () => {
           }}
           ordersCount={orders.length}
           wishlistCount={wishlistItems.length}
+        doctorRequestsCount={cropDoctorRequestCount}
         />
 
         {/* Right Main Dashboard Area */}
@@ -320,6 +326,12 @@ export const DashboardPage: React.FC = () => {
                 />
               </div>
 
+              <CropDoctorRequestsPanel
+                bookings={myServiceBookings}
+                isLoading={isBookingsLoading}
+                limit={1}
+                onViewAll={() => handleSelectTab('crop-doctor')}
+              />
               {/* Footer Trust Elements */}
               <TrustBadgesFooter />
             </>
@@ -539,6 +551,12 @@ export const DashboardPage: React.FC = () => {
                 onWriteReview={(item) => handleOpenReviewModal(item?.title)}
               />
             </div>
+          )}
+          {activeTab === 'crop-doctor' && (
+            <CropDoctorRequestsPanel
+              bookings={myServiceBookings}
+              isLoading={isBookingsLoading}
+            />
           )}
 
           {/* =================================================================

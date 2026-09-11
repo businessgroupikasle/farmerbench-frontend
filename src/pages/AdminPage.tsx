@@ -66,6 +66,7 @@ import './AdminPage.css';
 
 // Assets
 import farmerLogo from '../assets/AgriEra-logo.png';
+import cropDoctorHeroImg from '../assets/crop-doctor-hero.jpg';
 import { useCustomers, useCustomerMutations } from '../hooks/useCustomers';
 import { useAdminOrders, useOrderMutations } from '../hooks/useOrders';
 import { useBlogs, useBlogMutations } from '../hooks/useBlogs';
@@ -76,6 +77,15 @@ import { useServiceBookings, useServiceBookingStats, useServiceBookingMutations 
 import { ServiceBooking, ServiceBookingStatus } from '../types/serviceBooking';
 import { useContacts, useContactStats, useContactMutations, Contact } from '../hooks/useContacts';
 
+const parseCropDoctorDetails = (message?: string | null): Record<string, any> => {
+  if (!message) return {};
+  try {
+    const parsed = JSON.parse(message);
+    return parsed && typeof parsed === 'object' ? parsed : { symptoms: message };
+  } catch {
+    return { symptoms: message };
+  }
+};
 const normalizeProductImageUrl = (rawValue: unknown): string => {
   if (typeof rawValue !== 'string') return '';
 
@@ -931,6 +941,7 @@ export const AdminPage: React.FC = () => {
     refetch: refetchBookings,
   } = useServiceBookings(bookingQueryFilter);
 
+  const { data: cropDoctorBookingData } = useServiceBookings({ serviceSlug: 'crop-doctor', limit: 100 });
   const { data: bookingStats, isLoading: isStatsLoading, refetch: refetchBookingStats } = useServiceBookingStats();
   const { updateBookingStatus: mutateBookingStatus, deleteBooking: mutateDeleteBooking } = useServiceBookingMutations();
 
@@ -955,7 +966,26 @@ export const AdminPage: React.FC = () => {
   }, [refetchBookings, refetchBookingStats]);
 
   // 6. Crop Doctor
-  const [cropDoctorRequests, setCropDoctorRequests] = useState<any[]>([]);
+  const cropDoctorRequests = ((cropDoctorBookingData?.bookings || []) as ServiceBooking[])
+    .filter((booking) => booking.serviceSlug === 'crop-doctor')
+    .map((booking) => {
+      const details = parseCropDoctorDetails(booking.message);
+      const severity = details.problemSeverity || 'Not specified';
+      return {
+        id: booking.id,
+        booking,
+        image: cropDoctorHeroImg,
+        severity,
+        severityClass: severity === 'Severe' ? 'cancelled' : severity === 'Moderate' ? 'pending' : 'paid',
+        time: new Date(booking.createdAt).toLocaleDateString('en-IN'),
+        title: (details.cropName || booking.cropType || 'Crop') + ' - ' + (details.problemCategory || 'Health Diagnosis'),
+        crop: details.cropVariety || booking.cropType || 'Crop not specified',
+        notes: details.symptoms || booking.message || 'No observations provided.',
+        prescription: booking.adminNotes || 'Awaiting agronomist diagnosis and prescription.',
+        author: booking.name,
+        location: booking.location,
+      };
+    });
 
   // 7. Experts
   const [experts, setExperts] = useState<any[]>([]);
@@ -3073,13 +3103,7 @@ export const AdminPage: React.FC = () => {
                         </td>
                         <td style={{ color: '#475569' }}>{p.category}</td>
                         <td>
-                          <div className="admin-stock-counter">
-                            <button className="admin-stock-count-btn" onClick={() => handleUpdateStock(p.id, -5)}>-5</button>
-                            <button className="admin-stock-count-btn" onClick={() => handleUpdateStock(p.id, -1)}>-</button>
-                            <span className="admin-stock-val">{p.stock}</span>
-                            <button className="admin-stock-count-btn" onClick={() => handleUpdateStock(p.id, 1)}>+</button>
-                            <button className="admin-stock-count-btn" onClick={() => handleUpdateStock(p.id, 10)}>+10</button>
-                          </div>
+                          <span className="admin-stock-val">{p.stock}</span>
                         </td>
                         <td style={{ color: '#64748B' }}>15 units</td>
                         <td>
@@ -3776,7 +3800,7 @@ export const AdminPage: React.FC = () => {
                         style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}
                         onClick={() => {
                           setSelectedCropItem(cd);
-                          setCropPrescription(cd.prescription.replace('Prescribe: ', ''));
+                          setCropPrescription(cd.booking.adminNotes || '');
                           setIsCropReplyModalOpen(true);
                         }}
                       >
@@ -6218,13 +6242,19 @@ export const AdminPage: React.FC = () => {
               </button>
             </div>
             <form
-              onSubmit={(e) => {
+              onSubmit={async (e) => {
                 e.preventDefault();
-                setCropDoctorRequests((prev) =>
-                  prev.map((c) => (c.id === selectedCropItem.id ? { ...c, prescription: `Prescribe: ${cropPrescription}` } : c))
-                );
-                setIsCropReplyModalOpen(false);
-                showToast(`Treatment prescription sent to farmer ${selectedCropItem.author}!`);
+                try {
+                  await mutateBookingStatus({
+                    id: selectedCropItem.id,
+                    status: 'COMPLETED',
+                    adminNotes: cropPrescription.trim(),
+                  });
+                  setIsCropReplyModalOpen(false);
+                  showToast('Treatment prescription sent to farmer ' + selectedCropItem.author + '!');
+                } catch (err: any) {
+                  showToast(err?.message || 'Failed to send prescription.');
+                }
               }}
             >
               <div className="admin-modal-body">

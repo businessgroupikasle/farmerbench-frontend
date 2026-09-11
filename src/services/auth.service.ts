@@ -24,6 +24,10 @@ export const authService = {
     return apiClient.post('/auth/login', data);
   },
 
+  async googleLogin(credential: string): Promise<ApiResponse<AuthResponse>> {
+    return apiClient.post('/auth/google', { credential });
+  },
+
   async getMe(): Promise<ApiResponse<User>> {
     return apiClient.get('/auth/me');
   },

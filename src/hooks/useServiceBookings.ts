@@ -17,6 +17,17 @@ export const useServiceBookings = (params?: ServiceBookingQueryParams) => {
   });
 };
 
+export const useMyServiceBookings = () => {
+  return useQuery({
+    queryKey: ['my-service-bookings'],
+    queryFn: async () => {
+      const res: any = await serviceBookingService.getMyBookings();
+      return res.data || [];
+    },
+    staleTime: 1000 * 15,
+    refetchOnWindowFocus: true,
+  });
+};
 export const useServiceBookingStats = () => {
   return useQuery({
     queryKey: ['service-booking-stats'],
