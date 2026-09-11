@@ -698,7 +698,8 @@ export const CropDoctorPage: React.FC = () => {
                       className={`crop-doctor-step-pill ${activeStep === 1 ? 'active' : ''}`}
                     >
                       <span className="crop-doctor-step-pill-num">1</span>
-                      <span>Crop Details</span>
+                      <span className="crop-doctor-step-text-desktop">Crop Details</span>
+                      <span className="crop-doctor-step-text-mobile">Crop</span>
                     </button>
                     <button
                       type="button"
@@ -706,7 +707,8 @@ export const CropDoctorPage: React.FC = () => {
                       className={`crop-doctor-step-pill ${activeStep === 2 ? 'active' : ''}`}
                     >
                       <span className="crop-doctor-step-pill-num">2</span>
-                      <span>Symptoms & Photos</span>
+                      <span className="crop-doctor-step-text-desktop">Symptoms & Photos</span>
+                      <span className="crop-doctor-step-text-mobile">Symptoms</span>
                     </button>
                     <button
                       type="button"
@@ -714,7 +716,8 @@ export const CropDoctorPage: React.FC = () => {
                       className={`crop-doctor-step-pill ${activeStep === 3 ? 'active' : ''}`}
                     >
                       <span className="crop-doctor-step-pill-num">3</span>
-                      <span>Contact & Submit</span>
+                      <span className="crop-doctor-step-text-desktop">Contact & Submit</span>
+                      <span className="crop-doctor-step-text-mobile">Submit</span>
                     </button>
                   </div>
                 </div>
