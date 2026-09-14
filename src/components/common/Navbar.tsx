@@ -25,6 +25,7 @@ import farmerLogo from '../../assets/AgriEra-logo.png';
 import { LogoutModal } from './LogoutModal';
 import { LanguageSelector } from './LanguageSelector';
 import './Navbar.css';
+import { getUploadUrl } from '../../utils/image';
 
 export const Navbar: React.FC = () => {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
@@ -37,6 +38,7 @@ export const Navbar: React.FC = () => {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [contactSubmitted, setContactSubmitted] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [avatarFailed, setAvatarFailed] = useState(false);
 
   const userMenuRef = useRef<HTMLDivElement>(null);
 
@@ -207,10 +209,11 @@ export const Navbar: React.FC = () => {
                   title="My Account"
                 >
                   <div className="agriflow-icon-box">
-                    {isAuthenticated && user?.avatarUrl ? (
+                    {isAuthenticated && user?.avatarUrl && !avatarFailed ? (
                       <img
-                        src={user.avatarUrl}
+                        src={getUploadUrl(user.avatarUrl)}
                         alt={user.name}
+                        onError={() => setAvatarFailed(true)}
                         style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }}
                       />
                     ) : (

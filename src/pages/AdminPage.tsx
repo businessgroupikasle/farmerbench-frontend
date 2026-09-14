@@ -74,6 +74,8 @@ import { useBlogs, useBlogMutations } from '../hooks/useBlogs';
 import { BlogPost } from '../types/blog';
 import { adminService, CouponRecord } from '../services/admin.service';
 import { HeroBannerManager } from '../components/admin/HeroBannerManager';
+import { BulkProductImport } from '../components/admin/BulkProductImport';
+import '../components/admin/BulkProductImport.css';
 import { useServiceBookings, useServiceBookingStats, useServiceBookingMutations } from '../hooks/useServiceBookings';
 import { ServiceBooking, ServiceBookingStatus } from '../types/serviceBooking';
 import { useContacts, useContactStats, useContactMutations, Contact } from '../hooks/useContacts';
@@ -86,6 +88,15 @@ const parseCropDoctorDetails = (message?: string | null): Record<string, any> =>
     return parsed && typeof parsed === 'object' ? parsed : { symptoms: message };
   } catch {
     return { symptoms: message };
+  }
+};
+const parseBulkOrderMessage = (message?: string | null): Record<string, any> | null => {
+  if (!message) return null;
+  try {
+    const parsed = JSON.parse(message);
+    return parsed?.type === 'BULK_ORDER' ? parsed : null;
+  } catch {
+    return null;
   }
 };
 const normalizeProductImageUrl = (rawValue: unknown): string => {
@@ -477,6 +488,7 @@ export const AdminPage: React.FC = () => {
       disclaimer: '*Results may vary depending on crop variety and soil conditions.',
     },
   });
+  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
 
   const openAddProductCMS = () => {
     setCmsTab('basic');
@@ -1097,10 +1109,21 @@ export const AdminPage: React.FC = () => {
 
   // 10. Contacts (Website contact form submissions)
   const { data: contactsData, refetch: refetchContacts } = useContacts(1, 100);
-  const { data: statsData, refetch: refetchContactStats } = useContactStats();
+  const { refetch: refetchContactStats } = useContactStats();
   const { markAsRead, deleteContact } = useContactMutations();
   const contacts: Contact[] = contactsData?.data?.contacts || [];
-  const contactStats = statsData?.data || { totalContacts: 0, unreadCount: 0 };
+  const bulkOrderRequests = contacts.flatMap((contact) => {
+    try {
+      const details = JSON.parse(contact.message || '{}');
+      return details?.type === 'BULK_ORDER' ? [{ ...contact, details }] : [];
+    } catch {
+      return [];
+    }
+  }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+  const bulkOrderIds = new Set(bulkOrderRequests.map((request) => request.id));
+  const websiteContacts = contacts.filter((contact) => !bulkOrderIds.has(contact.id));
+  const websiteContactStats = { total: websiteContacts.length, unread: websiteContacts.filter((contact) => !contact.isRead).length };
 
   // Dynamic Category Share Breakdown computed from actual orders & products in database
   const categoryShareBreakdown = React.useMemo(() => {
@@ -1531,6 +1554,44 @@ export const AdminPage: React.FC = () => {
       return null;
     }
   })();
+  const downloadCsv = (filename: string, rows: Record<string, unknown>[]) => {
+    if (!rows.length) { showToast('No records available to export.'); return; }
+    const headers = Array.from(new Set(rows.flatMap((row) => Object.keys(row))));
+    const escapeCell = (value: unknown) => {
+      const text = value == null ? '' : typeof value === 'object' ? JSON.stringify(value) : String(value);
+      return `"${text.replace(/"/g, '""')}"`;
+    };
+    const csv = '\uFEFF' + [headers.map(escapeCell).join(','), ...rows.map((row) => headers.map((header) => escapeCell(row[header])).join(','))].join('\r\n');
+    const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+    const link = document.createElement('a');
+    link.href = url; link.download = `${filename}-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link); link.click(); link.remove(); URL.revokeObjectURL(url);
+    showToast(`${rows.length} records downloaded successfully.`);
+  };
+
+  const exportSalesInventory = () => downloadCsv('agriera-sales-inventory', products.map((product) => ({
+    productId: product.id, product: product.name, sku: product.sku, category: product.category,
+    price: product.price, sellingPrice: product.discountPrice, stock: product.stock,
+    unitsSold: product.sold, estimatedRevenue: product.revenue, status: product.status,
+  })));
+
+  const exportStockReport = () => downloadCsv('agriera-stock-report', products.map((product) => ({
+    productId: product.id, product: product.name, sku: product.sku, category: product.category,
+    subcategory: product.subcategory, availableStock: product.stock, reorderLevel: 15,
+    status: product.stock === 0 ? 'Out of Stock' : product.stock <= 10 ? 'Low Stock' : 'In Stock',
+  })));
+
+  const exportCustomers = () => downloadCsv('agriera-customers', customers.map((customer: any) => ({
+    customerId: customer.id, name: customer.name, email: customer.email, phone: customer.phone,
+    location: customer.location, crops: customer.crops, status: customer.status,
+    verified: customer.emailVerified ?? customer.verified, joinedAt: customer.createdAt,
+  })));
+
+  const exportFinancialLedger = () => downloadCsv('agriera-financial-ledger', orders.map((order: any) => ({
+    orderId: order.id, customer: order.customer, email: order.email, phone: order.phone,
+    products: order.products, amount: order.amount, paymentStatus: order.payment,
+    orderStatus: order.status, paymentMethod: order.paymentMethod, orderDate: order.date,
+  })));
 
   const isDemoAdmin = localStorage.getItem('AgriEra_demo_admin') === 'true';
   const isAuthorized =
@@ -1976,7 +2037,7 @@ export const AdminPage: React.FC = () => {
     );
   });
 
-  const filteredContacts = contacts.filter((c: any) => {
+  const filteredContacts = websiteContacts.filter((c: any) => {
     if (!searchQuery.trim() || activeNav !== 'Contacts') return true;
     const q = searchQuery.trim().toLowerCase();
     return (
@@ -2161,7 +2222,7 @@ export const AdminPage: React.FC = () => {
                 <span>Contacts</span>
               </div>
               <span className="admin-nav-badge badge-orange">
-                {contactStats.unreadCount}
+                {websiteContactStats.unread}
               </span>
             </button>
             <button
@@ -2728,11 +2789,11 @@ export const AdminPage: React.FC = () => {
                     <div className="admin-kpi-icon-wrap bg-msg"><Mail size={20} /></div>
                     <div className="admin-kpi-meta">
                       <span className="admin-kpi-label">Contact Messages</span>
-                      <span className="admin-kpi-value">{contactStats.unreadCount}</span>
+                      <span className="admin-kpi-value">{websiteContactStats.unread}</span>
                     </div>
                   </div>
                   <div className="admin-kpi-bottom">
-                    <span className="admin-kpi-trend"><TrendingUp size={13} /> {contactStats.totalContacts} total</span>
+                    <span className="admin-kpi-trend"><TrendingUp size={13} /> {websiteContactStats.total} total</span>
                     <svg className="admin-kpi-sparkline" viewBox="0 0 60 20" fill="none">
                       <path d="M 2 15 Q 18 8, 30 14 T 58 6" stroke="#16A34A" strokeWidth="2" fill="none" strokeLinecap="round" />
                     </svg>
@@ -2999,7 +3060,7 @@ export const AdminPage: React.FC = () => {
                   <button onClick={() => setIsExpertModalOpen(true)} className="admin-quick-btn">
                     <UserPlus size={15} /> Add Expert
                   </button>
-                  <button onClick={() => showToast('Sales & inventory exported to CSV')} className="admin-quick-btn">
+                  <button onClick={exportSalesInventory} className="admin-quick-btn">
                     <Download size={15} /> Export Report
                   </button>
                 </div>
@@ -3021,6 +3082,31 @@ export const AdminPage: React.FC = () => {
                   <RefreshCw size={14} /> Refresh
                 </button>
               </div>
+
+              {bulkOrderRequests.length > 0 && (
+                <div className="admin-bulk-orders-panel">
+                  <div className="admin-bulk-orders-heading">
+                    <div><h3>Bulk Order Requests</h3><p>Quote requests submitted from product detail pages.</p></div>
+                    <span>{bulkOrderRequests.length} requests</span>
+                  </div>
+                  <div className="admin-table-wrap">
+                    <table className="admin-data-table">
+                      <thead><tr><th>Request</th><th>Customer</th><th>Product Details</th><th>Quantity</th><th>Delivery Location</th><th>Status</th><th>Action</th></tr></thead>
+                      <tbody>{bulkOrderRequests.map((request) => (
+                        <tr key={request.id}>
+                          <td><strong>#{request.id.slice(-8).toUpperCase()}</strong><div className="admin-bulk-order-date">{new Date(request.createdAt).toLocaleDateString('en-IN')}</div></td>
+                          <td><strong>{request.name}</strong><div>{request.phone}</div><small>{request.email}</small></td>
+                          <td><strong>{request.details.productTitle}</strong><div>{request.details.packSize}</div><small>SKU: {request.details.sku}</small></td>
+                          <td><span className="admin-bulk-order-qty">{request.details.requiredQuantity}</span></td>
+                          <td>{request.details.location || 'Not provided'}</td>
+                          <td><span className={`admin-status-badge ${request.isRead ? 'paid' : 'pending'}`}>{request.isRead ? 'Reviewed' : 'New Request'}</span></td>
+                          <td><button className="admin-mini-btn" onClick={() => setViewContactModal(request)}><Eye size={13} /> View Request</button></td>
+                        </tr>
+                      ))}</tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
 
               {/* Filter Tabs */}
               <div className="admin-filter-bar">
@@ -3122,9 +3208,10 @@ export const AdminPage: React.FC = () => {
                   <h2 className="admin-welcome-title" style={{ fontSize: '1.4rem' }}>Product Catalog</h2>
                   <p className="admin-welcome-sub">Manage product stock, pricing, bio-certifications, and catalog visibility.</p>
                 </div>
-                <button onClick={openAddProductCMS} className="admin-primary-btn">
-                  <Plus size={16} /> Add New Product
-                </button>
+                <div className="admin-product-header-actions">
+                  <button onClick={() => setIsBulkImportOpen(true)} className="admin-quick-btn"><Upload size={16} /> Bulk Import</button>
+                  <button onClick={openAddProductCMS} className="admin-primary-btn"><Plus size={16} /> Add New Product</button>
+                </div>
               </div>
 
               {/* Filter Bar */}
@@ -3206,6 +3293,7 @@ export const AdminPage: React.FC = () => {
                         </td>
                         <td style={{ textAlign: 'center' }}>
                           <div className="admin-action-btn-group" style={{ justifyContent: 'center' }}>
+                            <Link className="admin-mini-btn" to={`/product/${prod.slug}`} target="_blank" title="Open customer product details page"><Eye size={13} /> View</Link>
                             <button
                               className="admin-mini-btn"
                               onClick={() => openEditProductCMS(prod)}
@@ -3314,7 +3402,7 @@ export const AdminPage: React.FC = () => {
                   <h2 className="admin-welcome-title" style={{ fontSize: '1.4rem' }}>Warehouse & Stock Inventory</h2>
                   <p className="admin-welcome-sub">Live stock levels, replenishment alerts, and warehouse batch tracking.</p>
                 </div>
-                <button onClick={() => showToast('Stock audit report exported')} className="admin-quick-btn">
+                <button onClick={exportStockReport} className="admin-quick-btn">
                   <Download size={15} /> Export Stock Report
                 </button>
               </div>
@@ -3425,7 +3513,7 @@ export const AdminPage: React.FC = () => {
                   <button onClick={() => { refetchCustomers(); showToast('Customer database refreshed from PostgreSQL'); }} className="admin-quick-btn">
                     <RefreshCw size={14} /> Refresh
                   </button>
-                  <button onClick={() => showToast('Customer database exported')} className="admin-quick-btn">
+                  <button onClick={exportCustomers} className="admin-quick-btn">
                     <Download size={14} /> Export CSV
                   </button>
                 </div>
@@ -4245,16 +4333,16 @@ export const AdminPage: React.FC = () => {
               <div className="admin-contact-stats-grid" style={{ marginBottom: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
                 <div style={{ padding: '0.85rem 1.15rem', backgroundColor: '#FEF3C7', border: '1px solid #FCD34D', borderRadius: '10px' }}>
                   <div style={{ fontSize: '0.75rem', color: '#92400E', fontWeight: 600, textTransform: 'uppercase' }}>Total Submissions</div>
-                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#92400E', marginTop: '0.2rem' }}>{contactStats.totalContacts}</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#92400E', marginTop: '0.2rem' }}>{websiteContactStats.total}</div>
                 </div>
                 <div style={{ padding: '0.85rem 1.15rem', backgroundColor: '#FEE2E2', border: '1px solid #FECACA', borderRadius: '10px' }}>
                   <div style={{ fontSize: '0.75rem', color: '#991B1B', fontWeight: 600, textTransform: 'uppercase' }}>Unread Messages</div>
-                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#991B1B', marginTop: '0.2rem' }}>{contactStats.unreadCount}</div>
+                  <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#991B1B', marginTop: '0.2rem' }}>{websiteContactStats.unread}</div>
                 </div>
               </div>
 
               <div className="admin-review-list contact-inquiries-table">
-                {contacts.length > 0 && (
+                {websiteContacts.length > 0 && (
                   <div className="admin-review-table-head" aria-hidden="true">
                     <span>Name</span><span>Email</span><span>Phone</span><span>Subject</span><span>Message</span><span>Status</span><span>Action</span>
                   </div>
@@ -4623,7 +4711,7 @@ export const AdminPage: React.FC = () => {
                   <p className="admin-welcome-sub">Comprehensive exportable reports of revenue, product volume, and regional bookings.</p>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <button onClick={() => showToast('Full Financial Ledger CSV downloaded')} className="admin-primary-btn">
+                  <button onClick={exportFinancialLedger} className="admin-primary-btn">
                     <Download size={15} /> Export CSV
                   </button>
                 </div>
@@ -5548,6 +5636,12 @@ export const AdminPage: React.FC = () => {
           ==================================================================== */}
 
       {/* Modal: Full Product CMS (Add / Edit) */}
+      {isBulkImportOpen && (
+        <BulkProductImport categories={dbCategories} subcategories={dbSubcategories} createProduct={createProduct}
+          onClose={() => setIsBulkImportOpen(false)}
+          onComplete={() => { refetchProducts(); showToast('Bulk products saved to the database and dashboard refreshed.'); }} />
+      )}
+
       {(isAddProductOpen || isEditProductOpen) && (
         <div className="admin-modal-overlay">
           <div className="admin-modal-card admin-cms-modal-card">
@@ -7934,7 +8028,7 @@ export const AdminPage: React.FC = () => {
                   <Mail size={18} />
                 </div>
                 <div>
-                  <h3 className="admin-modal-title">Contact Inquiry Details</h3>
+                  <h3 className="admin-modal-title">{parseBulkOrderMessage(viewContactModal.message) ? 'Bulk Order Request' : 'Contact Inquiry Details'}</h3>
                   <span style={{ fontSize: '0.75rem', color: '#64748B' }}>
                     Received on {new Date(viewContactModal.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
                   </span>
@@ -7983,24 +8077,27 @@ export const AdminPage: React.FC = () => {
                 </div>
               </div>
 
-              <div>
+              {parseBulkOrderMessage(viewContactModal.message) ? (() => {
+                const details = parseBulkOrderMessage(viewContactModal.message)!;
+                const fields = [
+                  ['Product', details.productTitle], ['SKU', details.sku],
+                  ['Selected Pack', details.packSize], ['Required Quantity', details.requiredQuantity],
+                  ['Delivery Location', details.location], ['Additional Requirements', details.notes || 'None'],
+                ];
+                return <div>
+                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Bulk Order Details</span>
+                  <div className="admin-bulk-request-detail-grid">
+                    {fields.map(([label, value]) => <div key={String(label)} className={label === 'Additional Requirements' ? 'wide' : ''}>
+                      <span>{label}</span><strong>{String(value || 'Not provided')}</strong>
+                    </div>)}
+                  </div>
+                </div>;
+              })() : <div>
                 <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748B', textTransform: 'uppercase' }}>Message</span>
-                <div
-                  style={{
-                    backgroundColor: '#F8FAFC',
-                    border: '1px solid #E2E8F0',
-                    borderRadius: '8px',
-                    padding: '1rem',
-                    fontSize: '0.875rem',
-                    lineHeight: 1.6,
-                    color: '#334155',
-                    marginTop: '6px',
-                    whiteSpace: 'pre-wrap',
-                  }}
-                >
+                <div style={{ backgroundColor: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '1rem', fontSize: '0.875rem', lineHeight: 1.6, color: '#334155', marginTop: '6px', whiteSpace: 'pre-wrap' }}>
                   {viewContactModal.message}
                 </div>
-              </div>
+              </div>}
             </div>
             <div className="admin-modal-footer" style={{ justifyContent: 'space-between' }}>
               <button

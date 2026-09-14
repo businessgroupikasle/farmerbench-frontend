@@ -67,8 +67,7 @@
 .pdp-gallery-container {
   display: flex;
   gap: 1rem;
-  position: sticky;
-  top: 90px;
+  position: static;
 }
 
 @media (max-width: 640px) {
@@ -1667,3 +1666,5 @@
     font-size: .72rem;
   }
 }
+.pdp-expert-banner{display:none!important}
+

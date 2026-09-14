@@ -8,7 +8,6 @@ import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { ErrorState } from '../components/common/ErrorState';
 import {
   Star,
-  Check,
   ShoppingBag,
   Heart,
   ShieldCheck,
@@ -29,6 +28,7 @@ import {
 import { getUploadUrl } from '../utils/image';
 import { postalCodeService } from '../services/postalCode.service';
 import { ProductShareModal } from '../components/product/ProductShareModal';
+import { BulkOrderForm } from '../components/product/BulkOrderForm';
 import './ProductDetailPage.css';
 
 export const ProductDetailPage: React.FC = () => {
@@ -324,7 +324,6 @@ export const ProductDetailPage: React.FC = () => {
   };
 
   // Structured content parsed from PostgreSQL
-  const features: string[] = Array.isArray(attrs.features) ? attrs.features : [];
   const benefits: string[] = Array.isArray(attrs.benefits) ? attrs.benefits : [];
   const usageSteps: Array<{ stepNumber: number; title: string; description: string }> = Array.isArray(attrs.usageSteps) ? attrs.usageSteps : [];
   const dosageTable: Array<{ crop: string; foliarSpray: string; dripIrrigation: string }> = Array.isArray(attrs.dosageTable) ? attrs.dosageTable : [];
@@ -477,25 +476,6 @@ export const ProductDetailPage: React.FC = () => {
             <span className="pdp-tax-notice">Inclusive of all taxes & agricultural GST exemptions</span>
           </div>
 
-          {/* Description */}
-          <p className="pdp-short-desc">
-            {product.description}
-          </p>
-
-          {/* Dynamic Feature Bullets from PostgreSQL */}
-          {features.length > 0 && (
-            <div className="pdp-feature-list">
-              {features.map((feat, idx) => (
-                <div key={idx} className="pdp-feature-item">
-                  <div className="pdp-feature-icon">
-                    <Check size={12} strokeWidth={3} />
-                  </div>
-                  <span>{feat}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
           {/* Pack Size Selector */}
           {availablePackSizes.length > 0 && (
             <div className="pdp-pack-size-section">
@@ -514,6 +494,8 @@ export const ProductDetailPage: React.FC = () => {
               </div>
             </div>
           )}
+
+          <BulkOrderForm product={product} packSize={selectedPackSize} sku={skuCode} user={user} />
 
           {/* Quantity & CTA Row */}
           <div className="pdp-actions-row">

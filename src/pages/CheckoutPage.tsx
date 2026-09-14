@@ -66,6 +66,13 @@ const loadRazorpayCheckout = (): Promise<boolean> => {
   return razorpayScriptPromise;
 };
 
+const normalizeIndianMobile = (value?: string | null) => {
+  const digits = String(value || '').replace(/\D/g, '');
+  if (digits.length === 12 && digits.startsWith('91')) return digits.slice(2);
+  if (digits.length === 11 && digits.startsWith('0')) return digits.slice(1);
+  return digits.slice(0, 10);
+};
+
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -82,7 +89,8 @@ export const CheckoutPage: React.FC = () => {
 
   // Address State
   const [fullName, setFullName] = useState(user?.name || '');
-  const [phone, setPhone] = useState(user?.phone || '');
+  const [phone, setPhone] = useState(() => normalizeIndianMobile(user?.phone));
+  const [phoneError, setPhoneError] = useState('');
   const [addressLine1, setAddressLine1] = useState('');
   const [addressLine2, setAddressLine2] = useState('');
   const [city, setCity] = useState(user?.location || '');
@@ -109,6 +117,10 @@ export const CheckoutPage: React.FC = () => {
     }
   }, [step, paymentMethod]);
 
+  useEffect(() => {
+    if (user?.phone && !phone) setPhone(normalizeIndianMobile(user.phone));
+  }, [user?.phone, phone]);
+
   const [availableCities, setAvailableCities] = useState<string[]>([]);
 
   useEffect(() => {
@@ -132,9 +144,6 @@ export const CheckoutPage: React.FC = () => {
         ? place.city
         : (cleanPostOffice || place.city || dist);
 
-      if (bestCity) {
-        setCity(bestCity);
-      }
 
       // 3. Separate State
       if (place.state) {
@@ -144,16 +153,16 @@ export const CheckoutPage: React.FC = () => {
         setState(formattedState);
       }
 
-      // City / Town suggestions for datalist
+      // Every post office returned for this PIN becomes a selectable place.
       const allSuggestions: string[] = [];
-      if (bestCity && !allSuggestions.includes(bestCity)) allSuggestions.push(bestCity);
-      if (cleanPostOffice && !allSuggestions.includes(cleanPostOffice)) allSuggestions.push(cleanPostOffice);
       if (place.postOffices && place.postOffices.length > 0) {
         place.postOffices.forEach((po) => {
-          const cpo = po.replace(/\s+(B\.O|S\.O|H\.O)$/i, '').trim();
-          if (cpo && !allSuggestions.includes(cpo)) allSuggestions.push(cpo);
+          const postOffice = po.trim();
+          if (postOffice && !allSuggestions.includes(postOffice)) allSuggestions.push(postOffice);
         });
+      if (!allSuggestions.length && bestCity) allSuggestions.push(bestCity);
       }
+      setCity(allSuggestions[0] || bestCity);
       setAvailableCities(allSuggestions);
       setPostalStatus(`✓ ${dist || bestCity}, ${place.state}`);
     }).catch((error) => {
@@ -201,8 +210,9 @@ export const CheckoutPage: React.FC = () => {
       setErrorMsg('Please enter your full name');
       return;
     }
-    const cleanPhone = phone.replace(/[^0-9]/g, '');
-    if (!phone.trim() || cleanPhone.length < 10) {
+    const cleanPhone = normalizeIndianMobile(phone);
+    if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
+      setPhoneError('Enter a valid 10-digit Indian mobile number starting with 6-9.');
       setErrorMsg('Please enter a valid 10-digit mobile number');
       return;
     }
@@ -248,7 +258,7 @@ export const CheckoutPage: React.FC = () => {
       state: state.trim(),
       postalCode: pincode.trim(),
       country: 'India',
-      phone: phone.trim(),
+      phone: normalizeIndianMobile(phone),
     };
   };
 
@@ -312,7 +322,7 @@ export const CheckoutPage: React.FC = () => {
           prefill: {
             name: fullName.trim(),
             email: user?.email || '',
-            contact: phone.trim(),
+            contact: normalizeIndianMobile(phone),
           },
           theme: {
             color: '#15803D',
@@ -502,11 +512,16 @@ export const CheckoutPage: React.FC = () => {
                     <input
                       type="tel"
                       required
+                      inputMode="numeric"
+                      autoComplete="tel"
+                      maxLength={10}
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onChange={(e) => { setPhone(e.target.value.replace(/\D/g, '').slice(0, 10)); setPhoneError(''); }}
+                      onBlur={() => setPhoneError(phone && !/^[6-9]\d{9}$/.test(phone) ? 'Enter a valid 10-digit Indian mobile number starting with 6-9.' : '')}
                       placeholder="10-digit mobile number"
-                      className="checkout-input"
+                      className={`checkout-input ${phoneError ? 'checkout-input-error' : ''}`}
                     />
+                    {phoneError && <span className="checkout-field-error"><AlertCircle size={13} /> {phoneError}</span>}
                   </div>
                 </div>
 
@@ -559,21 +574,22 @@ export const CheckoutPage: React.FC = () => {
                   {/* 2. City / Town */}
                   <div className="checkout-field">
                     <label className="checkout-label">City / Town *</label>
-                    <input
-                      type="text"
-                      required
-                      list="checkout-city-list"
-                      value={city}
-                      onChange={(e) => setCity(e.target.value)}
-                      placeholder="e.g. Bericiyala"
-                      className="checkout-input"
-                    />
-                    {availableCities.length > 0 && (
-                      <datalist id="checkout-city-list">
-                        {availableCities.map((c, idx) => (
-                          <option key={idx} value={c} />
-                        ))}
-                      </datalist>
+                    {availableCities.length > 0 ? (
+                      <select required value={city} onChange={(e) => setCity(e.target.value)} className="checkout-select checkout-city-select">
+                        {availableCities.map((place) => <option key={place} value={place}>{place}</option>)}
+                      </select>
+                    ) : (
+                      <input
+                        type="text"
+                        required
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        placeholder={pincode.length === 6 ? 'Finding places...' : 'Enter pincode first'}
+                        className="checkout-input"
+                      />
+                    )}
+                    {availableCities.length > 1 && (
+                      <small className="checkout-place-hint">{availableCities.length} places available for this pincode</small>
                     )}
                   </div>
 
