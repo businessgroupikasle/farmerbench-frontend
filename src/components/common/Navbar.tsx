@@ -222,7 +222,7 @@ export const Navbar: React.FC = () => {
                   </div>
                   <div className="agriflow-account-text">
                     <span className="agriflow-account-title">
-                      {isAuthenticated && user ? `Hi, ${(user.name || user.email?.split('@')[0] || 'Farmer').split(' ')[0]}` : 'Login / Register'}
+                      {isAuthenticated && user ? (isAdmin ? ' Admin' : `Hi, ${(user.name || user.email?.split('@')[0] || 'Farmer').split(' ')[0]}`) : 'Login / Register'}
                       <ChevronDown size={13} strokeWidth={2.6} />
                     </span>
                   </div>
@@ -233,7 +233,7 @@ export const Navbar: React.FC = () => {
                   <div className="agriflow-user-menu animate-fade-in">
                     <div style={{ padding: '0.6rem 0.75rem', borderBottom: '1px solid #E2E8F0', marginBottom: '0.25rem' }}>
                       <p style={{ fontSize: '0.9rem', fontWeight: 700, color: '#0F4726', margin: 0, lineHeight: 1.3 }}>
-                        {user.name || user.email?.split('@')[0] || 'Farmer'}
+                        {isAdmin ? 'Admin' : (user.name || user.email?.split('@')[0] || 'Farmer')}
                       </p>
                       <p style={{ fontSize: '0.78rem', color: '#64748B', margin: '0.2rem 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {user.email}

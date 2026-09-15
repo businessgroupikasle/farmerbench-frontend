@@ -2287,7 +2287,7 @@ export const AdminPage: React.FC = () => {
               className="admin-user-avatar"
             /> */}
             <div>
-              <div className="admin-user-info-name">{user?.name || 'AgriEra Admin'}</div>
+              <div className="admin-user-info-name">Admin</div>
               <div className="admin-user-info-role">Super Admin</div>
             </div>
           </div>

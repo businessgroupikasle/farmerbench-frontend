@@ -1536,7 +1536,22 @@
     font-size: 14px !important;
     line-height: 1.15;
   }
-  .fb-card-title { display: -webkit-box; min-height: 3.45em; margin-bottom: 3px; overflow: hidden; overflow-wrap: anywhere; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
+  .fb-products-page .fb-card-title {
+    display: block !important;
+    min-height: 3.45em;
+    height: auto !important;
+    margin-bottom: 3px;
+    overflow: visible !important;
+    overflow-wrap: anywhere;
+    white-space: normal !important;
+    text-overflow: clip !important;
+    -webkit-line-clamp: unset;
+  }
+  .fb-products-page .fb-card-title a {
+    display: block;
+    overflow-wrap: anywhere;
+    white-space: normal !important;
+  }
   .fb-card-description { display: none; }
   .fb-card-rating-row { max-width: 160%; margin-bottom: 2px; transform: scale(.6); transform-origin: left center; }
   .fb-card-footer { gap: 3px; padding-top: 4px; border-top: 1px solid #F0F4F1; }

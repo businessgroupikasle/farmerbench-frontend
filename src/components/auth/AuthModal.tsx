@@ -5,7 +5,7 @@ import { Input } from '../common/Input';
 import { Button } from '../common/Button';
 import { useUIStore } from '../../store/uiStore';
 import { useAuth } from '../../hooks/useAuth';
-import { Mail, Lock, User as UserIcon, Sparkles } from 'lucide-react';
+import { Mail, Lock, User as UserIcon } from 'lucide-react';
 
 export const AuthModal: React.FC = () => {
   const navigate = useNavigate();
@@ -36,16 +36,6 @@ export const AuthModal: React.FC = () => {
       }
     } catch (err: any) {
       setError(err.message || 'Authentication failed');
-    }
-  };
-
-  const handleFillDemo = (type: 'admin' | 'customer') => {
-    if (type === 'admin') {
-      setEmail('admin@formerbench.dev');
-      setPassword('DemoPass123!');
-    } else {
-      setEmail('customer@formerbench.dev');
-      setPassword('DemoPass123!');
     }
   };
 
@@ -111,43 +101,6 @@ export const AuthModal: React.FC = () => {
           Sign Up
         </button>
       </div>
-
-      {/* Demo Credentials Quick Fill Buttons */}
-      {authModalTab === 'login' && (
-        <div
-          style={{
-            padding: '0.75rem',
-            background: 'var(--brand-primary-light)',
-            borderRadius: 'var(--radius-md)',
-            marginBottom: '1.25rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.4rem',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.775rem', fontWeight: 700, color: 'var(--brand-primary)' }}>
-            <Sparkles size={14} /> Quick Demo Logins:
-          </div>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button
-              type="button"
-              onClick={() => handleFillDemo('customer')}
-              className="btn btn-secondary btn-sm"
-              style={{ fontSize: '0.75rem', flex: 1, padding: '0.3rem' }}
-            >
-              Demo Customer
-            </button>
-            <button
-              type="button"
-              onClick={() => handleFillDemo('admin')}
-              className="btn btn-secondary btn-sm"
-              style={{ fontSize: '0.75rem', flex: 1, padding: '0.3rem' }}
-            >
-              Demo Admin
-            </button>
-          </div>
-        </div>
-      )}
 
       {error && (
         <div

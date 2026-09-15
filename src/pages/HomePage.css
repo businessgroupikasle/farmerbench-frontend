@@ -1514,10 +1514,14 @@
   .agriflow-product-img-box { width: calc(100% - 16px); height: auto; aspect-ratio: 1 / 1; margin: 8px 8px 0; border-radius: 10px; background: linear-gradient(145deg, #FAFCF9, #FFF); }
   .agriflow-product-info { padding: 12px 12px 14px; }
   .agriflow-product-meta { font-size: .62rem; }
-  .agriflow-product-name { min-height: 2.5em; font-size: .88rem; line-height: 1.3; }
+  .agriflow-product-name {
+    min-height: 2.5em;
+    font-size: 12px;
+    line-height: 1.3;
+  }
   .agriflow-product-pack { margin-bottom: 8px; font-size: .72rem; }
   .agriflow-product-price { gap: 6px; padding-top: 8px; }
-  .agriflow-product-price strong { font-size: 1.08rem; }
+  .agriflow-product-price strong { font-size: 0.85rem; }
   .agriflow-product-price del { font-size: .75rem; }
   .agriflow-products-view-all { margin-top: 2rem; min-height: 44px; padding: .75rem 1.8rem; font-size: .85rem; }
 }
@@ -1869,4 +1873,54 @@
   .home-tagline-marquee-track {
     animation-play-state: paused;
   }
+}
+
+.agriflow-product-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.agriflow-product-category-section {
+  width: 100%;
+}
+
+.agriflow-product-category-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: .75rem;
+  border-bottom: 2px solid #e3ede5;
+}
+
+.agriflow-product-category-heading h3 {
+  margin: 0;
+  color: #0f4726;
+  font-size: clamp(1.25rem, 2vw, 1.65rem);
+  font-weight: 800;
+}
+
+.agriflow-product-category-heading span {
+  flex: 0 0 auto;
+  color: #64748b;
+  font-size: .8rem;
+  font-weight: 700;
+}
+
+.agriflow-category-view-all {
+  display: none;
+  flex: 0 0 auto;
+  color: #15803d;
+  font-size: .78rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+@media (max-width: 640px) {
+  .agriflow-product-sections { gap: 2.25rem; }
+  .agriflow-product-category-heading { margin-bottom: 1rem; }
+  .agriflow-category-product-count { display: none; }
+  .agriflow-category-view-all { display: inline-flex; }
 }

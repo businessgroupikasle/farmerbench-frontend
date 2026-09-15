@@ -561,21 +561,6 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  const handleFillDemo = (type: 'admin' | 'farmer') => {
-    setError(null);
-    if (type === 'admin') {
-      setEmailOrPhone('admin@formerbench.dev');
-      setPassword('DemoPass123!');
-      setMode('login');
-      addToast({ type: 'info', message: 'Demo Admin credentials filled.' });
-    } else {
-      setEmailOrPhone('customer@formerbench.dev');
-      setPassword('DemoPass123!');
-      setMode('login');
-      addToast({ type: 'info', message: 'Demo Farmer credentials filled.' });
-    }
-  };
-
   const handleGoogleAuthSuccess = async (response: CredentialResponse) => {
     if (!response.credential) {
       setError('Google did not return a valid sign-in credential.');
@@ -1413,27 +1398,6 @@ export const LoginPage: React.FC = () => {
                     text={mode === 'signup' ? 'signup_with' : 'continue_with'}
                     width="360"
                   />
-                </div>
-
-                {/* Quick Demo Autofill Box */}
-                <div className="auth-demo-box">
-                  <span className="auth-demo-title">Quick Demo Login:</span>
-                  <div className="auth-demo-actions">
-                    <button
-                      type="button"
-                      onClick={() => handleFillDemo('farmer')}
-                      className="auth-demo-btn"
-                    >
-                      Farmer Account
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleFillDemo('admin')}
-                      className="auth-demo-btn"
-                    >
-                      Admin Account
-                    </button>
-                  </div>
                 </div>
               </>
             )}

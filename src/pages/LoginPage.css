@@ -786,57 +786,6 @@
   transform: translateY(-1px);
 }
 
-/* Demo Credentials Helper Box */
-.auth-demo-box {
-  margin-top: 1rem;
-  padding: 0.65rem 0.85rem;
-  background-color: #F0FDF4;
-  border: 1.5px dashed #86EFAC;
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-  font-size: 0.78rem;
-}
-
-[data-theme='dark'] .auth-demo-box {
-  background-color: rgba(21, 128, 61, 0.15);
-  border-color: rgba(136, 223, 158, 0.3);
-}
-
-.auth-demo-title {
-  font-weight: 800;
-  color: #0F4726;
-  margin: 0;
-}
-
-[data-theme='dark'] .auth-demo-title {
-  color: #88DF9E;
-}
-
-.auth-demo-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.auth-demo-btn {
-  flex: 1;
-  background-color: #FFFFFF;
-  border: 1.5px solid #15803D;
-  color: #0F4726;
-  padding: 0.35rem 0.5rem;
-  border-radius: 8px;
-  font-size: 0.76rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.auth-demo-btn:hover {
-  background-color: #15803D;
-  color: #FFFFFF;
-}
-
 /* --------------------------------------------------------------------------
    Responsive Breakpoints (Mobile / Tablet)
    -------------------------------------------------------------------------- */
@@ -893,9 +842,6 @@
   .auth-role-btn {
     padding: 0.45rem 0.5rem;
     font-size: 0.78rem;
-  }
-  .auth-demo-actions {
-    flex-direction: column;
   }
 }
 
@@ -1234,8 +1180,7 @@
   }
 
   .auth-method-switcher,
-  .auth-or-divider,
-  .auth-demo-box {
+  .auth-or-divider {
     margin-top: 9px;
     margin-bottom: 9px;
   }
