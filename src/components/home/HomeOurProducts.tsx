@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Star, Search, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCategories } from '../../hooks/useCategories';
-import { useProducts } from '../../hooks/useProducts';
+import { useFeaturedProducts } from '../../hooks/useProducts';
 import { formatPrice } from '../../utils/currency';
 import { getUploadUrl } from '../../utils/image';
 
@@ -11,9 +11,8 @@ const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1574943320219-553eb213
 export const HomeOurProducts: React.FC = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const { data: response, isLoading } = useProducts({ limit: 100 });
+  const { data: products = [], isLoading } = useFeaturedProducts(100);
   const { data: categories = [] } = useCategories();
-  const products = response?.data || [];
 
   const productSections = useMemo(() => {
     const query = searchQuery.toLowerCase().trim();
@@ -32,15 +31,15 @@ export const HomeOurProducts: React.FC = () => {
         id: 'best-selling',
         name: 'Best Seller',
         products: [...products]
-          .filter(matchesSearch)
-          .sort((a, b) => Number(b.featured) - Number(a.featured) || b.rating - a.rating)
+          .filter((product) => product.featured === true && matchesSearch(product))
+          .sort((a, b) => b.rating - a.rating)
           .slice(0, 8),
       },
       ...activeCategories.map((category) => ({
         id: category.id,
         name: category.name,
         products: products
-          .filter((product) => product.categoryId === category.id && matchesSearch(product))
+          .filter((product) => product.featured === true && product.categoryId === category.id && matchesSearch(product))
           .slice(0, 8),
       })),
     ];

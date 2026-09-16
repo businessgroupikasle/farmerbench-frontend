@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useProduct, useProductMutations } from '../hooks/useProducts';
+import { useProduct, useProductMutations, useProducts } from '../hooks/useProducts';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
 import { useUIStore } from '../store/uiStore';
@@ -24,6 +24,8 @@ import {
   Edit2,
   Trash2,
   Share2,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { getUploadUrl } from '../utils/image';
 import { postalCodeService } from '../services/postalCode.service';
@@ -35,6 +37,12 @@ export const ProductDetailPage: React.FC = () => {
   const { idOrSlug } = useParams<{ idOrSlug: string }>();
   const navigate = useNavigate();
   const { data: product, isLoading, isError } = useProduct(idOrSlug);
+  const categoryId = product?.category?.id;
+  const { data: recommendedResponse, isLoading: recommendationsLoading } = useProducts({
+    limit: 12,
+    categoryId,
+    sortBy: 'popular',
+  });
   const { addToCart } = useCart();
   const { user, isAuthenticated } = useAuth();
   const { addToast } = useUIStore();
@@ -77,6 +85,7 @@ export const ProductDetailPage: React.FC = () => {
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
   const imageRef = useRef<HTMLDivElement>(null);
   const mainGridRef = useRef<HTMLDivElement>(null);
+  const recommendationsRef = useRef<HTMLDivElement>(null);
   const [isGalleryCompact, setIsGalleryCompact] = useState(false);
 
   useEffect(() => {
@@ -358,6 +367,15 @@ export const ProductDetailPage: React.FC = () => {
     .filter(Boolean);
   const specifications: Array<{ label: string; value: string }> = Array.isArray(attrs.specifications) ? attrs.specifications : [];
   const faqs: Array<{ question: string; answer: string }> = Array.isArray(attrs.faqs) ? attrs.faqs : [];
+  const recommendedProducts = (recommendedResponse?.data || [])
+    .filter((item) => item.id !== product.id)
+    .slice(0, 10);
+  const scrollRecommendations = (direction: -1 | 1) => {
+    recommendationsRef.current?.scrollBy({
+      left: direction * Math.min(recommendationsRef.current.clientWidth * 0.85, 720),
+      behavior: 'smooth',
+    });
+  };
 
   return (
     <div className="pdp-wrapper animate-fade-in">
@@ -524,6 +542,7 @@ export const ProductDetailPage: React.FC = () => {
 
           <BulkOrderForm product={product} packSize={selectedPackSize} sku={skuCode} user={user} />
 
+          <div className="pdp-mobile-actions-shell">
           {/* Quantity & CTA Row */}
           <div className="pdp-actions-row">
             <div className="pdp-qty-wrap">
@@ -592,6 +611,7 @@ export const ProductDetailPage: React.FC = () => {
               <Share2 size={16} />
               Share Product
             </button>
+          </div>
           </div>
 
           {/* Check Delivery Box */}
@@ -1089,6 +1109,65 @@ export const ProductDetailPage: React.FC = () => {
         )}
       </div>
 
+      {(recommendationsLoading || recommendedProducts.length > 0) && (
+        <section className="pdp-recommendations" aria-labelledby="pdp-recommendations-title">
+          <div className="pdp-recommendations-header">
+            <div>
+              <span className="pdp-recommendations-kicker">You may also need</span>
+              <h2 id="pdp-recommendations-title">Recommended Products</h2>
+            </div>
+            <div className="pdp-carousel-controls">
+              <button type="button" onClick={() => scrollRecommendations(-1)} aria-label="Previous recommended products">
+                <ChevronLeft size={20} />
+              </button>
+              <button type="button" onClick={() => scrollRecommendations(1)} aria-label="Next recommended products">
+                <ChevronRight size={20} />
+              </button>
+            </div>
+          </div>
+
+          <div className="pdp-recommendations-track" ref={recommendationsRef}>
+            {recommendationsLoading
+              ? Array.from({ length: 4 }).map((_, index) => <div className="pdp-recommendation-card is-loading" key={index} />)
+              : recommendedProducts.map((recommended) => {
+                  const salePrice = recommended.discountPrice || recommended.price;
+                  const discounted = Boolean(recommended.discountPrice && recommended.discountPrice < recommended.price);
+                  const discount = discounted
+                    ? Math.round(((recommended.price - salePrice) / recommended.price) * 100)
+                    : 0;
+                  return (
+                    <Link
+                      className="pdp-recommendation-card"
+                      to={`/products/${recommended.slug || recommended.id}`}
+                      key={recommended.id}
+                    >
+                      <div className="pdp-recommendation-media">
+                        {discounted && <span className="pdp-recommendation-discount">{discount}% off</span>}
+                        <img
+                          src={getUploadUrl(recommended.images?.[0], 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=600')}
+                          alt={recommended.title}
+                          loading="lazy"
+                        />
+                      </div>
+                      <div className="pdp-recommendation-body">
+                        <span className="pdp-recommendation-category">{recommended.category?.name || 'Agricultural product'}</span>
+                        <h3>{recommended.title}</h3>
+                        <div className="pdp-recommendation-rating">
+                          <Star size={14} fill="#f59e0b" stroke="#f59e0b" />
+                          <span>{recommended.rating.toFixed(1)}</span>
+                          <small>({recommended.numReviews})</small>
+                        </div>
+                        <div className="pdp-recommendation-price">
+                          <strong>₹{salePrice.toFixed(2)}</strong>
+                          {discounted && <del>₹{recommended.price.toFixed(2)}</del>}
+                        </div>
+                      </div>
+                    </Link>
+                  );
+                })}
+          </div>
+        </section>
+      )}
       {/* Crop Expert Advisory Modal */}
       {isExpertModalOpen && (
         <div className="agriflow-modal-overlay" onClick={() => setIsExpertModalOpen(false)}>

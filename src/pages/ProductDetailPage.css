@@ -455,26 +455,56 @@
   flex-wrap: wrap;
 }
 
-@media (max-width: 480px) {
-  .pdp-actions-row {
+.pdp-mobile-actions-shell {
+  display: contents;
+}
+
+@media (max-width: 640px) {
+  .pdp-wrapper {
+    padding-bottom: calc(112px + env(safe-area-inset-bottom));
+  }
+
+  .pdp-mobile-actions-shell {
+    position: fixed;
+    z-index: 100;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
     flex-direction: column;
-    align-items: stretch;
-    gap: 0.75rem;
+    gap: 8px;
+    padding: 8px 16px calc(8px + env(safe-area-inset-bottom));
+    border-top: 1px solid #e2e8f0;
+    background: #ffffff;
+    box-shadow: 0 -6px 18px rgba(15, 23, 42, 0.1);
   }
-  .pdp-qty-wrap {
-    width: 100%;
+
+  .pdp-actions-row {
+    display: grid;
+    grid-template-columns: 80px repeat(2, minmax(0, 1fr));
+    align-items: end;
+    gap: 6px;
   }
-  .pdp-qty-stepper {
-    width: 100%;
-    justify-content: space-between;
-  }
-  .pdp-qty-btn {
-    width: 48px;
-  }
+
+  .pdp-qty-wrap,
+  .pdp-qty-stepper,
   .pdp-btn-add-cart,
   .pdp-btn-buy-now {
     width: 100%;
     min-width: 0;
+  }
+
+  .pdp-qty-stepper {
+    justify-content: space-between;
+  }
+
+  .pdp-qty-btn {
+    width: 26px;
+  }
+
+  .pdp-actions-secondary-row {
+    justify-content: center;
+    padding: 0;
   }
 }
 
@@ -2000,5 +2030,208 @@
 
   .pdp-faq-content p {
     font-size: 0.76rem;
+  }
+}
+
+/* Recommended products carousel */
+.pdp-recommendations {
+  margin: 2.5rem 0 1rem;
+  padding: 1.5rem 0 0;
+  border-top: 1px solid #e2e8f0;
+}
+
+.pdp-recommendations-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.pdp-recommendations-kicker {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: #15803d;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pdp-recommendations h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.5rem;
+  line-height: 1.25;
+}
+
+.pdp-carousel-controls {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pdp-carousel-controls button {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #14532d;
+  cursor: pointer;
+}
+
+.pdp-carousel-controls button:hover {
+  border-color: #15803d;
+  background: #f0fdf4;
+}
+
+.pdp-recommendations-track {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(220px, 260px);
+  gap: 1rem;
+  overflow-x: auto;
+  padding: 0.2rem 0.1rem 1rem;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
+  scrollbar-color: #86efac transparent;
+}
+
+.pdp-recommendation-card {
+  min-width: 0;
+  overflow: hidden;
+  scroll-snap-align: start;
+  border: 1px solid #dbe7df;
+  border-radius: 8px;
+  background: #ffffff;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.pdp-recommendation-card:hover {
+  border-color: #86efac;
+  box-shadow: 0 8px 22px rgba(15, 71, 38, 0.1);
+  transform: translateY(-2px);
+}
+
+.pdp-recommendation-media {
+  position: relative;
+  height: 190px;
+  background: #f8fafc;
+}
+
+.pdp-recommendation-media img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  padding: 0.75rem;
+}
+
+.pdp-recommendation-discount {
+  position: absolute;
+  z-index: 1;
+  top: 0.65rem;
+  left: 0.65rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  background: #166534;
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.pdp-recommendation-body {
+  padding: 0.9rem;
+}
+
+.pdp-recommendation-category {
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.pdp-recommendation-body h3 {
+  min-height: 2.7em;
+  margin: 0.35rem 0 0.55rem;
+  overflow: hidden;
+  color: #0f172a;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.pdp-recommendation-rating,
+.pdp-recommendation-price {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.pdp-recommendation-rating {
+  color: #334155;
+  font-size: 0.76rem;
+}
+
+.pdp-recommendation-rating small {
+  color: #94a3b8;
+}
+
+.pdp-recommendation-price {
+  margin-top: 0.65rem;
+}
+
+.pdp-recommendation-price strong {
+  color: #14532d;
+  font-size: 1rem;
+}
+
+.pdp-recommendation-price del {
+  color: #94a3b8;
+  font-size: 0.75rem;
+}
+
+.pdp-recommendation-card.is-loading {
+  height: 330px;
+  border-color: #e2e8f0;
+  background: linear-gradient(100deg, #f1f5f9 30%, #f8fafc 45%, #f1f5f9 60%);
+  background-size: 220% 100%;
+  animation: pdp-recommendation-loading 1.2s ease-in-out infinite;
+}
+
+@keyframes pdp-recommendation-loading {
+  to { background-position-x: -220%; }
+}
+
+@media (max-width: 640px) {
+  .pdp-recommendations {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+  }
+
+  .pdp-recommendations h2 {
+    font-size: 1.15rem;
+  }
+
+  .pdp-recommendations-track {
+    grid-auto-columns: minmax(170px, 72vw);
+    gap: 0.75rem;
+    margin-right: -1rem;
+    padding-right: 1rem;
+  }
+
+  .pdp-recommendation-media {
+    height: 155px;
+  }
+
+  .pdp-carousel-controls {
+    display: none;
   }
 }

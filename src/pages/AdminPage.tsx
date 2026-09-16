@@ -6510,7 +6510,7 @@ export const AdminPage: React.FC = () => {
                   Cancel
                 </button>
                 <button type="submit" className="admin-primary-btn">
-                  {isAddProductOpen ? '🚀 Publish Product to PostgreSQL' : '💾 Save Product Content to PostgreSQL'}
+                  {isAddProductOpen ? 'Publish Product' : ' Save Product'}
                 </button>
               </div>
             </form>
