@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { HomeHero } from '../components/home/HomeHero';
 import { HomeOurProducts } from '../components/home/HomeOurProducts';
 import { HomeLatestNews } from '../components/home/HomeLatestNews';
@@ -10,14 +10,21 @@ import { HomeMobileSearchBar } from '../components/home/HomeMobileSearchBar';
 import './HomePage.css';
 
 export const HomePage: React.FC = () => {
+  const [heroReady, setHeroReady] = useState(false);
+  const handleHeroReady = useCallback(() => {
+    window.setTimeout(() => setHeroReady(true), 500);
+  }, []);
+
   return (
     <div className="homepage-layout">
       {/* Quick Search Bar for Mobile View */}
       <HomeMobileSearchBar />
 
       {/* 1. Hero Section (Natural Organic Products) */}
-      <HomeHero />
+      <HomeHero onReady={handleHeroReady} />
 
+      <div className={`home-deferred-content ${heroReady ? 'is-ready' : 'is-pending'}`}>
+      {heroReady && <>
       {/* Shop by Categories Carousel */}
       <HomeCategories />
 
@@ -58,6 +65,8 @@ export const HomePage: React.FC = () => {
 
         {/* Our Latest News / Agricultural Insights Section */}
         <HomeLatestNews />
+      </div>
+      </>}
       </div>
     </div>
   );

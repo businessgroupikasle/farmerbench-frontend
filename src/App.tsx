@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import { Navbar } from './components/common/Navbar';
 import { Footer } from './components/common/Footer';
@@ -12,31 +12,31 @@ import { useThemeStore } from './store/themeStore';
 import { LanguageProvider } from './context/LanguageContext';
 import { AlertTriangle, Clock3, Sprout } from 'lucide-react';
 
-// Pages
+// Keep the landing page in the initial bundle; load secondary pages on demand.
 import { HomePage } from './pages/HomePage';
-import { AboutPage } from './pages/AboutPage';
-import { ProductsPage } from './pages/ProductsPage';
-import { ProductDetailPage } from './pages/ProductDetailPage';
-import { CartPage } from './pages/CartPage';
-import { CheckoutPage } from './pages/CheckoutPage';
-import { OrderConfirmationPage } from './pages/OrderConfirmationPage';
-import { DashboardPage } from './pages/DashboardPage';
-import { AdminPage } from './pages/AdminPage';
-import { ContactPage } from './pages/ContactPage';
-import { ServicesPage } from './pages/ServicesPage';
-import { FarmDevelopmentPage } from './pages/FarmDevelopmentPage';
-import { WellDevelopmentPage } from './pages/WellDevelopmentPage';
-import { DripIrrigationPage } from './pages/DripIrrigationPage';
-import { FarmConsultancyPage } from './pages/FarmConsultancyPage';
-import { CropDoctorPage } from './pages/CropDoctorPage';
-import { BlogPage } from './pages/BlogPage';
-import { BlogDetailPage } from './pages/BlogDetailPage';
-import { LoginPage } from './pages/LoginPage';
-import { NotFoundPage } from './pages/NotFoundPage';
-import { TermsPage } from './pages/TermsPage';
-import { ShippingPolicyPage } from './pages/ShippingPolicyPage';
-import { ReturnPolicyPage } from './pages/ReturnPolicyPage';
-import { FaqPage } from './pages/FaqPage';
+const AboutPage = lazy(() => import('./pages/AboutPage'));
+const ProductsPage = lazy(() => import('./pages/ProductsPage'));
+const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage'));
+const CartPage = lazy(() => import('./pages/CartPage'));
+const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
+const OrderConfirmationPage = lazy(() => import('./pages/OrderConfirmationPage').then((module) => ({ default: module.OrderConfirmationPage })));
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const AdminPage = lazy(() => import('./pages/AdminPage'));
+const ContactPage = lazy(() => import('./pages/ContactPage'));
+const ServicesPage = lazy(() => import('./pages/ServicesPage'));
+const FarmDevelopmentPage = lazy(() => import('./pages/FarmDevelopmentPage'));
+const WellDevelopmentPage = lazy(() => import('./pages/WellDevelopmentPage'));
+const DripIrrigationPage = lazy(() => import('./pages/DripIrrigationPage'));
+const FarmConsultancyPage = lazy(() => import('./pages/FarmConsultancyPage'));
+const CropDoctorPage = lazy(() => import('./pages/CropDoctorPage'));
+const BlogPage = lazy(() => import('./pages/BlogPage'));
+const BlogDetailPage = lazy(() => import('./pages/BlogDetailPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage').then((module) => ({ default: module.NotFoundPage })));
+const TermsPage = lazy(() => import('./pages/TermsPage'));
+const ShippingPolicyPage = lazy(() => import('./pages/ShippingPolicyPage'));
+const ReturnPolicyPage = lazy(() => import('./pages/ReturnPolicyPage'));
+const FaqPage = lazy(() => import('./pages/FaqPage'));
 import { useSocketSync } from './socket';
 
 interface MaintenanceSettings {
@@ -109,7 +109,8 @@ const AppContent: React.FC = () => {
       {!hideNavAndFooter && <Navbar />}
 
       <main className="main-content" style={{ padding: 0, flex: 1 }}>
-        <Routes>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/index" element={<Navigate to="/" replace />} />
@@ -171,7 +172,8 @@ const AppContent: React.FC = () => {
           <Route path="/signup" element={<LoginPage />} />
           <Route path="/register" element={<LoginPage />} />
           <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+          </Routes>
+        </Suspense>
       </main>
 
       {!hideNavAndFooter && <Footer />}
@@ -185,26 +187,17 @@ const AppContent: React.FC = () => {
 
 export const App: React.FC = () => {
   const { theme } = useThemeStore();
-  const [isPageLoading, setIsPageLoading] = useState(true);
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
-  useEffect(() => {
-    const loaderTimer = window.setTimeout(() => setIsPageLoading(false), 900);
-    return () => window.clearTimeout(loaderTimer);
-  }, []);
-
   return (
-    <>
-      {isPageLoading && <PageLoader />}
-      <Router>
-        <LanguageProvider>
-          <AppContent />
-        </LanguageProvider>
-      </Router>
-    </>
+    <Router>
+      <LanguageProvider>
+        <AppContent />
+      </LanguageProvider>
+    </Router>
   );
 };
 

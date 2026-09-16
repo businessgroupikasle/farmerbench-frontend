@@ -119,6 +119,10 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
       setGoogleTranslateCookie(currentLang);
     }
 
+    // English is rendered natively, so avoid a third-party startup request
+    // until another language is selected.
+    if (currentLang === 'en') return;
+
     // Check if Google script is already injected
     if (document.getElementById('google-translate-script')) return;
 

@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../hooks/useCart';
@@ -21,7 +21,7 @@ import {
   Stethoscope,
   CalendarDays,
 } from 'lucide-react';
-import farmerLogo from '../../assets/AgriEra-logo.png';
+import farmerLogo from '../../assets/AgriEra-logo-optimized.png';
 import { LogoutModal } from './LogoutModal';
 import { LanguageSelector } from './LanguageSelector';
 import './Navbar.css';

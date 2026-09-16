@@ -4,12 +4,12 @@ import { Link } from 'react-router-dom';
 import { useCategories } from '../../hooks/useCategories';
 import { useProducts } from '../../hooks/useProducts';
 import { getUploadUrl } from '../../utils/image';
-import organicFarmingImage from '../../assets/categories/organic-farming.png';
-import chemicalImage from '../../assets/categories/chemical.png';
-import trapsImage from '../../assets/categories/traps.png';
-import SeedlingsImage from '../../assets/categories/seedlings.png';
-import seedsImage from '../../assets/categories/seeds.png';
-import farmEquipmentImage from '../../assets/categories/farm-equipment.png';
+import organicFarmingImage from '../../assets/categories/organic-farming.jpg';
+import chemicalImage from '../../assets/categories/chemical.jpg';
+import trapsImage from '../../assets/categories/traps.jpg';
+import SeedlingsImage from '../../assets/categories/seedlings.jpg';
+import seedsImage from '../../assets/categories/seeds.jpg';
+import farmEquipmentImage from '../../assets/categories/farm-equipment.jpg';
 
 const FALLBACK_IMAGE = organicFarmingImage;
 
