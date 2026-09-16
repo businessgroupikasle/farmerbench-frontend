@@ -108,10 +108,15 @@ const normalizeProductImageUrl = (rawValue: unknown): string => {
   if (/^[a-z][a-z\d+.-]*:/i.test(value)) return '';
 
   const uploadsIndex = value.toLowerCase().indexOf('/uploads/');
-  if (uploadsIndex >= 0) return value.slice(uploadsIndex);
+  const uploadPath = uploadsIndex >= 0
+    ? value.slice(uploadsIndex)
+    : '/uploads/' + value.replace(/^\/+/, '').replace(/^uploads\/+/, '');
 
-  const relativePath = value.replace(/^\/+/, '').replace(/^uploads\/+/, '');
-  return relativePath ? '/uploads/' + relativePath : '';
+  try {
+    return new URL(getUploadUrl(uploadPath), window.location.origin).href;
+  } catch {
+    return '';
+  }
 };
 
 export interface StaffMember {
