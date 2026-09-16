@@ -67,13 +67,22 @@
 .pdp-gallery-container {
   display: flex;
   gap: 1rem;
-  position: static;
+  position: sticky;
+  top: 96px;
+  align-self: start;
 }
 
 @media (max-width: 640px) {
   .pdp-gallery-container {
     flex-direction: column-reverse;
     position: static;
+  }
+}
+
+@media (max-width: 992px) {
+  .pdp-gallery-container {
+    position: static;
+    top: auto;
   }
 }
 
@@ -909,94 +918,74 @@
   color: #475569;
 }
 
-/* How to Use 3-Step Flow */
-.pdp-steps-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin: 1rem 0;
+/* Text-only How to Use steps */
+.pdp-how-to-panel {
+  max-width: 860px;
+  padding: 1.5rem;
 }
 
-@media (max-width: 600px) {
-  .pdp-steps-row {
-    flex-direction: column;
-    align-items: stretch;
-  }
+.pdp-how-to-steps {
+  display: grid;
+  gap: 1rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
 }
 
-.pdp-step-card {
-  flex: 1;
-  border: 1px solid #e2e8f0;
-  background-color: #ffffff;
+.pdp-how-to-step {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+  padding: 1rem 1.1rem;
+  border: 1px solid #dbe7df;
   border-radius: 12px;
-  padding: 1rem 0.75rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  position: relative;
+  background: #f8fcf9;
 }
 
-.pdp-step-num {
-  position: absolute;
-  top: 0.5rem;
-  left: 0.5rem;
-  width: 20px;
-  height: 20px;
+.pdp-how-to-step-number {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
   border-radius: 50%;
-  background-color: #15803d;
+  background: #15803d;
   color: #ffffff;
-  font-size: 0.7rem;
   font-weight: 800;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 1rem;
 }
 
-.pdp-step-icon {
-  font-size: 1.8rem;
-  margin: 0.25rem 0 0.5rem;
-}
-
-.pdp-step-name {
-  font-size: 0.85rem;
-  font-weight: 700;
+.pdp-how-to-step-content h4 {
+  margin: 0 0 0.35rem;
   color: #0f172a;
-  margin-bottom: 0.25rem;
+  font-size: 1rem;
 }
 
-.pdp-step-desc {
-  font-size: 0.75rem;
-  color: #64748b;
-  line-height: 1.4;
-}
-
-.pdp-step-arrow {
-  color: #94a3b8;
-  font-weight: 800;
-  font-size: 1.1rem;
+.pdp-how-to-step-content p,
+.pdp-how-to-empty {
+  margin: 0;
+  color: #475569;
+  font-size: 0.92rem;
+  line-height: 1.6;
 }
 
 @media (max-width: 600px) {
-  .pdp-step-arrow {
-    text-align: center;
-    transform: rotate(90deg);
+  .pdp-how-to-panel {
+    padding: 1rem;
+  }
+
+  .pdp-how-to-step {
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 0.75rem;
+    padding: 0.9rem;
+  }
+
+  .pdp-how-to-step-number {
+    width: 34px;
+    height: 34px;
+    font-size: 0.85rem;
   }
 }
-
-.pdp-dosage-notice {
-  background-color: #f4fbf5;
-  border: 1px solid #bbf7d0;
-  border-radius: 10px;
-  padding: 0.75rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #166534;
-}
-
 /* Right Specifications Table Card */
 .pdp-specs-card {
   border: 1px solid #e2e8f0;
@@ -1040,62 +1029,6 @@
   color: #1e293b;
   font-weight: 600;
   text-align: right;
-}
-
-/* ==========================================================================
-   BEFORE / AFTER SECTION
-   ========================================================================== */
-.pdp-results-section {
-  margin-top: 3.5rem;
-  border-top: 1px solid #e5e7eb;
-  padding-top: 2.5rem;
-}
-
-.pdp-results-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  margin-top: 1rem;
-}
-
-@media (max-width: 640px) {
-  .pdp-results-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-.pdp-result-card {
-  position: relative;
-  height: 240px;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-}
-
-.pdp-result-card img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.pdp-result-tag {
-  position: absolute;
-  bottom: 1rem;
-  left: 1rem;
-  background: rgba(15, 23, 42, 0.85);
-  backdrop-filter: blur(6px);
-  color: #ffffff;
-  font-size: 0.8rem;
-  font-weight: 700;
-  padding: 0.35rem 0.85rem;
-  border-radius: 9999px;
-}
-
-.pdp-results-disclaimer {
-  font-size: 0.75rem;
-  color: #94a3b8;
-  margin-top: 0.75rem;
-  font-style: italic;
 }
 
 /* ==========================================================================
@@ -1618,28 +1551,6 @@
     overflow-wrap: anywhere;
   }
 
-  .pdp-results-section {
-    margin-top: 20px;
-    padding-top: 14px;
-  }
-
-  .pdp-results-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 7px;
-  }
-
-  .pdp-result-card {
-    height: 135px;
-    border-radius: 9px;
-  }
-
-  .pdp-result-tag {
-    bottom: 6px;
-    left: 6px;
-    padding: 3px 7px;
-    font-size: .55rem;
-  }
-
   .pdp-review-top {
     align-items: flex-start;
     gap: 6px;
@@ -1668,3 +1579,426 @@
 }
 .pdp-expert-banner{display:none!important}
 
+
+/* Full-bleed product detail image */
+.pdp-main-stage {
+  padding: 0;
+}
+
+.pdp-stage-img-wrap {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.pdp-stage-img-wrap img {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  object-fit: cover;
+}
+
+.pdp-zoom-indicator {
+  position: absolute;
+  left: 50%;
+  bottom: 1.5rem;
+  z-index: 2;
+  margin: 0;
+  transform: translateX(-50%);
+}
+
+@media (max-width: 640px) {
+  .pdp-main-stage { padding: 0; }
+  .pdp-stage-img-wrap { height: 100%; }
+  .pdp-stage-img-wrap img { max-width: none; max-height: none; }
+  .pdp-zoom-indicator { bottom: .75rem; }
+}
+/* Scroll-aware compact sticky gallery */
+@media (min-width: 993px) {
+  .pdp-gallery-container,
+  .pdp-gallery-container .pdp-main-stage,
+  .pdp-gallery-container .pdp-thumbnail-item {
+    transition: min-height .25s ease, height .25s ease, width .25s ease, gap .25s ease;
+  }
+
+  .pdp-gallery-container.is-compact {
+    top: 88px;
+    gap: .65rem;
+  }
+
+  .pdp-gallery-container.is-compact .pdp-main-stage {
+    min-height: min(340px, calc(100vh - 130px));
+  }
+
+  .pdp-gallery-container.is-compact .pdp-thumbnail-item {
+    width: 58px;
+    height: 58px;
+  }
+
+  .pdp-gallery-container.is-compact .pdp-thumbnails-stack {
+    gap: .5rem;
+  }
+
+  .pdp-gallery-container.is-compact .pdp-zoom-indicator {
+    bottom: .75rem;
+  }
+}
+.pdp-dosage-card {
+  width: 100%;
+  box-sizing: border-box;
+  max-width: none;
+  overflow-x: auto;
+}
+
+.pdp-dosage-card .pdp-specs-table {
+  min-width: 760px;
+}
+
+.pdp-dosage-card th,
+.pdp-dosage-card td {
+  padding: 0.85rem 0.75rem;
+  text-align: left;
+  white-space: normal;
+}
+
+.pdp-dosage-card th {
+  color: #166534;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+/* Mobile square product image */
+@media (max-width: 640px) {
+  .pdp-main-stage {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 1 / 1;
+  }
+
+  .pdp-stage-img-wrap,
+  .pdp-stage-img-wrap img {
+    width: 100%;
+    height: 100%;
+  }
+}
+/* Compact mobile product tabs */
+@media (max-width: 640px) {
+  .pdp-tabs-container {
+    gap: 8px;
+    margin-bottom: 10px;
+    border-bottom-width: 1px;
+    scrollbar-width: none;
+  }
+
+  .pdp-tabs-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pdp-tab-btn {
+    flex: 0 0 auto;
+    padding: 4px 2px 7px;
+    font-size: 0.58rem;
+    line-height: 1.15;
+  }
+
+  .pdp-tab-btn.active::after {
+    height: 2px;
+  }
+}
+/* Compact mobile benefits and product details */
+@media (max-width: 640px) {
+  .pdp-tab-content-grid {
+    gap: 8px;
+  }
+
+  .pdp-overview-block {
+    gap: 7px;
+  }
+
+  .pdp-block-heading,
+  .pdp-specs-title {
+    font-size: 0.72rem;
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+
+  .pdp-overview-block ul {
+    gap: 5px !important;
+    padding-left: 14px !important;
+    margin: 0;
+    font-size: 0.68rem;
+    line-height: 1.35 !important;
+  }
+
+  .pdp-overview-block li {
+    padding-left: 1px;
+  }
+
+  .pdp-specs-card {
+    padding: 7px;
+    border-radius: 7px;
+  }
+
+  .pdp-specs-card .pdp-specs-title {
+    margin-bottom: 4px;
+  }
+
+  .pdp-specs-label,
+  .pdp-specs-value {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    font-size: 0.55rem;
+    line-height: 1.25;
+  }
+
+  .pdp-specs-label {
+    padding-right: 5px;
+  }
+
+  .pdp-specs-value {
+    padding-left: 5px;
+  }
+}
+/* Compact mobile How to Use cards */
+@media (max-width: 640px) {
+  .pdp-how-to-panel {
+    padding: 6px;
+  }
+
+  .pdp-how-to-steps {
+    gap: 6px;
+    margin-top: 6px;
+  }
+
+  .pdp-how-to-step {
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 7px;
+    padding: 7px;
+    border-radius: 7px;
+  }
+
+  .pdp-how-to-step-number {
+    width: 24px;
+    height: 24px;
+    font-size: 0.62rem;
+  }
+
+  .pdp-how-to-step-content h4 {
+    margin-bottom: 2px;
+    font-size: 0.68rem;
+    line-height: 1.2;
+  }
+
+  .pdp-how-to-step-content p,
+  .pdp-how-to-empty {
+    font-size: 0.62rem;
+    line-height: 1.35;
+  }
+}
+@media (max-width: 640px) {
+  .pdp-dosage-card {
+    overflow: visible;
+  }
+
+  .pdp-dosage-card .pdp-specs-table {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .pdp-dosage-card thead {
+    display: none;
+  }
+
+  .pdp-dosage-card tbody,
+  .pdp-dosage-card tr,
+  .pdp-dosage-card td {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .pdp-dosage-card tbody {
+    display: grid;
+    gap: 10px;
+  }
+
+  .pdp-dosage-card tr {
+    padding: 4px 10px;
+    border: 1px solid #e2e8f0;
+    border-radius: 9px;
+    background: #ffffff;
+  }
+
+  .pdp-dosage-card td {
+    display: grid;
+    grid-template-columns: minmax(105px, 42%) minmax(0, 1fr);
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f5f9;
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+
+  .pdp-dosage-card td:last-child {
+    border-bottom: 0;
+  }
+
+  .pdp-dosage-card td::before {
+    content: attr(data-label);
+    color: #166534;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+  }
+}
+/* Ingredients row layout */
+.pdp-ingredients-panel {
+  width: 100%;
+  max-width: 860px;
+  padding: 1.5rem;
+  box-sizing: border-box;
+}
+
+.pdp-ingredient-rows {
+  display: grid;
+  margin-top: 1rem;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.pdp-ingredient-row {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: center;
+  min-height: 50px;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.pdp-ingredient-row:last-child {
+  border-bottom: 0;
+}
+
+.pdp-ingredient-number {
+  display: grid;
+  place-items: center;
+  align-self: stretch;
+  background: #f0fdf4;
+  color: #15803d;
+  font-weight: 800;
+  border-right: 1px solid #dbe7df;
+}
+
+.pdp-ingredient-name {
+  padding: 0.8rem 1rem;
+  color: #334155;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.pdp-ingredient-empty {
+  color: #64748b;
+  line-height: 1.6;
+}
+
+@media (max-width: 640px) {
+  .pdp-ingredients-panel {
+    padding: 1rem;
+  }
+
+  .pdp-ingredient-row {
+    grid-template-columns: 38px minmax(0, 1fr);
+    min-height: 44px;
+  }
+
+  .pdp-ingredient-name {
+    padding: 0.7rem 0.8rem;
+    font-size: 0.82rem;
+  }
+}
+/* FAQ row layout */
+.pdp-faq-panel {
+  width: 100%;
+  max-width: 860px;
+  padding: 1.5rem;
+  box-sizing: border-box;
+}
+
+.pdp-faq-rows {
+  display: grid;
+  margin-top: 1rem;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.pdp-faq-row {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: stretch;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.pdp-faq-row:last-child {
+  border-bottom: 0;
+}
+
+.pdp-faq-number {
+  display: grid;
+  place-items: center;
+  min-height: 78px;
+  background: #f0fdf4;
+  color: #15803d;
+  font-weight: 800;
+  border-right: 1px solid #dbe7df;
+}
+
+.pdp-faq-content {
+  padding: 0.9rem 1rem;
+}
+
+.pdp-faq-content h4 {
+  margin: 0 0 0.35rem;
+  color: #0f172a;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.pdp-faq-content p,
+.pdp-faq-empty {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 640px) {
+  .pdp-faq-panel {
+    padding: 1rem;
+  }
+
+  .pdp-faq-row {
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+
+  .pdp-faq-number {
+    min-height: 68px;
+  }
+
+  .pdp-faq-content {
+    padding: 0.75rem 0.8rem;
+  }
+
+  .pdp-faq-content h4 {
+    font-size: 0.82rem;
+  }
+
+  .pdp-faq-content p {
+    font-size: 0.76rem;
+  }
+}

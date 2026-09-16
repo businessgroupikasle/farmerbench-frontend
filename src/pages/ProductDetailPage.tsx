@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useProduct, useProductMutations } from '../hooks/useProducts';
 import { useCart } from '../hooks/useCart';
@@ -76,6 +76,29 @@ export const ProductDetailPage: React.FC = () => {
   const [isZooming, setIsZooming] = useState(false);
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
   const imageRef = useRef<HTMLDivElement>(null);
+  const mainGridRef = useRef<HTMLDivElement>(null);
+  const [isGalleryCompact, setIsGalleryCompact] = useState(false);
+
+  useEffect(() => {
+    const updateGalleryMode = () => {
+      const grid = mainGridRef.current;
+      if (!grid || window.innerWidth <= 992) {
+        setIsGalleryCompact(false);
+        return;
+      }
+
+      const bounds = grid.getBoundingClientRect();
+      setIsGalleryCompact(bounds.top <= 96 && bounds.bottom > 440);
+    };
+
+    updateGalleryMode();
+    window.addEventListener('scroll', updateGalleryMode, { passive: true });
+    window.addEventListener('resize', updateGalleryMode);
+    return () => {
+      window.removeEventListener('scroll', updateGalleryMode);
+      window.removeEventListener('resize', updateGalleryMode);
+    };
+  }, []);
 
   // Review Form state
   const [newRating, setNewRating] = useState(0);
@@ -324,13 +347,17 @@ export const ProductDetailPage: React.FC = () => {
   };
 
   // Structured content parsed from PostgreSQL
+  const targetCrops: string = typeof attrs.targetCrops === 'string' ? attrs.targetCrops : '';
   const benefits: string[] = Array.isArray(attrs.benefits) ? attrs.benefits : [];
   const usageSteps: Array<{ stepNumber: number; title: string; description: string }> = Array.isArray(attrs.usageSteps) ? attrs.usageSteps : [];
-  const dosageTable: Array<{ crop: string; foliarSpray: string; dripIrrigation: string }> = Array.isArray(attrs.dosageTable) ? attrs.dosageTable : [];
+  const dosageTable: Array<{ crop: string; target?: string; dosage?: string; waterVolume?: string; waitingPeriod?: string; foliarSpray?: string; dripIrrigation?: string }> = Array.isArray(attrs.dosageTable) ? attrs.dosageTable : [];
   const ingredients: string = typeof attrs.ingredients === 'string' ? attrs.ingredients : '';
+  const ingredientItems = ingredients
+    .split(/[,;\n]+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
   const specifications: Array<{ label: string; value: string }> = Array.isArray(attrs.specifications) ? attrs.specifications : [];
   const faqs: Array<{ question: string; answer: string }> = Array.isArray(attrs.faqs) ? attrs.faqs : [];
-  const beforeAfter = attrs.beforeAfter || null;
 
   return (
     <div className="pdp-wrapper animate-fade-in">
@@ -350,9 +377,9 @@ export const ProductDetailPage: React.FC = () => {
       </nav>
 
       {/* 2. Top Main 2-Column Grid */}
-      <div className="pdp-main-grid">
+      <div className="pdp-main-grid" ref={mainGridRef}>
         {/* LEFT COLUMN: Gallery */}
-        <div className="pdp-gallery-container">
+        <div className={`pdp-gallery-container ${isGalleryCompact ? 'is-compact' : ''}`}>
           {/* Thumbnails Stack */}
           {galleryImages.length > 1 && (
             <div className="pdp-thumbnails-stack">
@@ -718,41 +745,20 @@ export const ProductDetailPage: React.FC = () => {
                   {product.description}
                 </p>
               </div>
-
-              {/* How to Use Visual Step Flow */}
-              {usageSteps.length > 0 && (
-                <div>
-                  <h4 className="pdp-block-heading" style={{ fontSize: '1.05rem' }}>How to Use</h4>
-                  <div className="pdp-steps-row">
-                    {usageSteps.map((step, idx) => (
-                      <React.Fragment key={idx}>
-                        <div className="pdp-step-card">
-                          <span className="pdp-step-num">{step.stepNumber || idx + 1}</span>
-                          <span className="pdp-step-icon">
-                            {idx === 0 ? '🥄' : idx === 1 ? '🪣' : '🌱'}
-                          </span>
-                          <div className="pdp-step-name">{step.title}</div>
-                          <p className="pdp-step-desc">{step.description}</p>
-                        </div>
-                        {idx < usageSteps.length - 1 && <span className="pdp-step-arrow">›</span>}
-                      </React.Fragment>
-                    ))}
-                  </div>
-
-                  <div className="pdp-dosage-notice">
-                    <Sprout size={16} />
-                    <span>Always follow the recommended dosage on the label for your specific crop.</span>
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* Right: Specifications Card */}
-            {specifications.length > 0 && (
+            {(targetCrops || specifications.length > 0) && (
               <div className="pdp-specs-card">
                 <h3 className="pdp-specs-title">Product Details</h3>
                 <table className="pdp-specs-table">
                   <tbody>
+                    {targetCrops && (
+                      <tr>
+                        <td className="pdp-specs-label">Target Crops</td>
+                        <td className="pdp-specs-value">{targetCrops}</td>
+                      </tr>
+                    )}
                     {specifications.map((spec, idx) => (
                       <tr key={idx}>
                         <td className="pdp-specs-label">{spec.label}</td>
@@ -801,41 +807,50 @@ export const ProductDetailPage: React.FC = () => {
         )}
 
         {activeTab === 'how-to-use' && (
-          <div className="pdp-overview-block" style={{ maxWidth: '800px' }}>
-            <h3 className="pdp-block-heading">How to Use Guidelines</h3>
+          <div className="pdp-how-to-panel">
+            <h3 className="pdp-block-heading">How to Use</h3>
             {usageSteps.length > 0 ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', color: '#475569' }}>
+              <ol className="pdp-how-to-steps">
                 {usageSteps.map((step, idx) => (
-                  <div key={idx} style={{ padding: '0.85rem 1rem', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                    <strong>Step {step.stepNumber || idx + 1}: {step.title}</strong>
-                    <p style={{ marginTop: '0.25rem', fontSize: '0.9rem' }}>{step.description}</p>
-                  </div>
+                  <li key={idx} className="pdp-how-to-step">
+                    <span className="pdp-how-to-step-number" aria-hidden="true">
+                      {step.stepNumber || idx + 1}
+                    </span>
+                    <div className="pdp-how-to-step-content">
+                      <h4>{step.title}</h4>
+                      <p>{step.description}</p>
+                    </div>
+                  </li>
                 ))}
-              </div>
+              </ol>
             ) : (
-              <p style={{ color: '#64748b' }}>Please refer to product label for specific application directions.</p>
+              <p className="pdp-how-to-empty">Please refer to the product label for application directions.</p>
             )}
           </div>
         )}
 
         {activeTab === 'dosage' && (
-          <div className="pdp-specs-card" style={{ maxWidth: '800px' }}>
-            <h3 className="pdp-specs-title">Recommended Crop Dosage Table</h3>
+          <div className="pdp-specs-card pdp-dosage-card">
+            <h3 className="pdp-specs-title">Dosage: {product.title}</h3>
             {dosageTable.length > 0 ? (
               <table className="pdp-specs-table">
                 <thead>
                   <tr style={{ borderBottom: '2px solid #e2e8f0' }}>
-                    <th style={{ textAlign: 'left', padding: '0.5rem 0', color: '#166534' }}>Crop Category</th>
-                    <th style={{ textAlign: 'right', padding: '0.5rem 0', color: '#166534' }}>Foliar Spray</th>
-                    <th style={{ textAlign: 'right', padding: '0.5rem 0', color: '#166534' }}>Drip Irrigation</th>
+                    <th>Crop</th>
+                    <th>Target</th>
+                    <th>Dosage (ml/acre)</th>
+                    <th>Water Volume (L/acre)</th>
+                    <th>Waiting Period (days)</th>
                   </tr>
                 </thead>
                 <tbody>
                   {dosageTable.map((row, idx) => (
                     <tr key={idx}>
-                      <td className="pdp-specs-label">{row.crop}</td>
-                      <td className="pdp-specs-value">{row.foliarSpray}</td>
-                      <td className="pdp-specs-value">{row.dripIrrigation}</td>
+                      <td data-label="Crop">{row.crop || '—'}</td>
+                      <td data-label="Target">{row.target || '—'}</td>
+                      <td data-label="Dosage (ml/acre)">{row.dosage || row.foliarSpray || '—'}</td>
+                      <td data-label="Water Volume (L/acre)">{row.waterVolume || row.dripIrrigation || '—'}</td>
+                      <td data-label="Waiting Period (days)">{row.waitingPeriod || '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -847,29 +862,41 @@ export const ProductDetailPage: React.FC = () => {
         )}
 
         {activeTab === 'ingredients' && (
-          <div className="pdp-overview-block" style={{ maxWidth: '800px' }}>
+          <div className="pdp-ingredients-panel">
             <h3 className="pdp-block-heading">Active Bio-Active Ingredients</h3>
-            <p style={{ color: '#475569', lineHeight: 1.6 }}>
-              {ingredients || 'Formulated with organic bio-stimulants and active agricultural nutrients.'}
-            </p>
+            {ingredientItems.length > 0 ? (
+              <div className="pdp-ingredient-rows">
+                {ingredientItems.map((ingredient, idx) => (
+                  <div className="pdp-ingredient-row" key={`${ingredient}-${idx}`}>
+                    <span className="pdp-ingredient-number">{idx + 1}</span>
+                    <span className="pdp-ingredient-name">{ingredient}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="pdp-ingredient-empty">Formulated with organic bio-stimulants and active agricultural nutrients.</p>
+            )}
           </div>
         )}
 
         {activeTab === 'faqs' && (
-          <div className="pdp-overview-block" style={{ maxWidth: '800px' }}>
+          <div className="pdp-faq-panel">
             <h3 className="pdp-block-heading">Frequently Asked Questions</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              {faqs.length > 0 ? (
-                faqs.map((faq, idx) => (
-                  <div key={idx} style={{ padding: '1rem', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                    <strong style={{ color: '#0f172a' }}>{faq.question}</strong>
-                    <p style={{ color: '#64748b', fontSize: '0.9rem', marginTop: '0.35rem' }}>{faq.answer}</p>
+            {faqs.length > 0 ? (
+              <div className="pdp-faq-rows">
+                {faqs.map((faq, idx) => (
+                  <div className="pdp-faq-row" key={idx}>
+                    <span className="pdp-faq-number">{idx + 1}</span>
+                    <div className="pdp-faq-content">
+                      <h4>{faq.question}</h4>
+                      <p>{faq.answer}</p>
+                    </div>
                   </div>
-                ))
-              ) : (
-                <p style={{ color: '#64748b' }}>No FAQs available for this product yet.</p>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="pdp-faq-empty">No FAQs available for this product yet.</p>
+            )}
           </div>
         )}
 
@@ -1062,37 +1089,7 @@ export const ProductDetailPage: React.FC = () => {
         )}
       </div>
 
-      {/* 5. Before / After Results Section (Rendered from DB if available) */}
-      {beforeAfter && (beforeAfter.beforeImage || beforeAfter.afterImage) && (
-        <section className="pdp-results-section">
-          <h3 className="pdp-block-heading" style={{ fontSize: '1.3rem' }}>
-            See the Difference 🌱
-          </h3>
-          <div className="pdp-results-grid">
-            {beforeAfter.beforeImage && (
-              <div className="pdp-result-card">
-                <img src={beforeAfter.beforeImage} alt={beforeAfter.beforeTag || 'Before'} />
-                <span className="pdp-result-tag">{beforeAfter.beforeTag || 'Before'}</span>
-              </div>
-            )}
-            {beforeAfter.afterImage && (
-              <div className="pdp-result-card">
-                <img src={beforeAfter.afterImage} alt={beforeAfter.afterTag || 'After 30 Days'} />
-                <span className="pdp-result-tag" style={{ background: 'rgba(21, 128, 61, 0.9)' }}>
-                  {beforeAfter.afterTag || 'After 30 Days'}
-                </span>
-              </div>
-            )}
-          </div>
-          {beforeAfter.disclaimer && (
-            <p className="pdp-results-disclaimer">
-              {beforeAfter.disclaimer}
-            </p>
-          )}
-        </section>
-      )}
-
-      {/* 6. Crop Expert Advisory Modal */}
+      {/* Crop Expert Advisory Modal */}
       {isExpertModalOpen && (
         <div className="agriflow-modal-overlay" onClick={() => setIsExpertModalOpen(false)}>
           <div className="agriflow-modal-card animate-fade-in" onClick={(e) => e.stopPropagation()}>

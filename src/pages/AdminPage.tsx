@@ -125,6 +125,16 @@ export interface StaffMember {
   avatarUrl?: string;
 }
 
+const buildVariantSku = (productName: string, packSize: string) => {
+  const productPart = String(productName || '')
+    .normalize('NFKD')
+    .replace(/[^a-zA-Z0-9\s-]/g, '')
+    .trim()
+    .replace(/[\s-]+/g, '-')
+    .toUpperCase();
+  const packPart = String(packSize || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  return [productPart, packPart].filter(Boolean).join('-');
+};
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -277,45 +287,16 @@ export const AdminPage: React.FC = () => {
   const galleryFileInputRef = React.useRef<HTMLInputElement | null>(null);
   const replaceFileInputRef = React.useRef<HTMLInputElement | null>(null);
   const [activeReplaceTargetIndex, setActiveReplaceTargetIndex] = useState<number | null>(null);
-  const [uploadingResultImage, setUploadingResultImage] = useState<'beforeImage' | 'afterImage' | null>(null);
-
-  const handleUploadResultImage = async (
-    target: 'beforeImage' | 'afterImage',
-    file?: File
-  ) => {
-    if (!file) return;
-
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'];
-    if (!allowedTypes.includes(file.type)) {
-      addToast({ type: 'error', message: 'Only JPEG, PNG, WebP, GIF, SVG are supported.' });
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      addToast({ type: 'error', message: 'Image size cannot exceed 10MB.' });
-      return;
-    }
-
-    setUploadingResultImage(target);
-    try {
-      const res = await uploadService.uploadImage(file, 'products/gallery');
-      const uploadedUrl = normalizeProductImageUrl(res?.data?.url);
-      if (!uploadedUrl) throw new Error('Upload returned an invalid image path');
-
-      setCmsForm((prev: any) => ({
-        ...prev,
-        beforeAfter: { ...prev.beforeAfter, [target]: uploadedUrl },
-      }));
-      addToast({ type: 'success', message: `${target === 'beforeImage' ? 'Before' : 'After'} image uploaded successfully` });
-    } catch (err: any) {
-      addToast({ type: 'error', message: err?.message || 'Failed to upload result image' });
-    } finally {
-      setUploadingResultImage(null);
-    }
-  };
 
   const handleUploadGalleryFiles = async (files: FileList | File[]) => {
     const fileList = Array.from(files);
     if (!fileList.length) return;
+    if (fileList.length > 12) {
+      const err = 'You can upload a maximum of 12 images at a time.';
+      setGalleryUploadError(err);
+      addToast({ type: 'error', message: err });
+      return;
+    }
 
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'];
     const invalidType = fileList.find((f) => !allowedTypes.includes(f.type));
@@ -339,18 +320,15 @@ export const AdminPage: React.FC = () => {
     const successfullyUploaded: string[] = [];
 
     try {
-      for (const file of fileList) {
-        try {
-          const res = await uploadService.uploadImage(file, 'products/gallery');
-          if (res?.data?.url) {
-            const url = normalizeProductImageUrl(res.data.url);
-            if (url) successfullyUploaded.push(url);
-          }
-        } catch (err: any) {
-          const errMsg = err?.message || 'Failed to upload ' + file.name;
-          setGalleryUploadError(errMsg);
-          addToast({ type: 'error', message: errMsg });
-        }
+      const res = await uploadService.uploadImages(fileList, 'products/gallery');
+      const uploadedFiles = Array.isArray(res?.data?.files) ? res.data.files : [];
+      uploadedFiles.forEach((uploaded) => {
+        const url = normalizeProductImageUrl(uploaded.url);
+        if (url) successfullyUploaded.push(url);
+      });
+
+      if (successfullyUploaded.length !== fileList.length) {
+        throw new Error(`Uploaded ${successfullyUploaded.length} of ${fileList.length} selected images. Please retry.`);
       }
 
       if (successfullyUploaded.length > 0) {
@@ -368,6 +346,10 @@ export const AdminPage: React.FC = () => {
           message: 'Successfully uploaded ' + successfullyUploaded.length + ' image(s)',
         });
       }
+    } catch (err: any) {
+      const errMsg = err?.message || 'Failed to upload the selected images.';
+      setGalleryUploadError(errMsg);
+      addToast({ type: 'error', message: errMsg });
     } finally {
       setIsUploadingGallery(false);
       if (galleryFileInputRef.current) {
@@ -451,6 +433,7 @@ export const AdminPage: React.FC = () => {
     featured: false,
     description: '',
     images: ['https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800'],
+    targetCrops: '',
     features: ['Promotes faster and healthier growth', 'Improves flowering and crop yield'],
     variants: [
       { label: '500 g', mrp: 520, sellingPrice: 475, stock: 27, sku: 'BIO-500G' },
@@ -480,13 +463,6 @@ export const AdminPage: React.FC = () => {
     faqs: [
       { question: 'Can I use this product in drip irrigation?', answer: 'Yes, 100% water soluble and does not clog emitters.' },
     ],
-    beforeAfter: {
-      beforeImage: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800',
-      afterImage: 'https://images.unsplash.com/photo-1530507629858-e4977d30e9e0?w=800',
-      beforeTag: 'Before',
-      afterTag: 'After 30 Days',
-      disclaimer: '*Results may vary depending on crop variety and soil conditions.',
-    },
   });
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
 
@@ -503,7 +479,8 @@ export const AdminPage: React.FC = () => {
       featured: false,
       description: 'High-potency bio-formulation crafted for superior crop yield, enhanced root growth, and soil health.',
       images: ['https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800'],
-      features: ['Promotes faster and healthier growth', 'Improves flowering and crop yield'],
+      targetCrops: '',
+    features: ['Promotes faster and healthier growth', 'Improves flowering and crop yield'],
       variants: [
         { label: '500 g', mrp: 520, sellingPrice: 475, stock: 27, sku: 'BIO-500G' },
         { label: '1 kg', mrp: 950, sellingPrice: 850, stock: 15, sku: 'BIO-1KG' },
@@ -532,13 +509,6 @@ export const AdminPage: React.FC = () => {
       faqs: [
         { question: 'Can I use this product in drip irrigation?', answer: 'Yes, 100% water soluble and does not clog emitters.' },
       ],
-      beforeAfter: {
-        beforeImage: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800',
-        afterImage: 'https://images.unsplash.com/photo-1530507629858-e4977d30e9e0?w=800',
-        beforeTag: 'Before',
-        afterTag: 'After 30 Days',
-        disclaimer: '*Results may vary depending on crop variety and soil conditions.',
-      },
     });
     setIsAddProductOpen(true);
   };
@@ -575,7 +545,8 @@ export const AdminPage: React.FC = () => {
       featured: Boolean(prod.featured),
       description: prod.description || '',
       images: prod.images && prod.images.length > 0 ? prod.images : [prod.image],
-      variants: existingVariants,
+      variants: existingVariants.map((variant: any) => ({ ...variant, sku: buildVariantSku(prod.title || prod.name || '', variant.label || '') })),
+      targetCrops: typeof attrs.targetCrops === 'string' ? attrs.targetCrops : '',
       features: Array.isArray(attrs.features) && attrs.features.length > 0 ? attrs.features : ['Promotes faster and healthier growth'],
       packSizes: Array.isArray(attrs.packSizes) && attrs.packSizes.length > 0 ? attrs.packSizes : existingVariants.map((v: any) => v.label),
       benefits: Array.isArray(attrs.benefits) && attrs.benefits.length > 0 ? attrs.benefits : ['Accelerates vegetative branching and root formation.'],
@@ -595,13 +566,6 @@ export const AdminPage: React.FC = () => {
       faqs: Array.isArray(attrs.faqs) && attrs.faqs.length > 0 ? attrs.faqs : [
         { question: 'Can I use this product in drip irrigation?', answer: 'Yes, 100% water soluble.' },
       ],
-      beforeAfter: attrs.beforeAfter || {
-        beforeImage: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?w=800',
-        afterImage: 'https://images.unsplash.com/photo-1530507629858-e4977d30e9e0?w=800',
-        beforeTag: 'Before',
-        afterTag: 'After 30 Days',
-        disclaimer: '*Results may vary depending on crop variety and soil conditions.',
-      },
     });
     setIsEditProductOpen(true);
   };
@@ -5678,7 +5642,7 @@ export const AdminPage: React.FC = () => {
                 className={`admin-cms-tab-btn ${cmsTab === 'highlights' ? 'active' : ''}`}
                 onClick={() => setCmsTab('highlights')}
               >
-                Overview & Highlights
+                Description & Highlights
               </button>
               <button
                 type="button"
@@ -5699,7 +5663,7 @@ export const AdminPage: React.FC = () => {
                 className={`admin-cms-tab-btn ${cmsTab === 'specs' ? 'active' : ''}`}
                 onClick={() => setCmsTab('specs')}
               >
-                Specs, FAQs & Results
+                Specs & FAQs
               </button>
             </div>
 
@@ -5715,7 +5679,7 @@ export const AdminPage: React.FC = () => {
                       mrp: Number(v.mrp) || 0,
                       sellingPrice: Number(v.sellingPrice) || Number(v.mrp) || 0,
                       stock: Number(v.stock) || 0,
-                      sku: v.sku?.trim() || `${slug}-${(v.label || 'VAR').toUpperCase().replace(/[^A-Z0-9]/g, '')}`,
+                      sku: buildVariantSku(title, v.label || 'VAR'),
                     }))
                   : [];
 
@@ -5736,6 +5700,7 @@ export const AdminPage: React.FC = () => {
                 const attributes = {
                   variants,
                   packSizes,
+                  targetCrops: cmsForm.targetCrops.trim(),
                   features: cmsForm.features.filter((f: string) => Boolean(f.trim())),
                   benefits: cmsForm.benefits.filter((b: string) => Boolean(b.trim())),
                   usageSteps: cmsForm.usageSteps,
@@ -5743,7 +5708,6 @@ export const AdminPage: React.FC = () => {
                   ingredients: cmsForm.ingredients,
                   specifications: cmsForm.specifications,
                   faqs: cmsForm.faqs,
-                  beforeAfter: cmsForm.beforeAfter,
                 };
 
                 try {
@@ -5797,7 +5761,17 @@ export const AdminPage: React.FC = () => {
                       <input
                         required
                         value={cmsForm.title}
-                        onChange={(e) => setCmsForm({ ...cmsForm, title: e.target.value })}
+                        onChange={(e) => {
+                          const title = e.target.value;
+                          setCmsForm((current: any) => ({
+                            ...current,
+                            title,
+                            variants: (current.variants || []).map((variant: any) => ({
+                              ...variant,
+                              sku: buildVariantSku(title, variant.label),
+                            })),
+                          }));
+                        }}
                         placeholder="e.g. Growth Booster for All Crops 500ml"
                         className="admin-form-input"
                       />
@@ -5828,15 +5802,18 @@ export const AdminPage: React.FC = () => {
                         </select>
                       </div>
 
-                      <div className="admin-form-group">
-                        <label className="admin-form-label">URL Slug</label>
-                        <input
-                          value={cmsForm.slug}
-                          onChange={(e) => setCmsForm({ ...cmsForm, slug: e.target.value })}
-                          placeholder="e.g. growth-booster-for-all-crops"
-                          className="admin-form-input"
-                        />
-                      </div>
+
+                    </div>
+
+                    <div className="admin-form-group" style={{ marginTop: '0.75rem' }}>
+                      <label className="admin-form-label">Target Crops</label>
+                      <input
+                        value={cmsForm.targetCrops || ''}
+                        onChange={(e) => setCmsForm({ ...cmsForm, targetCrops: e.target.value })}
+                        placeholder="e.g. Paddy, Soybean, Cotton, Vegetables"
+                        className="admin-form-input"
+                      />
+                      <small className="admin-form-hint">Enter the crops this product is recommended for.</small>
                     </div>
 
                     {/* Pack Size Variants & Independent Pricing (g / kg) Section */}
@@ -5858,7 +5835,13 @@ export const AdminPage: React.FC = () => {
                               ...cmsForm,
                               variants: [
                                 ...currentVariants,
-                                { label: `${currentVariants.length + 1} kg`, mrp: 1200, sellingPrice: 1050, stock: 10, sku: '' },
+                                {
+                                  label: `${currentVariants.length + 1} kg`,
+                                  mrp: 1200,
+                                  sellingPrice: 1050,
+                                  stock: 10,
+                                  sku: buildVariantSku(cmsForm.title, `${currentVariants.length + 1} kg`),
+                                },
                               ],
                             });
                           }}
@@ -5891,7 +5874,12 @@ export const AdminPage: React.FC = () => {
                                 value={v.label}
                                 onChange={(e) => {
                                   const updated = [...(cmsForm.variants || [])];
-                                  updated[idx] = { ...updated[idx], label: e.target.value };
+                                  const label = e.target.value;
+                                  updated[idx] = {
+                                    ...updated[idx],
+                                    label,
+                                    sku: buildVariantSku(cmsForm.title, label),
+                                  };
                                   setCmsForm({ ...cmsForm, variants: updated });
                                 }}
                                 placeholder="e.g. 500 g or 1 kg"
@@ -5946,11 +5934,8 @@ export const AdminPage: React.FC = () => {
                               />
                               <input
                                 value={v.sku || ''}
-                                onChange={(e) => {
-                                  const updated = [...(cmsForm.variants || [])];
-                                  updated[idx] = { ...updated[idx], sku: e.target.value };
-                                  setCmsForm({ ...cmsForm, variants: updated });
-                                }}
+                                                                readOnly
+                                aria-readonly="true"
                                 placeholder="e.g. BIO-500G"
                                 className="admin-form-input"
                                 style={{ fontSize: '0.82rem', padding: '0.45rem 0.6rem' }}
@@ -6166,7 +6151,7 @@ export const AdminPage: React.FC = () => {
                 {cmsTab === 'highlights' && (
                   <div className="admin-cms-section">
                     <div className="admin-form-group">
-                      <label className="admin-form-label">Full Product Overview Description *</label>
+                      <label className="admin-form-label">Full Product Description *</label>
                       <textarea
                         rows={4}
                         required
@@ -6214,20 +6199,7 @@ export const AdminPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <div>
-                      <label className="admin-form-label">Available Pack Sizes (e.g. 500 g, 1 kg, 5 kg)</label>
-                      <input
-                        value={cmsForm.packSizes.join(', ')}
-                        onChange={(e) =>
-                          setCmsForm({
-                            ...cmsForm,
-                            packSizes: e.target.value.split(',').map((s) => s.trim()).filter(Boolean),
-                          })
-                        }
-                        placeholder="500 g, 1 kg, 5 kg"
-                        className="admin-form-input"
-                      />
-                    </div>
+
                   </div>
                 )}
 
@@ -6342,38 +6314,26 @@ export const AdminPage: React.FC = () => {
                       <label className="admin-form-label">Crop Dosage Table Rows (Dosage Tab)</label>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.35rem' }}>
                         {cmsForm.dosageTable.map((row: any, idx: number) => (
-                          <div key={idx} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 36px', gap: '0.5rem', alignItems: 'center' }}>
-                            <input
-                              value={row.crop}
-                              onChange={(e) => {
-                                const newDosage = [...cmsForm.dosageTable];
-                                newDosage[idx] = { ...newDosage[idx], crop: e.target.value };
-                                setCmsForm({ ...cmsForm, dosageTable: newDosage });
-                              }}
-                              placeholder="Crop (e.g. Paddy)"
-                              className="admin-form-input"
-                            />
-                            <input
-                              value={row.foliarSpray}
-                              onChange={(e) => {
-                                const newDosage = [...cmsForm.dosageTable];
-                                newDosage[idx] = { ...newDosage[idx], foliarSpray: e.target.value };
-                                setCmsForm({ ...cmsForm, dosageTable: newDosage });
-                              }}
-                              placeholder="Foliar (2.5 ml / L)"
-                              className="admin-form-input"
-                            />
-                            <input
-                              value={row.dripIrrigation}
-                              onChange={(e) => {
-                                const newDosage = [...cmsForm.dosageTable];
-                                newDosage[idx] = { ...newDosage[idx], dripIrrigation: e.target.value };
-                                setCmsForm({ ...cmsForm, dosageTable: newDosage });
-                              }}
-                              placeholder="Drip (500 ml / Acre)"
-                              className="admin-form-input"
-                            />
-                            <button
+                          <div key={idx} className="admin-dosage-row">
+                            {[
+                              ['crop', 'Crop (e.g. Pigeon Pea)'],
+                              ['target', 'Target (e.g. Plant growth regulator)'],
+                              ['dosage', 'Dosage (e.g. 30 ml)'],
+                              ['waterVolume', 'Water Volume (e.g. 200)'],
+                              ['waitingPeriod', 'Waiting Period (e.g. 48)'],
+                            ].map(([field, placeholder]) => (
+                              <input
+                                key={field}
+                                value={row[field] || (field === 'dosage' ? row.foliarSpray : field === 'waterVolume' ? row.dripIrrigation : '') || ''}
+                                onChange={(e) => {
+                                  const newDosage = [...cmsForm.dosageTable];
+                                  newDosage[idx] = { ...newDosage[idx], [field]: e.target.value };
+                                  setCmsForm({ ...cmsForm, dosageTable: newDosage });
+                                }}
+                                placeholder={placeholder}
+                                className="admin-form-input"
+                              />
+                            ))}                            <button
                               type="button"
                               onClick={() => {
                                 const newDosage = cmsForm.dosageTable.filter((_: any, i: number) => i !== idx);
@@ -6392,7 +6352,7 @@ export const AdminPage: React.FC = () => {
                               ...cmsForm,
                               dosageTable: [
                                 ...cmsForm.dosageTable,
-                                { crop: 'Vegetables', foliarSpray: '2 ml / L', dripIrrigation: '500 ml / Acre' },
+                                { crop: '', target: '', dosage: '', waterVolume: '', waitingPeriod: '' },
                               ],
                             })
                           }
@@ -6416,7 +6376,7 @@ export const AdminPage: React.FC = () => {
                   </div>
                 )}
 
-                {/* 6. SPECS, FAQS & BEFORE/AFTER TAB */}
+                {/* 6. SPECS & FAQS TAB */}
                 {cmsTab === 'specs' && (
                   <div className="admin-cms-section">
                     <div>
@@ -6529,53 +6489,6 @@ export const AdminPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <div style={{ marginTop: '1rem' }}>
-                      <label className="admin-form-label">Before / After Field Results (See the Difference)</label>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.35rem' }}>
-                        <div className="admin-form-group">
-                          <label className="admin-form-label" style={{ fontSize: '0.75rem' }}>Before Image URL</label>
-                          <div className="admin-result-image-input-row">
-                            <input
-                              value={cmsForm.beforeAfter?.beforeImage || ''}
-                              onChange={(e) =>
-                                setCmsForm({
-                                  ...cmsForm,
-                                  beforeAfter: { ...cmsForm.beforeAfter, beforeImage: e.target.value },
-                                })
-                              }
-                              placeholder="https://..."
-                              className="admin-form-input"
-                            />
-                            <label className={`admin-result-upload-btn ${uploadingResultImage === 'beforeImage' ? 'is-uploading' : ''}`}>
-                              {uploadingResultImage === 'beforeImage' ? <Loader2 size={15} className="admin-result-upload-spinner" /> : <Upload size={15} />}
-                              <span>{uploadingResultImage === 'beforeImage' ? 'Uploading' : 'Upload'}</span>
-                              <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml" disabled={uploadingResultImage !== null} onChange={(e) => { void handleUploadResultImage('beforeImage', e.target.files?.[0]); e.currentTarget.value = ''; }} />
-                            </label>
-                          </div>
-                        </div>
-                        <div className="admin-form-group">
-                          <label className="admin-form-label" style={{ fontSize: '0.75rem' }}>After Image URL</label>
-                          <div className="admin-result-image-input-row">
-                            <input
-                              value={cmsForm.beforeAfter?.afterImage || ''}
-                              onChange={(e) =>
-                                setCmsForm({
-                                  ...cmsForm,
-                                  beforeAfter: { ...cmsForm.beforeAfter, afterImage: e.target.value },
-                                })
-                              }
-                              placeholder="https://..."
-                              className="admin-form-input"
-                            />
-                            <label className={`admin-result-upload-btn ${uploadingResultImage === 'afterImage' ? 'is-uploading' : ''}`}>
-                              {uploadingResultImage === 'afterImage' ? <Loader2 size={15} className="admin-result-upload-spinner" /> : <Upload size={15} />}
-                              <span>{uploadingResultImage === 'afterImage' ? 'Uploading' : 'Upload'}</span>
-                              <input type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/svg+xml" disabled={uploadingResultImage !== null} onChange={(e) => { void handleUploadResultImage('afterImage', e.target.files?.[0]); e.currentTarget.value = ''; }} />
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 )}
               </div>

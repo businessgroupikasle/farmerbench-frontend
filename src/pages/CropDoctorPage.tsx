@@ -87,25 +87,24 @@ export const CropDoctorPage: React.FC = () => {
   // Form State
   const [formData, setFormData] = useState({
     // 1. Crop Details
-    cropName: 'Tomato',
-    cropVariety: 'Hybrid Tomato',
-    growthStage: 'Fruiting',
-    sowingDate: '2026-07-15',
-    farmSizeValue: '2',
-    farmSizeUnit: 'Acres',
-    locationPincode: 'Coimbatore - 613001',
-    irrigationMethod: 'Drip Irrigation',
+    cropName: '',
+    cropVariety: '',
+    growthStage: '',
+    sowingDate: '',
+    farmSizeValue: '',
+    farmSizeUnit: '',
+    locationPincode: '',
+    irrigationMethod: '',
 
     // 2. Problem & Symptoms
-    problemCategory: 'Leaf Spots',
-    affectedPart: 'Leaves',
-    noticedWhen: '3-7 days ago',
-    affectedPercent: '25-50%',
-    problemSeverity: 'Moderate',
-    symptomsDescription:
-      'Brown circular spots are spreading across older leaves. Some leaves are turning yellow and drying near the edges.',
-    treatmentApplied: 'Yes',
-    treatmentUsed: 'Neem oil spray - 5 days ago',
+    problemCategory: '',
+    affectedPart: '',
+    noticedWhen: '',
+    affectedPercent: '',
+    problemSeverity: '',
+    symptomsDescription: '',
+    treatmentApplied: '',
+    treatmentUsed: '',
 
     // 4. Contact & Response
     farmerName: '',
@@ -131,12 +130,8 @@ export const CropDoctorPage: React.FC = () => {
 
   // Live Postal Code State
   const [postalFeedback, setPostalFeedback] = useState<PostalFeedback>({
-    status: 'found',
-    pincode: '613001',
-    place: 'Coimbatore H.O',
-    district: 'Coimbatore',
-    state: 'Tamil Nadu',
-    displayString: 'Coimbatore, Tamil Nadu (Coimbatore H.O)',
+    status: 'idle',
+    pincode: '',
   });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -772,6 +767,7 @@ export const CropDoctorPage: React.FC = () => {
                         className="crop-doctor-field-select"
                         required
                       >
+                        <option value="" disabled>Select crop</option>
                         <option value="Tomato">Tomato (தக்காளி)</option>
                         <option value="Paddy">Paddy / Rice (நெல்)</option>
                         <option value="Cotton">Cotton (பருத்தி)</option>
@@ -834,7 +830,7 @@ export const CropDoctorPage: React.FC = () => {
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
                         <input
                           type="number"
-                          placeholder="2"
+                          placeholder="Enter farm size"
                           value={formData.farmSizeValue}
                           onChange={(e) => setFormData({ ...formData, farmSizeValue: e.target.value })}
                           className="crop-doctor-field-input"
@@ -846,6 +842,7 @@ export const CropDoctorPage: React.FC = () => {
                           className="crop-doctor-field-select"
                           style={{ flex: '1' }}
                         >
+                          <option value="" disabled>Select unit</option>
                           <option value="Acres">Acres</option>
                           <option value="Hectares">Hectares</option>
                           <option value="Cents">Cents</option>
@@ -868,7 +865,7 @@ export const CropDoctorPage: React.FC = () => {
                         <input
                           type="text"
                           required
-                          placeholder="Coimbatore - 613001"
+                          placeholder="Enter location or 6-digit pincode"
                           value={formData.locationPincode}
                           onChange={(e) => setFormData({ ...formData, locationPincode: e.target.value })}
                           className="crop-doctor-field-input"
@@ -922,6 +919,7 @@ export const CropDoctorPage: React.FC = () => {
                       onChange={(e) => setFormData({ ...formData, irrigationMethod: e.target.value })}
                       className="crop-doctor-field-select"
                     >
+                      <option value="" disabled>Select irrigation method</option>
                       <option value="Drip Irrigation">Drip Irrigation</option>
                       <option value="Flood Irrigation">Flood Irrigation</option>
                       <option value="Sprinkler Irrigation">Sprinkler Irrigation</option>
@@ -989,6 +987,7 @@ export const CropDoctorPage: React.FC = () => {
                         className="crop-doctor-field-select"
                         required
                       >
+                        <option value="" disabled>Select when first noticed</option>
                         <option value="Today / Yesterday">Today / Yesterday</option>
                         <option value="3-7 days ago">3-7 days ago</option>
                         <option value="1-2 weeks ago">1-2 weeks ago</option>
@@ -1004,6 +1003,7 @@ export const CropDoctorPage: React.FC = () => {
                         className="crop-doctor-field-select"
                         required
                       >
+                        <option value="" disabled>Select affected area</option>
                         <option value="Less than 10%">Less than 10%</option>
                         <option value="10-25%">10-25%</option>
                         <option value="25-50%">25-50%</option>
