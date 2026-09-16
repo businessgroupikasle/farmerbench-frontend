@@ -24,7 +24,7 @@ export const AuthModal: React.FC = () => {
     try {
       if (authModalTab === 'login') {
         const res = await login({ email, password });
-        if (res?.user?.role === 'ADMIN' || email.trim().toLowerCase().includes('admin')) {
+        if (res?.user?.role === 'ADMIN') {
           navigate('/admin');
         }
       } else {

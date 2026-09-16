@@ -347,7 +347,7 @@ export const LoginPage: React.FC = () => {
 
     try {
       const res = await login({ email: emailOrPhone.trim(), password });
-      if (res?.user?.role === 'ADMIN' || emailOrPhone.trim().toLowerCase().includes('admin')) {
+      if (res?.user?.role === 'ADMIN') {
         addToast({ type: 'success', message: 'Welcome to AgriEra Admin Panel!' });
         navigate('/admin');
       } else {

@@ -11,42 +11,50 @@ export interface UploadedImageData {
 
 const UPLOAD_TIMEOUT_MS = 120_000;
 
+const postSingleImage = async (file: File, folder: string): Promise<ApiResponse<UploadedImageData>> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return apiClient.post('/upload/image', formData, {
+    params: { folder },
+    timeout: UPLOAD_TIMEOUT_MS,
+    headers: { 'Content-Type': undefined },
+  });
+};
+
+const normalizeUploadError = (error: unknown, multiple = false): never => {
+  const message = error instanceof Error ? error.message : 'Image upload failed';
+  if (/timeout|ECONNABORTED/i.test(message)) {
+    throw new Error(`Image upload is taking too long. Check your connection and try again with smaller image${multiple ? 's' : ''}.`);
+  }
+  throw error;
+};
+
 export const uploadService = {
   async uploadImages(files: File[], folder = 'products/gallery'): Promise<ApiResponse<{ files: UploadedImageData[] }>> {
-    const formData = new FormData();
-    files.forEach((file) => formData.append('files', file));
-
     try {
-      return await apiClient.post('/upload/images', formData, {
-        params: { folder },
-        timeout: UPLOAD_TIMEOUT_MS,
-        headers: { 'Content-Type': undefined },
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Image upload failed';
-      if (/timeout|ECONNABORTED/i.test(message)) {
-        throw new Error('Image upload is taking too long. Check your connection and try again with smaller images.');
+      // Production currently exposes the single-image route. Upload sequentially
+      // to keep memory usage predictable while preserving the gallery API shape.
+      const uploaded: UploadedImageData[] = [];
+      for (const file of files) {
+        const response = await postSingleImage(file, folder);
+        if (!response.data) throw new Error(`Upload completed without file data for "${file.name}"`);
+        uploaded.push(response.data);
       }
-      throw error;
+      return {
+        success: true,
+        message: `${uploaded.length} images uploaded successfully`,
+        data: { files: uploaded },
+      };
+    } catch (error) {
+      return normalizeUploadError(error, true);
     }
   },
 
   async uploadImage(file: File, folder = 'products/gallery'): Promise<ApiResponse<UploadedImageData>> {
-    const formData = new FormData();
-    formData.append('file', file);
-
     try {
-      return await apiClient.post('/upload/image', formData, {
-        params: { folder },
-        timeout: UPLOAD_TIMEOUT_MS,
-        headers: { 'Content-Type': undefined },
-      });
+      return await postSingleImage(file, folder);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Image upload failed';
-      if (/timeout|ECONNABORTED/i.test(message)) {
-        throw new Error('Image upload is taking too long. Check your connection and try again with a smaller image.');
-      }
-      throw error;
+      return normalizeUploadError(error);
     }
   },
 };

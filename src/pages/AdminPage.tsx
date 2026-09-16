@@ -125,6 +125,8 @@ export interface StaffMember {
   avatarUrl?: string;
 }
 
+const PRODUCT_CMS_DRAFT_KEY = 'agriera_product_cms_draft_v1';
+
 const buildVariantSku = (productName: string, packSize: string) => {
   const productPart = String(productName || '')
     .normalize('NFKD')
@@ -466,7 +468,41 @@ export const AdminPage: React.FC = () => {
   });
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
 
+  useEffect(() => {
+    if (!isAddProductOpen) return;
+    const timer = window.setTimeout(() => {
+      try {
+        localStorage.setItem(PRODUCT_CMS_DRAFT_KEY, JSON.stringify({ form: cmsForm, tab: cmsTab, savedAt: Date.now() }));
+      } catch {
+        // Draft persistence is best-effort; the active form remains usable.
+      }
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [cmsForm, cmsTab, isAddProductOpen]);
+
+  const closeProductCMS = () => {
+    setIsAddProductOpen(false);
+    setIsEditProductOpen(false);
+    if (isAddProductOpen) addToast({ type: 'info', message: 'Product draft saved. You can continue it later.' });
+  };
+
   const openAddProductCMS = () => {
+    try {
+      const saved = localStorage.getItem(PRODUCT_CMS_DRAFT_KEY);
+      if (saved) {
+        const draft = JSON.parse(saved);
+        if (draft?.form && typeof draft.form === 'object') {
+          setCmsForm(draft.form);
+          setCmsTab(draft.tab || 'basic');
+          setIsAddProductOpen(true);
+          addToast({ type: 'info', message: 'Your saved product draft has been restored.' });
+          return;
+        }
+      }
+    } catch {
+      localStorage.removeItem(PRODUCT_CMS_DRAFT_KEY);
+    }
+
     setCmsTab('basic');
     setCmsForm({
       title: '',
@@ -1510,14 +1546,6 @@ export const AdminPage: React.FC = () => {
   };
 
   // Access Control Check
-  const storedUser = (() => {
-    try {
-      const d = localStorage.getItem('formerbench_auth_user');
-      return d ? JSON.parse(d) : null;
-    } catch {
-      return null;
-    }
-  })();
   const downloadCsv = (filename: string, rows: Record<string, unknown>[]) => {
     if (!rows.length) { showToast('No records available to export.'); return; }
     const headers = Array.from(new Set(rows.flatMap((row) => Object.keys(row))));
@@ -1557,11 +1585,7 @@ export const AdminPage: React.FC = () => {
     orderStatus: order.status, paymentMethod: order.paymentMethod, orderDate: order.date,
   })));
 
-  const isDemoAdmin = localStorage.getItem('AgriEra_demo_admin') === 'true';
-  const isAuthorized =
-    (isAuthenticated && (isAdmin || user?.role === 'ADMIN')) ||
-    (storedUser && (storedUser.role === 'ADMIN' || storedUser.email?.includes('admin'))) ||
-    isDemoAdmin;
+  const isAuthorized = isAuthenticated && isAdmin && user?.role === 'ADMIN';
 
   useEffect(() => {
     if (!isLoading && !isAuthorized && isAuthenticated) {
@@ -1686,10 +1710,10 @@ export const AdminPage: React.FC = () => {
   };
 
   const activeAdminUser = {
-    name: user?.name || storedUser?.name || 'Administrator',
-    email: user?.email || storedUser?.email || 'admin@agriera.in',
+    name: user?.name || 'Administrator',
+    email: user?.email || '',
     role: user?.role === 'ADMIN' ? 'SUPER ADMIN' : (user?.role || 'SUPER ADMIN'),
-    avatarUrl: user?.avatarUrl || storedUser?.avatarUrl || null,
+    avatarUrl: user?.avatarUrl || null,
   };
 
   // Live Sync handler: Refreshes all queries and notifies user
@@ -1852,28 +1876,6 @@ export const AdminPage: React.FC = () => {
               Go to Default Farmer Dashboard
             </button>
 
-            <button
-              onClick={() => {
-                localStorage.setItem('AgriEra_demo_admin', 'true');
-                window.location.reload();
-              }}
-              style={{
-                backgroundColor: 'transparent',
-                color: '#88DF9E',
-                border: '1.5px dashed #88DF9E',
-                padding: '0.75rem 1.5rem',
-                borderRadius: '8px',
-                fontSize: '0.85rem',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.4rem',
-              }}
-            >
-              <Sparkles size={16} /> Sign In as Admin (AgriEra Admin)
-            </button>
 
             <button
               onClick={() => navigate('/login')}
@@ -5607,14 +5609,14 @@ export const AdminPage: React.FC = () => {
       )}
 
       {(isAddProductOpen || isEditProductOpen) && (
-        <div className="admin-modal-overlay">
-          <div className="admin-modal-card admin-cms-modal-card">
+        <div className="admin-modal-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) event.preventDefault(); }}>
+          <div className="admin-modal-card admin-cms-modal-card" onMouseDown={(event) => event.stopPropagation()}>
             <div className="admin-modal-header">
               <h3 className="admin-modal-title">
                 {isAddProductOpen ? 'Create New Agricultural Product (CMS)' : `Product CMS Editor - ${cmsForm.title}`}
               </h3>
               <button
-                onClick={() => { setIsAddProductOpen(false); setIsEditProductOpen(false); }}
+                onClick={closeProductCMS}
                 className="admin-modal-close-btn"
               >
                 <X size={20} />
@@ -5725,6 +5727,7 @@ export const AdminPage: React.FC = () => {
                       subcategoryId,
                       attributes,
                     });
+                    localStorage.removeItem(PRODUCT_CMS_DRAFT_KEY);
                     setIsAddProductOpen(false);
                     showToast(`Product "${title}" with multi pack sizes created in PostgreSQL!`);
                   } else {
@@ -6496,7 +6499,7 @@ export const AdminPage: React.FC = () => {
               <div className="admin-modal-footer">
                 <button
                   type="button"
-                  onClick={() => { setIsAddProductOpen(false); setIsEditProductOpen(false); }}
+                  onClick={closeProductCMS}
                   className="admin-quick-btn"
                 >
                   Cancel

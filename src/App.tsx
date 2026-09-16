@@ -10,6 +10,7 @@ import { ScrollToTop } from './components/common/ScrollToTop';
 import { PageLoader } from './components/common/PageLoader';
 import { useThemeStore } from './store/themeStore';
 import { LanguageProvider } from './context/LanguageContext';
+import { useAuth } from './hooks/useAuth';
 import { AlertTriangle, Clock3, Sprout } from 'lucide-react';
 
 // Keep the landing page in the initial bundle; load secondary pages on demand.
@@ -38,6 +39,14 @@ const ShippingPolicyPage = lazy(() => import('./pages/ShippingPolicyPage'));
 const ReturnPolicyPage = lazy(() => import('./pages/ReturnPolicyPage'));
 const FaqPage = lazy(() => import('./pages/FaqPage'));
 import { useSocketSync } from './socket';
+
+const AdminRoute: React.FC = () => {
+  const { isAuthenticated, isAdmin, isLoading } = useAuth();
+  if (isLoading) return <PageLoader />;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAdmin) return <Navigate to="/dashboard" replace />;
+  return <AdminPage />;
+};
 
 interface MaintenanceSettings {
   maintenanceMode: boolean;
@@ -165,8 +174,8 @@ const AppContent: React.FC = () => {
             }
           />
           <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/admin" element={<AdminPage />} />
-          <Route path="/admin/*" element={<AdminPage />} />
+          <Route path="/admin" element={<AdminRoute />} />
+          <Route path="/admin/*" element={<AdminRoute />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signin" element={<LoginPage />} />
           <Route path="/signup" element={<LoginPage />} />

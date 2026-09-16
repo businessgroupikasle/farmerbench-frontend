@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { authService } from '../services/auth.service';
 import { cartService } from '../services/cart.service';
@@ -21,8 +22,21 @@ export const useAuth = () => {
   const { addToast, closeAuthModal } = useUIStore();
   const { guestItems, clearGuestCart } = useCartStore();
 
-  const token = typeof window !== 'undefined' ? localStorage.getItem('formerbench_auth_token') : null;
-  const storedUser = getStoredUser();
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('formerbench_auth_token'));
+
+  useEffect(() => {
+    const syncSession = () => {
+      const nextToken = localStorage.getItem('formerbench_auth_token');
+      setToken(nextToken);
+      if (!nextToken) queryClient.setQueryData(AUTH_QUERY_KEY, null);
+    };
+    window.addEventListener('storage', syncSession);
+    window.addEventListener('auth:unauthorized', syncSession);
+    return () => {
+      window.removeEventListener('storage', syncSession);
+      window.removeEventListener('auth:unauthorized', syncSession);
+    };
+  }, [queryClient]);
 
   const { data: user, isLoading, isError } = useQuery<User | null>({
     queryKey: AUTH_QUERY_KEY,
@@ -31,29 +45,27 @@ export const useAuth = () => {
       if (!currentToken) return null;
       try {
         const res = await authService.getMe();
-        if (res.data) {
-          localStorage.setItem('formerbench_auth_user', JSON.stringify(res.data));
-          return res.data;
-        }
-        return getStoredUser();
-      } catch (err) {
-        // If stored user exists, keep it as fallback for offline / fast UX
-        const fallback = getStoredUser();
-        if (fallback) return fallback;
+        if (!res.data) throw new Error('Invalid authentication session');
+        localStorage.setItem('formerbench_auth_user', JSON.stringify(res.data));
+        return res.data;
+      } catch {
         localStorage.removeItem('formerbench_auth_token');
         localStorage.removeItem('formerbench_auth_user');
+        setToken(null);
         return null;
       }
     },
-    initialData: storedUser,
-    staleTime: 1000 * 60 * 30, // 30 minutes cache
+    enabled: Boolean(token),
+    retry: false,
+    staleTime: 1000 * 60 * 30,
   });
 
-  const activeUser = user || storedUser;
+  const activeUser = user ?? null;
 
   const setAuthSession = (authUser: any, authToken: string) => {
     localStorage.setItem('formerbench_auth_token', authToken);
     localStorage.setItem('formerbench_auth_user', JSON.stringify(authUser));
+    setToken(authToken);
     queryClient.setQueryData(AUTH_QUERY_KEY, authUser);
   };
 
@@ -147,6 +159,7 @@ export const useAuth = () => {
     localStorage.removeItem('formerbench_auth_token');
     localStorage.removeItem('formerbench_auth_user');
     localStorage.removeItem('AgriEra_demo_admin');
+    setToken(null);
     queryClient.setQueryData(AUTH_QUERY_KEY, null);
     queryClient.removeQueries({ queryKey: ['cart'] });
     queryClient.removeQueries({ queryKey: ['orders'] });
@@ -155,9 +168,9 @@ export const useAuth = () => {
 
   return {
     user: activeUser ?? null,
-    isAuthenticated: !!activeUser && (!!token || !!localStorage.getItem('formerbench_auth_token')),
-    isAdmin: activeUser?.role === 'ADMIN' || activeUser?.email?.includes('admin'),
-    isLoading: isLoading && !activeUser,
+    isAuthenticated: Boolean(activeUser && token),
+    isAdmin: activeUser?.role === 'ADMIN',
+    isLoading: Boolean(token) && isLoading,
     isError,
     setAuthSession,
     login: loginMutation.mutateAsync,
