@@ -9,8 +9,10 @@ import { AddToCartInput, Product } from '@formerbench/shared';
 // Helper to resolve variant selling price and MRP for any pack size
 const resolveVariantPricing = (product: any, packSize: string, selectedAttributes?: Record<string, any>) => {
   if (selectedAttributes?.price && Number(selectedAttributes.price) > 0) {
-    const sellingPrice = Number(selectedAttributes.price);
-    const mrp = Number(selectedAttributes.mrp) || sellingPrice;
+    const rawSellingPrice = Number(selectedAttributes.price);
+    const rawMrp = Number(selectedAttributes.mrp) || rawSellingPrice;
+    const sellingPrice = Math.min(rawSellingPrice, rawMrp);
+    const mrp = Math.max(rawSellingPrice, rawMrp);
     return { sellingPrice, mrp };
   }
 
@@ -21,14 +23,18 @@ const resolveVariantPricing = (product: any, packSize: string, selectedAttribute
   );
 
   if (found) {
-    const sellingPrice = Number(found.sellingPrice) || Number(found.price) || (product.discountPrice || product.price);
-    const mrp = Number(found.mrp) || product.price;
+    const rawSellingPrice = Number(found.sellingPrice) || Number(found.price) || Number(product.discountPrice) || Number(product.price);
+    const rawMrp = Number(found.mrp) || Number(product.price) || rawSellingPrice;
+    const sellingPrice = Math.min(rawSellingPrice, rawMrp);
+    const mrp = Math.max(rawSellingPrice, rawMrp);
     return { sellingPrice, mrp };
   }
 
   // Fallback proportional pricing
-  const baseMrp = Number(product?.price) || 520;
-  const baseSelling = Number(product?.discountPrice) || (baseMrp > 50 ? baseMrp - 45 : baseMrp);
+  const rawBaseMrp = Number(product?.price) || 520;
+  const rawBaseSelling = Number(product?.discountPrice) || (rawBaseMrp > 50 ? rawBaseMrp - 45 : rawBaseMrp);
+  const baseMrp = Math.max(rawBaseMrp, rawBaseSelling);
+  const baseSelling = Math.min(rawBaseMrp, rawBaseSelling);
   const clean = packSize.toLowerCase().replace(/\s+/g, '');
   let multiplier = 1;
 

@@ -24,9 +24,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { toggleCompare, isInCompare } = useCompareStore();
   const { addToast } = useUIStore();
 
-  const isDiscounted = Boolean(product.discountPrice && product.discountPrice < product.price);
-  const discountPercent = isDiscounted && product.discountPrice
-    ? Math.round(((product.price - product.discountPrice) / product.price) * 100)
+  const rawPrice = Number(product.price) || 0;
+  const rawDiscountPrice = Number(product.discountPrice) || 0;
+  const isDiscounted = rawPrice > 0 && rawDiscountPrice > 0 && rawPrice !== rawDiscountPrice;
+  const originalPrice = isDiscounted ? Math.max(rawPrice, rawDiscountPrice) : rawPrice;
+  const currentPrice = isDiscounted ? Math.min(rawPrice, rawDiscountPrice) : rawPrice;
+  const discountPercent = isDiscounted
+    ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100)
     : 0;
 
   const isLowStock = product.stock > 0 && product.stock <= 5;
@@ -229,10 +233,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             {isDiscounted ? (
               <>
                 <span className="fb-card-current-price">
-                  {formatPrice(product.discountPrice)}
+                  {formatPrice(currentPrice)}
                 </span>
                 <span className="fb-card-original-price">
-                  {formatPrice(product.price)}
+                  {formatPrice(originalPrice)}
                 </span>
               </>
             ) : (

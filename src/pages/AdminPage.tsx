@@ -130,7 +130,7 @@ export interface StaffMember {
   avatarUrl?: string;
 }
 
-const PRODUCT_CMS_DRAFT_KEY = 'agriera_product_cms_draft_v1';
+const PRODUCT_CMS_DRAFT_KEY = 'agriera_product_cms_draft_v2';
 
 const buildVariantSku = (productName: string, packSize: string) => {
   const productPart = String(productName || '')
@@ -142,6 +142,107 @@ const buildVariantSku = (productName: string, packSize: string) => {
   const packPart = String(packSize || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
   return [productPart, packPart].filter(Boolean).join('-');
 };
+
+const isDummyText = (text: any): boolean => {
+  if (!text || typeof text !== 'string') return false;
+  const t = text.trim();
+  return (
+    t === 'High-potency bio-formulation crafted for superior crop yield, enhanced root growth, and soil health.' ||
+    t === 'Premium certified organic agricultural input.' ||
+    t === 'Promotes faster and healthier growth' ||
+    t === 'Improves flowering and crop yield' ||
+    t === 'Accelerates vegetative branching and root formation.' ||
+    t === 'Increases tillering and fruit set.' ||
+    t === 'Cold-fermented seaweed extract, amino acids, and micronutrient chelates.' ||
+    t === 'Organic bio-stimulants and plant nutrients.'
+  );
+};
+
+const sanitizeCmsVariants = (variants: any[]): any[] => {
+  if (!Array.isArray(variants)) return [{ label: '', mrp: '', sellingPrice: '', stock: '', sku: '' }];
+  const cleaned = variants.filter((v) => {
+    if (!v) return false;
+    const sku = String(v.sku || '');
+    if (sku.startsWith('BIO-')) return false;
+    const mrp = Number(v.mrp);
+    const sell = Number(v.sellingPrice);
+    if ((v.label === '500 g' && mrp === 520 && sell === 475) ||
+        (v.label === '1 kg' && mrp === 950 && sell === 850) ||
+        (v.label === '5 kg' && mrp === 4200 && sell === 3800)) {
+      return false;
+    }
+    return Boolean(v.label || v.mrp || v.sellingPrice || v.stock);
+  });
+  return cleaned.length > 0 ? cleaned : [{ label: '', mrp: '', sellingPrice: '', stock: '', sku: '' }];
+};
+
+const sanitizeCmsFeatures = (features: any[]): string[] => {
+  if (!Array.isArray(features)) return [];
+  return features.filter((f) => typeof f === 'string' && f.trim() && !isDummyText(f));
+};
+
+const sanitizeCmsBenefits = (benefits: any[]): string[] => {
+  if (!Array.isArray(benefits)) return [];
+  return benefits.filter((b) => typeof b === 'string' && b.trim() && !isDummyText(b));
+};
+
+const sanitizeCmsUsageSteps = (steps: any[]): any[] => {
+  if (!Array.isArray(steps)) return [];
+  return steps.filter((s) => {
+    if (!s) return false;
+    const title = String(s.title || '').trim();
+    const desc = String(s.description || '').trim();
+    if (title === 'Measure' && desc.includes('dosage')) return false;
+    if (title === 'Mix' && desc.includes('dissolved')) return false;
+    if (title === 'Apply' && (desc.includes('foliar') || desc.includes('foliage'))) return false;
+    return Boolean(title || desc);
+  });
+};
+
+const sanitizeCmsDosageTable = (rows: any[]): any[] => {
+  if (!Array.isArray(rows)) return [];
+  return rows.filter((r) => {
+    if (!r) return false;
+    const crop = String(r.crop || '').trim();
+    if (crop === 'Paddy & Cereals') return false;
+    if (crop === 'Vegetables' && (String(r.foliarSpray || '').includes('2.0 ml') || String(r.dosage || '').includes('2.0 ml'))) return false;
+    return Boolean(crop || r.target || r.dosage || r.foliarSpray || r.waterVolume || r.waitingPeriod);
+  });
+};
+
+const sanitizeCmsIngredients = (ingredients: any): string => {
+  if (!ingredients || typeof ingredients !== 'string') return '';
+  if (isDummyText(ingredients)) return '';
+  return ingredients;
+};
+
+const sanitizeCmsSpecifications = (specs: any[]): any[] => {
+  if (!Array.isArray(specs)) return [];
+  return specs.filter((s) => {
+    if (!s) return false;
+    const label = String(s.label || '').trim();
+    const val = String(s.value || '').trim();
+    if (label === 'Product Type' && val === 'Organic') return false;
+    if (label === 'Form' && val === 'Granular') return false;
+    if (label === 'Suitable Crops' && val === 'All Crops') return false;
+    if (label === 'Application Method' && val.includes('Foliar')) return false;
+    if (label === 'Shelf Life' && val === '24 Months') return false;
+    if (label === 'Manufacturer' && (val === 'AgriEra Agri Solutions' || val.includes('AgriEra'))) return false;
+    return Boolean(label || val);
+  });
+};
+
+const sanitizeCmsFaqs = (faqs: any[]): any[] => {
+  if (!Array.isArray(faqs)) return [];
+  return faqs.filter((f) => {
+    if (!f) return false;
+    const q = String(f.question || '').trim();
+    const a = String(f.answer || '').trim();
+    if (q.includes('drip irrigation') && a.includes('water soluble')) return false;
+    return Boolean(q || a);
+  });
+};
+
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -434,79 +535,51 @@ export const AdminPage: React.FC = () => {
     slug: '',
     categoryId: '',
     subcategoryId: '',
-    price: 520,
-    discountPrice: 475,
-    stock: 27,
+    price: '',
+    discountPrice: '',
+    stock: '',
     featured: false,
     description: '',
-    images: ['https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800'],
+    images: [],
     targetCrops: '',
-    features: ['Promotes faster and healthier growth', 'Improves flowering and crop yield'],
+    features: [],
     variants: [
-      { label: '500 g', mrp: 520, sellingPrice: 475, stock: 27, sku: 'BIO-500G' },
-      { label: '1 kg', mrp: 950, sellingPrice: 850, stock: 15, sku: 'BIO-1KG' },
-      { label: '5 kg', mrp: 4200, sellingPrice: 3800, stock: 8, sku: 'BIO-5KG' },
+      { label: '', mrp: '', sellingPrice: '', stock: '', sku: '' },
     ],
-    packSizes: ['500 g', '1 kg', '5 kg'],
-    benefits: ['Accelerates vegetative branching and root formation.', 'Increases tillering and fruit set.'],
-    usageSteps: [
-      { stepNumber: 1, title: 'Measure', description: 'Take the recommended amount as per dosage.' },
-      { stepNumber: 2, title: 'Mix', description: 'Mix with water thoroughly until dissolved.' },
-      { stepNumber: 3, title: 'Apply', description: 'Apply to soil or as foliar spray to plants.' },
-    ],
-    dosageTable: [
-      { crop: 'Paddy & Cereals', foliarSpray: '2.5 ml / Litre', dripIrrigation: '500 ml / Acre' },
-      { crop: 'Vegetables', foliarSpray: '2.0 ml / Litre', dripIrrigation: '500 ml / Acre' },
-    ],
-    ingredients: 'Cold-fermented seaweed extract, amino acids, and micronutrient chelates.',
-    specifications: [
-      { label: 'Product Type', value: 'Organic' },
-      { label: 'Form', value: 'Granular' },
-      { label: 'Suitable Crops', value: 'All Crops' },
-      { label: 'Application Method', value: 'Soil Application / Foliar Spray' },
-      { label: 'Shelf Life', value: '24 Months' },
-      { label: 'Manufacturer', value: 'AgriEra Agri Solutions' },
-    ],
-    faqs: [
-      { question: 'Can I use this product in drip irrigation?', answer: 'Yes, 100% water soluble and does not clog emitters.' },
-    ],
+    packSizes: [],
+    benefits: [],
+    usageSteps: [],
+    dosageTable: [],
+    ingredients: '',
+    specifications: [],
+    faqs: [],
   });
   const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
 
   useEffect(() => {
-    if (!isAddProductOpen) return;
-    const timer = window.setTimeout(() => {
-      try {
-        localStorage.setItem(PRODUCT_CMS_DRAFT_KEY, JSON.stringify({ form: cmsForm, tab: cmsTab, savedAt: Date.now() }));
-      } catch {
-        // Draft persistence is best-effort; the active form remains usable.
-      }
-    }, 300);
-    return () => window.clearTimeout(timer);
-  }, [cmsForm, cmsTab, isAddProductOpen]);
+    try {
+      localStorage.removeItem('agriera_product_cms_draft_v1');
+      localStorage.removeItem('agriera_product_cms_draft_v2');
+      localStorage.removeItem(PRODUCT_CMS_DRAFT_KEY);
+    } catch {}
+  }, []);
 
   const closeProductCMS = () => {
+    try {
+      localStorage.removeItem('agriera_product_cms_draft_v1');
+      localStorage.removeItem('agriera_product_cms_draft_v2');
+      localStorage.removeItem(PRODUCT_CMS_DRAFT_KEY);
+    } catch {}
     setIsAddProductOpen(false);
     setIsEditProductOpen(false);
-    if (isAddProductOpen) addToast({ type: 'info', message: 'Product draft saved. You can continue it later.' });
   };
 
   const openAddProductCMS = () => {
     try {
-      const saved = localStorage.getItem(PRODUCT_CMS_DRAFT_KEY);
-      if (saved) {
-        const draft = JSON.parse(saved);
-        if (draft?.form && typeof draft.form === 'object') {
-          setCmsForm(draft.form);
-          setCmsTab(draft.tab || 'basic');
-          setIsAddProductOpen(true);
-          addToast({ type: 'info', message: 'Your saved product draft has been restored.' });
-          return;
-        }
-      }
-    } catch {
+      localStorage.removeItem('agriera_product_cms_draft_v1');
+      localStorage.removeItem('agriera_product_cms_draft_v2');
       localStorage.removeItem(PRODUCT_CMS_DRAFT_KEY);
-    }
+    } catch {}
 
     setCmsTab('basic');
     setCmsForm({
@@ -514,42 +587,24 @@ export const AdminPage: React.FC = () => {
       slug: '',
       categoryId: dbCategories[0]?.id || '',
       subcategoryId: '',
-      price: 520,
-      discountPrice: 475,
-      stock: 27,
+      price: '',
+      discountPrice: '',
+      stock: '',
       featured: false,
-      description: 'High-potency bio-formulation crafted for superior crop yield, enhanced root growth, and soil health.',
-      images: ['https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800'],
+      description: '',
+      images: [],
       targetCrops: '',
-    features: ['Promotes faster and healthier growth', 'Improves flowering and crop yield'],
+      features: [],
       variants: [
-        { label: '500 g', mrp: 520, sellingPrice: 475, stock: 27, sku: 'BIO-500G' },
-        { label: '1 kg', mrp: 950, sellingPrice: 850, stock: 15, sku: 'BIO-1KG' },
-        { label: '5 kg', mrp: 4200, sellingPrice: 3800, stock: 8, sku: 'BIO-5KG' },
+        { label: '', mrp: '', sellingPrice: '', stock: '', sku: '' },
       ],
-      packSizes: ['500 g', '1 kg', '5 kg'],
-      benefits: ['Accelerates vegetative branching and root formation.', 'Increases tillering and fruit set.'],
-      usageSteps: [
-        { stepNumber: 1, title: 'Measure', description: 'Take the recommended amount as per dosage.' },
-        { stepNumber: 2, title: 'Mix', description: 'Mix with water thoroughly until dissolved.' },
-        { stepNumber: 3, title: 'Apply', description: 'Apply to soil or as foliar spray to plants.' },
-      ],
-      dosageTable: [
-        { crop: 'Paddy & Cereals', foliarSpray: '2.5 ml / Litre', dripIrrigation: '500 ml / Acre' },
-        { crop: 'Vegetables', foliarSpray: '2.0 ml / Litre', dripIrrigation: '500 ml / Acre' },
-      ],
-      ingredients: 'Cold-fermented seaweed extract, amino acids, and micronutrient chelates.',
-      specifications: [
-        { label: 'Product Type', value: 'Organic' },
-        { label: 'Form', value: 'Granular' },
-        { label: 'Suitable Crops', value: 'All Crops' },
-        { label: 'Application Method', value: 'Soil Application / Foliar Spray' },
-        { label: 'Shelf Life', value: '24 Months' },
-        { label: 'Manufacturer', value: 'AgriEra Agri Solutions' },
-      ],
-      faqs: [
-        { question: 'Can I use this product in drip irrigation?', answer: 'Yes, 100% water soluble and does not clog emitters.' },
-      ],
+      packSizes: [],
+      benefits: [],
+      usageSteps: [],
+      dosageTable: [],
+      ingredients: '',
+      specifications: [],
+      faqs: [],
     });
     setIsAddProductOpen(true);
   };
@@ -558,57 +613,86 @@ export const AdminPage: React.FC = () => {
     setSelectedProduct(prod);
     setCmsTab('basic');
     const attrs = prod.attributes || {};
-    const existingVariants = Array.isArray(attrs.variants) && attrs.variants.length > 0
+    const rawVariants = Array.isArray(attrs.variants) && attrs.variants.length > 0
       ? attrs.variants
       : Array.isArray(attrs.packSizes) && attrs.packSizes.length > 0
       ? attrs.packSizes.map((s: string) => ({
           label: s,
-          mrp: prod.price || 520,
-          sellingPrice: prod.discountPrice || prod.price || 475,
-          stock: prod.stock || 27,
-          sku: `${prod.slug || 'BIO'}-${s.replace(/\s+/g, '').toUpperCase()}`,
+          mrp: prod.price || '',
+          sellingPrice: prod.discountPrice || prod.price || '',
+          stock: prod.stock || '',
+          sku: `${prod.slug || 'PRD'}-${s.replace(/\s+/g, '').toUpperCase()}`,
         }))
-      : [
-          { label: '500 g', mrp: prod.price || 520, sellingPrice: prod.discountPrice || 475, stock: prod.stock || 27, sku: `${prod.slug || 'BIO'}-500G` },
-          { label: '1 kg', mrp: Math.round((prod.price || 520) * 1.8), sellingPrice: Math.round((prod.discountPrice || 475) * 1.8), stock: 15, sku: `${prod.slug || 'BIO'}-1KG` },
-          { label: '5 kg', mrp: Math.round((prod.price || 520) * 8), sellingPrice: Math.round((prod.discountPrice || 475) * 8), stock: 8, sku: `${prod.slug || 'BIO'}-5KG` },
-        ];
+      : [];
+
+    const existingVariants = sanitizeCmsVariants(rawVariants);
+    const existingFeatures = sanitizeCmsFeatures(attrs.features);
+    const existingBenefits = sanitizeCmsBenefits(attrs.benefits);
+    const existingUsageSteps = sanitizeCmsUsageSteps(attrs.usageSteps);
+    const existingDosageTable = sanitizeCmsDosageTable(attrs.dosageTable);
+    const existingIngredients = sanitizeCmsIngredients(attrs.ingredients);
+    const existingSpecs = sanitizeCmsSpecifications(attrs.specifications);
+    const existingFaqs = sanitizeCmsFaqs(attrs.faqs);
+    const existingDesc = isDummyText(prod.description) ? '' : (prod.description || '');
 
     setCmsForm({
       id: prod.id,
-      title: prod.title || prod.name,
-      slug: prod.slug,
+      title: prod.title || prod.name || '',
+      slug: prod.slug || '',
       categoryId: prod.categoryId || dbCategories[0]?.id || '',
       subcategoryId: prod.subcategoryId || '',
-      price: prod.price,
-      discountPrice: prod.discountPrice || prod.price,
-      stock: prod.stock,
+      price: prod.price || '',
+      discountPrice: prod.discountPrice || prod.price || '',
+      stock: prod.stock || '',
       featured: Boolean(prod.featured),
-      description: prod.description || '',
-      images: prod.images && prod.images.length > 0 ? prod.images : [prod.image],
-      variants: existingVariants.map((variant: any) => ({ ...variant, sku: buildVariantSku(prod.title || prod.name || '', variant.label || '') })),
+      description: existingDesc,
+      images: prod.images && prod.images.length > 0 ? prod.images : (prod.image ? [prod.image] : []),
+      variants: existingVariants.map((variant: any) => ({ ...variant, sku: variant.sku || buildVariantSku(prod.title || prod.name || '', variant.label || '') })),
       targetCrops: typeof attrs.targetCrops === 'string' ? attrs.targetCrops : '',
-      features: Array.isArray(attrs.features) && attrs.features.length > 0 ? attrs.features : ['Promotes faster and healthier growth'],
-      packSizes: Array.isArray(attrs.packSizes) && attrs.packSizes.length > 0 ? attrs.packSizes : existingVariants.map((v: any) => v.label),
-      benefits: Array.isArray(attrs.benefits) && attrs.benefits.length > 0 ? attrs.benefits : ['Accelerates vegetative branching and root formation.'],
-      usageSteps: Array.isArray(attrs.usageSteps) && attrs.usageSteps.length > 0 ? attrs.usageSteps : [
-        { stepNumber: 1, title: 'Measure', description: 'Take the recommended amount as per dosage.' },
-        { stepNumber: 2, title: 'Mix', description: 'Mix with water thoroughly until dissolved.' },
-        { stepNumber: 3, title: 'Apply', description: 'Apply to soil or as foliar spray to plants.' },
-      ],
-      dosageTable: Array.isArray(attrs.dosageTable) && attrs.dosageTable.length > 0 ? attrs.dosageTable : [
-        { crop: 'Paddy & Cereals', foliarSpray: '2.5 ml / Litre', dripIrrigation: '500 ml / Acre' },
-      ],
-      ingredients: typeof attrs.ingredients === 'string' ? attrs.ingredients : 'Organic bio-stimulants and plant nutrients.',
-      specifications: Array.isArray(attrs.specifications) && attrs.specifications.length > 0 ? attrs.specifications : [
-        { label: 'Product Type', value: 'Organic' },
-        { label: 'Form', value: 'Granular' },
-      ],
-      faqs: Array.isArray(attrs.faqs) && attrs.faqs.length > 0 ? attrs.faqs : [
-        { question: 'Can I use this product in drip irrigation?', answer: 'Yes, 100% water soluble.' },
-      ],
+      features: existingFeatures,
+      packSizes: Array.isArray(attrs.packSizes) && attrs.packSizes.length > 0
+        ? attrs.packSizes
+        : existingVariants.filter((v: any) => v.label).map((v: any) => v.label),
+      benefits: existingBenefits,
+      usageSteps: existingUsageSteps,
+      dosageTable: existingDosageTable,
+      ingredients: existingIngredients,
+      specifications: existingSpecs,
+      faqs: existingFaqs,
     });
     setIsEditProductOpen(true);
+  };
+
+  const handleClearAllCmsFields = () => {
+    try {
+      localStorage.removeItem('agriera_product_cms_draft_v1');
+      localStorage.removeItem('agriera_product_cms_draft_v2');
+      localStorage.removeItem(PRODUCT_CMS_DRAFT_KEY);
+    } catch {}
+    setCmsForm((prev: any) => ({
+      ...prev,
+      title: '',
+      slug: '',
+      price: '',
+      discountPrice: '',
+      stock: '',
+      featured: false,
+      description: '',
+      images: [],
+      targetCrops: '',
+      features: [],
+      variants: [
+        { label: '', mrp: '', sellingPrice: '', stock: '', sku: '' },
+      ],
+      packSizes: [],
+      benefits: [],
+      usageSteps: [],
+      dosageTable: [],
+      ingredients: '',
+      specifications: [],
+      faqs: [],
+    }));
+    addToast({ type: 'info', message: 'All form fields have been cleared.' });
   };
 
   const [isAddCustomerOpen, setIsAddCustomerOpen] = useState(false);
@@ -5620,12 +5704,34 @@ export const AdminPage: React.FC = () => {
               <h3 className="admin-modal-title">
                 {isAddProductOpen ? 'Create New Agricultural Product (CMS)' : `Product CMS Editor - ${cmsForm.title}`}
               </h3>
-              <button
-                onClick={closeProductCMS}
-                className="admin-modal-close-btn"
-              >
-                <X size={20} />
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <button
+                  type="button"
+                  onClick={handleClearAllCmsFields}
+                  style={{
+                    padding: '0.35rem 0.75rem',
+                    fontSize: '0.78rem',
+                    fontWeight: 600,
+                    color: '#DC2626',
+                    background: '#FEF2F2',
+                    border: '1px solid #FECACA',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                  }}
+                  title="Clear all auto-filled or entered fields"
+                >
+                  <Trash2 size={13} /> Clear All Fields
+                </button>
+                <button
+                  onClick={closeProductCMS}
+                  className="admin-modal-close-btn"
+                >
+                  <X size={20} />
+                </button>
+              </div>
             </div>
 
             {/* CMS Navigation Tabs */}
@@ -5681,28 +5787,36 @@ export const AdminPage: React.FC = () => {
                 const slug = cmsForm.slug.trim() || title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') + '-' + Date.now().toString().slice(-4);
                 
                 const variants = Array.isArray(cmsForm.variants) && cmsForm.variants.length > 0
-                  ? cmsForm.variants.map((v: any) => ({
-                      label: v.label?.trim() || '500 g',
-                      mrp: Number(v.mrp) || 0,
-                      sellingPrice: Number(v.sellingPrice) || Number(v.mrp) || 0,
-                      stock: Number(v.stock) || 0,
-                      sku: buildVariantSku(title, v.label || 'VAR'),
-                    }))
+                  ? cmsForm.variants
+                      .filter((v: any) => v && v.label && String(v.label).trim())
+                      .map((v: any) => {
+                        const rawMrp = Number(v.mrp) || 0;
+                        const rawSellingPrice = Number(v.sellingPrice) || rawMrp;
+                        return {
+                          label: String(v.label).trim(),
+                          mrp: Math.max(rawMrp, rawSellingPrice),
+                          sellingPrice: Math.min(rawMrp, rawSellingPrice),
+                          stock: Number(v.stock) || 0,
+                          sku: v.sku || buildVariantSku(title, v.label || 'VAR'),
+                        };
+                      })
                   : [];
 
                 const primaryVariant = variants[0];
-                const price = primaryVariant ? primaryVariant.mrp : (Number(cmsForm.price) || 520);
-                const discountPrice = primaryVariant ? primaryVariant.sellingPrice : (Number(cmsForm.discountPrice) || price);
-                const stock = primaryVariant ? primaryVariant.stock : (Number(cmsForm.stock) || 27);
+                const enteredPrice = Number(cmsForm.price) || 0;
+                const enteredDiscountPrice = Number(cmsForm.discountPrice) || enteredPrice;
+                const price = primaryVariant ? primaryVariant.mrp : Math.max(enteredPrice, enteredDiscountPrice);
+                const discountPrice = primaryVariant ? primaryVariant.sellingPrice : Math.min(enteredPrice, enteredDiscountPrice);
+                const stock = primaryVariant ? primaryVariant.stock : (Number(cmsForm.stock) || 0);
                 const categoryId = cmsForm.categoryId || dbCategories[0]?.id;
                 const subcategoryId = cmsForm.subcategoryId || null;
-                const description = cmsForm.description.trim() || 'Premium certified organic agricultural input.';
+                const description = cmsForm.description ? cmsForm.description.trim() : '';
                 const images = Array.isArray(cmsForm.images)
                   ? cmsForm.images.map(normalizeProductImageUrl).filter(Boolean)
                   : [];
                 const packSizes = variants.length > 0
                   ? variants.map((v: any) => v.label)
-                  : (Array.isArray(cmsForm.packSizes) ? cmsForm.packSizes.filter((p: string) => Boolean(p.trim())) : ['500 g', '1 kg', '5 kg']);
+                  : (Array.isArray(cmsForm.packSizes) ? cmsForm.packSizes.filter((p: string) => Boolean(p && p.trim())) : []);
 
                 const attributes = {
                   variants,
@@ -5727,7 +5841,7 @@ export const AdminPage: React.FC = () => {
                       discountPrice,
                       stock,
                       featured: cmsForm.featured,
-                      images: images.length > 0 ? images : ['https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800'],
+                      images: images.length > 0 ? images : [],
                       categoryId,
                       subcategoryId,
                       attributes,
@@ -5844,11 +5958,11 @@ export const AdminPage: React.FC = () => {
                               variants: [
                                 ...currentVariants,
                                 {
-                                  label: `${currentVariants.length + 1} kg`,
-                                  mrp: 1200,
-                                  sellingPrice: 1050,
-                                  stock: 10,
-                                  sku: buildVariantSku(cmsForm.title, `${currentVariants.length + 1} kg`),
+                                  label: '',
+                                  mrp: '',
+                                  sellingPrice: '',
+                                  stock: '',
+                                  sku: '',
                                 },
                               ],
                             });
@@ -5872,14 +5986,16 @@ export const AdminPage: React.FC = () => {
                         </div>
 
                         {(Array.isArray(cmsForm.variants) && cmsForm.variants.length > 0 ? cmsForm.variants : [
-                          { label: '500 g', mrp: cmsForm.price || 520, sellingPrice: cmsForm.discountPrice || 475, stock: cmsForm.stock || 27, sku: 'BIO-500G' }
+                          { label: '', mrp: '', sellingPrice: '', stock: '', sku: '' }
                         ]).map((v: any, idx: number) => {
-                          const disc = v.mrp > v.sellingPrice ? Math.round(((v.mrp - v.sellingPrice) / v.mrp) * 100) : 0;
+                          const mrpNum = Number(v.mrp) || 0;
+                          const sellNum = Number(v.sellingPrice) || 0;
+                          const disc = mrpNum > sellNum && sellNum > 0 ? Math.round(((mrpNum - sellNum) / mrpNum) * 100) : 0;
                           return (
                             <div key={idx} className="admin-cms-variant-row" style={{ display: 'grid', gridTemplateColumns: '130px 110px 120px 95px 1fr 34px', gap: '0.5rem', alignItems: 'center' }}>
                               <input
                                 required
-                                value={v.label}
+                                value={v.label || ''}
                                 onChange={(e) => {
                                   const updated = [...(cmsForm.variants || [])];
                                   const label = e.target.value;
@@ -5897,13 +6013,13 @@ export const AdminPage: React.FC = () => {
                               <input
                                 type="number"
                                 required
-                                value={v.mrp}
+                                value={v.mrp ?? ''}
                                 onChange={(e) => {
                                   const updated = [...(cmsForm.variants || [])];
-                                  updated[idx] = { ...updated[idx], mrp: Number(e.target.value) };
+                                  updated[idx] = { ...updated[idx], mrp: e.target.value === '' ? '' : Number(e.target.value) };
                                   setCmsForm({ ...cmsForm, variants: updated });
                                 }}
-                                placeholder="520"
+                                placeholder="MRP"
                                 className="admin-form-input"
                                 style={{ fontSize: '0.82rem', padding: '0.45rem 0.6rem' }}
                               />
@@ -5911,13 +6027,13 @@ export const AdminPage: React.FC = () => {
                                 <input
                                   type="number"
                                   required
-                                  value={v.sellingPrice}
+                                  value={v.sellingPrice ?? ''}
                                   onChange={(e) => {
                                     const updated = [...(cmsForm.variants || [])];
-                                    updated[idx] = { ...updated[idx], sellingPrice: Number(e.target.value) };
+                                    updated[idx] = { ...updated[idx], sellingPrice: e.target.value === '' ? '' : Number(e.target.value) };
                                     setCmsForm({ ...cmsForm, variants: updated });
                                   }}
-                                  placeholder="475"
+                                  placeholder="Sell Price"
                                   className="admin-form-input"
                                   style={{ fontSize: '0.82rem', padding: '0.45rem 0.6rem' }}
                                 />
@@ -5930,21 +6046,21 @@ export const AdminPage: React.FC = () => {
                               <input
                                 type="number"
                                 required
-                                value={v.stock}
+                                value={v.stock ?? ''}
                                 onChange={(e) => {
                                   const updated = [...(cmsForm.variants || [])];
-                                  updated[idx] = { ...updated[idx], stock: Number(e.target.value) };
+                                  updated[idx] = { ...updated[idx], stock: e.target.value === '' ? '' : Number(e.target.value) };
                                   setCmsForm({ ...cmsForm, variants: updated });
                                 }}
-                                placeholder="27"
+                                placeholder="Stock"
                                 className="admin-form-input"
                                 style={{ fontSize: '0.82rem', padding: '0.45rem 0.6rem' }}
                               />
                               <input
                                 value={v.sku || ''}
-                                                                readOnly
+                                readOnly
                                 aria-readonly="true"
-                                placeholder="e.g. BIO-500G"
+                                placeholder="Auto SKU"
                                 className="admin-form-input"
                                 style={{ fontSize: '0.82rem', padding: '0.45rem 0.6rem' }}
                               />
@@ -6301,8 +6417,8 @@ export const AdminPage: React.FC = () => {
                             setCmsForm({
                               ...cmsForm,
                               usageSteps: [
-                                ...cmsForm.usageSteps,
-                                { stepNumber: cmsForm.usageSteps.length + 1, title: 'Apply', description: 'Spray evenly over foliage.' },
+                                ...(cmsForm.usageSteps || []),
+                                { stepNumber: ((cmsForm.usageSteps || []).length) + 1, title: '', description: '' },
                               ],
                             })
                           }
@@ -6430,8 +6546,8 @@ export const AdminPage: React.FC = () => {
                             setCmsForm({
                               ...cmsForm,
                               specifications: [
-                                ...cmsForm.specifications,
-                                { label: 'Manufacturer', value: 'AgriEra Agri Solutions' },
+                                ...(cmsForm.specifications || []),
+                                { label: '', value: '' },
                               ],
                             })
                           }

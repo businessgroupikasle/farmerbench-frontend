@@ -68,7 +68,7 @@ export const ProductDetailPage: React.FC = () => {
   const [quantity, setQuantity] = useState(1);
   const [selectedPackSize, setSelectedPackSize] = useState<string>(availablePackSizes[0] || '500 g');
   const [activeTab, setActiveTab] = useState<
-    'description' | 'benefits' | 'how-to-use' | 'dosage' | 'ingredients' | 'faqs' | 'reviews'
+    'description' | 'details' | 'benefits' | 'how-to-use' | 'dosage' | 'ingredients' | 'faqs' | 'reviews'
   >('description');
   const [isWishlisted, setIsWishlisted] = useState(false);
 
@@ -142,8 +142,11 @@ export const ProductDetailPage: React.FC = () => {
       (v: any) => (v.label || `${v.quantity || ''} ${v.unit || ''}`).trim().toLowerCase() === size.trim().toLowerCase()
     );
     if (found) {
-      const mrp = Number(found.mrp) || product.price;
-      const sellingPrice = Number(found.sellingPrice) || found.price || (product.discountPrice || product.price);
+      const rawMrp = Number(found.mrp) || Number(product.price);
+      const rawSellingPrice = Number(found.sellingPrice) || Number(found.price) || Number(product.discountPrice) || rawMrp;
+      const hasDiscount = rawMrp > 0 && rawSellingPrice > 0 && rawMrp !== rawSellingPrice;
+      const mrp = hasDiscount ? Math.max(rawMrp, rawSellingPrice) : rawMrp;
+      const sellingPrice = hasDiscount ? Math.min(rawMrp, rawSellingPrice) : rawSellingPrice;
       const stock = Number(found.stock) ?? product.stock;
       const sku = found.sku || (product.slug
         ? `GL-GB-${product.slug.slice(0, 6).toUpperCase().replace(/[^A-Z0-9]/g, '')}-${size.replace(/[^A-Z0-9]/g, '').toUpperCase()}`
@@ -152,8 +155,10 @@ export const ProductDetailPage: React.FC = () => {
     }
 
     // 2. Intelligent proportional fallback pricing based on size string
-    const baseMrp = product.price || 520;
-    const baseSelling = product.discountPrice || (baseMrp > 50 ? baseMrp - 45 : baseMrp);
+    const rawBaseMrp = Number(product.price) || 520;
+    const rawBaseSelling = Number(product.discountPrice) || (rawBaseMrp > 50 ? rawBaseMrp - 45 : rawBaseMrp);
+    const baseMrp = Math.max(rawBaseMrp, rawBaseSelling);
+    const baseSelling = Math.min(rawBaseMrp, rawBaseSelling);
     const clean = size.toLowerCase().replace(/\s+/g, '');
     let multiplier = 1;
     let stockCount = product.stock || 27;
@@ -700,6 +705,15 @@ export const ProductDetailPage: React.FC = () => {
           >
             Description
           </button>
+          {(targetCrops || specifications.length > 0) && (
+            <button
+              type="button"
+              className={`pdp-tab-btn ${activeTab === 'details' ? 'active' : ''}`}
+              onClick={() => setActiveTab('details')}
+            >
+              Product Details
+            </button>
+          )}
           {benefits.length > 0 && (
             <button
               type="button"
@@ -756,72 +770,51 @@ export const ProductDetailPage: React.FC = () => {
 
         {/* Tab Content Panes */}
         {activeTab === 'description' && (
-          <div className="pdp-tab-content-grid">
-            {/* Left: Product Overview & How to Use Flow */}
-            <div className="pdp-overview-block">
-              <div>
-                <h3 className="pdp-block-heading">Product Overview</h3>
-                <p className="pdp-block-text">
-                  {product.description}
-                </p>
-              </div>
+          <div className="pdp-overview-block" style={{ maxWidth: '900px' }}>
+            <div>
+              <h3 className="pdp-block-heading">Product Overview</h3>
+              <p className="pdp-block-text">
+                {product.description}
+              </p>
             </div>
+          </div>
+        )}
 
-            {/* Right: Specifications Card */}
-            {(targetCrops || specifications.length > 0) && (
-              <div className="pdp-specs-card">
-                <h3 className="pdp-specs-title">Product Details</h3>
-                <table className="pdp-specs-table">
-                  <tbody>
-                    {targetCrops && (
-                      <tr>
-                        <td className="pdp-specs-label">Target Crops</td>
-                        <td className="pdp-specs-value">{targetCrops}</td>
-                      </tr>
-                    )}
-                    {specifications.map((spec, idx) => (
-                      <tr key={idx}>
-                        <td className="pdp-specs-label">{spec.label}</td>
-                        <td className="pdp-specs-value">{spec.value}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+        {activeTab === 'details' && (targetCrops || specifications.length > 0) && (
+          <div className="pdp-specs-card pdp-specs-card-full" style={{ maxWidth: '850px' }}>
+            <h3 className="pdp-specs-title">Product Details</h3>
+            <table className="pdp-specs-table">
+              <tbody>
+                {targetCrops && (
+                  <tr>
+                    <td className="pdp-specs-label">Target Crops</td>
+                    <td className="pdp-specs-value">{targetCrops}</td>
+                  </tr>
+                )}
+                {specifications.map((spec, idx) => (
+                  <tr key={idx}>
+                    <td className="pdp-specs-label">{spec.label}</td>
+                    <td className="pdp-specs-value">{spec.value}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
 
         {activeTab === 'benefits' && (
-          <div className="pdp-tab-content-grid">
-            <div className="pdp-overview-block">
-              <h3 className="pdp-block-heading">Key Agricultural Benefits</h3>
-              {benefits.length > 0 ? (
-                <ul style={{ paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', color: '#475569', lineHeight: 1.6 }}>
-                  {benefits.map((b, idx) => (
-                    <li key={idx}>
-                      <span>{b}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p style={{ color: '#64748b' }}>No benefits listed for this product.</p>
-              )}
-            </div>
-            {specifications.length > 0 && (
-              <div className="pdp-specs-card">
-                <h3 className="pdp-specs-title">Product Details</h3>
-                <table className="pdp-specs-table">
-                  <tbody>
-                    {specifications.slice(0, 4).map((spec, idx) => (
-                      <tr key={idx}>
-                        <td className="pdp-specs-label">{spec.label}</td>
-                        <td className="pdp-specs-value">{spec.value}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+          <div className="pdp-overview-block" style={{ maxWidth: '900px' }}>
+            <h3 className="pdp-block-heading">Key Agricultural Benefits</h3>
+            {benefits.length > 0 ? (
+              <ul style={{ paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', color: '#475569', lineHeight: 1.6 }}>
+                {benefits.map((b, idx) => (
+                  <li key={idx}>
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p style={{ color: '#64748b' }}>No benefits listed for this product.</p>
             )}
           </div>
         )}
