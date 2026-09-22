@@ -195,7 +195,7 @@ export const CreateProductSchema = z.object({
   images: z.array(z.string().refine(
     (value) => /^https?:\/\//i.test(value) || value.startsWith('/uploads/'),
     'Invalid image URL'
-  )).min(1, 'At least one image is required'),
+  )).optional().nullable().default([]),
   attributes: z.record(z.any()).optional().nullable(),
   categoryId: z.string().uuid('Invalid category ID'),
   subcategoryId: z.string().uuid('Invalid subcategory ID').optional().nullable(),

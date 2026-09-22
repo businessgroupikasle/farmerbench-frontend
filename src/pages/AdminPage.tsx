@@ -74,8 +74,6 @@ import { useBlogs, useBlogMutations } from '../hooks/useBlogs';
 import { BlogPost } from '../types/blog';
 import { adminService, CouponRecord } from '../services/admin.service';
 import { HeroBannerManager } from '../components/admin/HeroBannerManager';
-import { BulkProductImport } from '../components/admin/BulkProductImport';
-import '../components/admin/BulkProductImport.css';
 import { useServiceBookings, useServiceBookingStats, useServiceBookingMutations } from '../hooks/useServiceBookings';
 import { ServiceBooking, ServiceBookingStatus } from '../types/serviceBooking';
 import { useContacts, useContactStats, useContactMutations, Contact } from '../hooks/useContacts';
@@ -554,7 +552,6 @@ export const AdminPage: React.FC = () => {
     specifications: [],
     faqs: [],
   });
-  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
 
   useEffect(() => {
     try {
@@ -3264,7 +3261,6 @@ export const AdminPage: React.FC = () => {
                   <p className="admin-welcome-sub">Manage product stock, pricing, bio-certifications, and catalog visibility.</p>
                 </div>
                 <div className="admin-product-header-actions">
-                  <button onClick={() => setIsBulkImportOpen(true)} className="admin-quick-btn"><Upload size={16} /> Bulk Import</button>
                   <button onClick={openAddProductCMS} className="admin-primary-btn"><Plus size={16} /> Add New Product</button>
                 </div>
               </div>
@@ -3480,10 +3476,10 @@ export const AdminPage: React.FC = () => {
                     {products.filter((p) => p.stock === 0).length}
                   </span>
                 </div>
-                <div className="admin-kpi-card">
+                {/* <div className="admin-kpi-card">
                   <span className="admin-kpi-label">Inventory Valuation</span>
                   <span className="admin-kpi-value">₹18.4 Lakhs</span>
-                </div>
+                </div> */}
                 <div className="admin-kpi-card">
                   <span className="admin-kpi-label">Warehouse Status</span>
                   <span className="admin-kpi-value" style={{ color: '#16A34A', fontSize: '1.1rem' }}>
@@ -3565,7 +3561,7 @@ export const AdminPage: React.FC = () => {
                   <button onClick={() => setIsAddCustomerOpen(true)} className="admin-primary-btn">
                     <Plus size={16} /> Add Farmer
                   </button>
-                  <button onClick={() => { refetchCustomers(); showToast('Customer database refreshed from PostgreSQL'); }} className="admin-quick-btn">
+                  <button onClick={() => { refetchCustomers(); showToast('Customer database refreshed'); }} className="admin-quick-btn">
                     <RefreshCw size={14} /> Refresh
                   </button>
                   <button onClick={exportCustomers} className="admin-quick-btn">
@@ -5691,12 +5687,6 @@ export const AdminPage: React.FC = () => {
           ==================================================================== */}
 
       {/* Modal: Full Product CMS (Add / Edit) */}
-      {isBulkImportOpen && (
-        <BulkProductImport categories={dbCategories} subcategories={dbSubcategories} createProduct={createProduct}
-          onClose={() => setIsBulkImportOpen(false)}
-          onComplete={() => { refetchProducts(); showToast('Bulk products saved to the database and dashboard refreshed.'); }} />
-      )}
-
       {(isAddProductOpen || isEditProductOpen) && (
         <div className="admin-modal-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) event.preventDefault(); }}>
           <div className="admin-modal-card admin-cms-modal-card" onMouseDown={(event) => event.stopPropagation()}>
