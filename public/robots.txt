@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+
+# Private, account, and transactional routes
+Disallow: /admin
+Disallow: /admin/
+Disallow: /login
+Disallow: /signin
+Disallow: /signup
+Disallow: /register
+Disallow: /dashboard
+Disallow: /cart
+Disallow: /checkout
+Disallow: /order-confirmation/
+
+Sitemap: https://agriera.in/sitemap.xml

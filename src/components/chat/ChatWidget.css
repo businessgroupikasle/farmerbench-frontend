@@ -718,17 +718,32 @@
    -------------------------------------------------------------------------- */
 @media (max-width: 640px) {
   .fb-chat-widget-container {
-    bottom: 16px;
-    right: 14px;
+    bottom: calc(76px + env(safe-area-inset-bottom));
+    right: 10px;
   }
 
   .fb-chat-toggle-btn {
-    padding: 8px 14px 8px 10px;
-    gap: 6px;
+    gap: 5px;
+    padding: 6px 11px 6px 7px;
+  }
+
+  .fb-chat-toggle-icon-wrap {
+    width: 24px;
+    height: 24px;
+  }
+
+  .fb-chat-leaf-icon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .fb-chat-sparkle-icon {
+    width: 9px;
+    height: 9px;
   }
 
   .fb-chat-toggle-label {
-    font-size: 0.82rem;
+    font-size: 0.74rem;
   }
 
   .fb-chat-window {

@@ -20,6 +20,8 @@ import {
   Briefcase,
   Stethoscope,
   CalendarDays,
+  House,
+  LayoutGrid,
 } from 'lucide-react';
 import farmerLogo from '../../assets/AgriEra-logo-optimized.png';
 import { LogoutModal } from './LogoutModal';
@@ -273,12 +275,6 @@ export const Navbar: React.FC = () => {
           {/* Mobile Menu & Cart */}
           <div style={{ display: 'none', alignItems: 'center', gap: '0.6rem' }} className="show-mobile-flex">
             <LanguageSelector />
-            <Link to="/cart" className="agriflow-cart-widget-btn" aria-label="View shopping cart" style={{ textDecoration: 'none' }}>
-              <div className="agriflow-cart-icon-box">
-                <ShoppingCart size={18} strokeWidth={2.2} />
-                <span className="agriflow-cart-green-badge">{totalItems}</span>
-              </div>
-            </Link>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               style={{ background: 'transparent', border: 'none', color: '#294337', cursor: 'pointer' }}
@@ -302,39 +298,29 @@ export const Navbar: React.FC = () => {
             <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className={`agriflow-nav-link ${isAbout ? 'active-text' : ''}`}>
               About
             </Link>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              <Link to="/services" onClick={() => setIsMobileMenuOpen(false)} className={`agriflow-nav-link ${isServices ? 'active-text' : ''}`} style={{ fontWeight: 700 }}>
-                Services
-              </Link>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', paddingLeft: '0.75rem', borderLeft: '2px solid rgba(136, 207, 58, 0.3)' }}>
-                <Link to="/services/farm-development" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <Tractor size={14} color="#88CF3A" /> Farm Development
-                </Link>
-                <Link to="/services/well-development" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <Droplets size={14} color="#88CF3A" /> Well Development
-                </Link>
-                <Link to="/services/drip-irrigation" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <CloudRain size={14} color="#88CF3A" /> Drip Irrigation
-                </Link>
-                <Link to="/services/farm-consultancy" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <Briefcase size={14} color="#88CF3A" /> Farm Consultancy
-                </Link>
+            <details className="agriflow-mobile-nav-group">
+              <summary className={`agriflow-nav-link agriflow-mobile-nav-summary ${isServices ? 'active-text' : ''}`}>
+                <span>Services</span>
+                <ChevronDown size={17} aria-hidden="true" />
+              </summary>
+              <div className="agriflow-mobile-submenu">
+                <Link to="/services/farm-development" onClick={() => setIsMobileMenuOpen(false)}><Tractor size={14} /> Farm Development</Link>
+                <Link to="/services/well-development" onClick={() => setIsMobileMenuOpen(false)}><Droplets size={14} /> Well Development</Link>
+                <Link to="/services/drip-irrigation" onClick={() => setIsMobileMenuOpen(false)}><CloudRain size={14} /> Drip Irrigation</Link>
+                <Link to="/services/farm-consultancy" onClick={() => setIsMobileMenuOpen(false)}><Briefcase size={14} /> Farm Consultancy</Link>
               </div>
-            </div>
+            </details>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: '0.25rem' }}>
-              <button type="button" className={`agriflow-nav-link ${isCropServices ? 'active-text' : ''}`} style={{ fontWeight: 700, padding: 0, border: 0, background: 'none', textAlign: 'left' }}>
-                Crop Services
-              </button>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', paddingLeft: '0.75rem', borderLeft: '2px solid rgba(136, 207, 58, 0.3)' }}>
-                <Link to="/crop-doctor" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <Stethoscope size={14} color="#88CF3A" /> Crop Doctor
-                </Link>
-                <Link to="/services#crop-calendar" onClick={() => setIsMobileMenuOpen(false)} style={{ color: '#CBD5E1', fontSize: '0.85rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <CalendarDays size={14} color="#88CF3A" /> Crop Calendar
-                </Link>
+            <details className="agriflow-mobile-nav-group">
+              <summary className={`agriflow-nav-link agriflow-mobile-nav-summary ${isCropServices ? 'active-text' : ''}`}>
+                <span>Crop Services</span>
+                <ChevronDown size={17} aria-hidden="true" />
+              </summary>
+              <div className="agriflow-mobile-submenu">
+                <Link to="/crop-doctor" onClick={() => setIsMobileMenuOpen(false)}><Stethoscope size={14} /> Crop Doctor</Link>
+                <Link to="/services#crop-calendar" onClick={() => setIsMobileMenuOpen(false)}><CalendarDays size={14} /> Crop Calendar</Link>
               </div>
-            </div>
+            </details>
             <Link to="/products" onClick={() => setIsMobileMenuOpen(false)} className={`agriflow-nav-link ${isProducts ? 'active-text' : ''}`}>
               Products
             </Link>
@@ -366,6 +352,32 @@ export const Navbar: React.FC = () => {
           </div>
         )}
       </header>
+
+      <nav className="agriflow-mobile-bottom-nav" aria-label="Mobile primary navigation">
+        <Link to="/" className={`agriflow-mobile-bottom-link ${isHome ? 'is-active' : ''}`} aria-current={isHome ? 'page' : undefined}>
+          <House size={23} strokeWidth={isHome ? 2.7 : 2.1} />
+          <span>Home</span>
+        </Link>
+        <Link to="/products" className={`agriflow-mobile-bottom-link ${isProducts ? 'is-active' : ''}`} aria-current={isProducts ? 'page' : undefined}>
+          <LayoutGrid size={22} strokeWidth={isProducts ? 2.7 : 2.1} />
+          <span>Categories</span>
+        </Link>
+        <Link
+          to={isAuthenticated ? '/dashboard' : '/login'}
+          className={`agriflow-mobile-bottom-link ${location.pathname === '/dashboard' || location.pathname === '/login' ? 'is-active' : ''}`}
+          aria-current={location.pathname === '/dashboard' || location.pathname === '/login' ? 'page' : undefined}
+        >
+          <UserIcon size={23} strokeWidth={location.pathname === '/dashboard' || location.pathname === '/login' ? 2.7 : 2.1} />
+          <span>{isAuthenticated ? 'Profile' : 'Login'}</span>
+        </Link>
+        <Link to="/cart" className={`agriflow-mobile-bottom-link ${location.pathname === '/cart' ? 'is-active' : ''}`} aria-current={location.pathname === '/cart' ? 'page' : undefined}>
+          <span className="agriflow-mobile-bottom-icon">
+            <ShoppingCart size={23} strokeWidth={location.pathname === '/cart' ? 2.7 : 2.1} />
+            {totalItems > 0 && <span className="agriflow-mobile-bottom-badge">{totalItems > 99 ? '99+' : totalItems}</span>}
+          </span>
+          <span>Cart</span>
+        </Link>
+      </nav>
 
       {/* Logout Confirmation Modal */}
       <LogoutModal

@@ -289,3 +289,227 @@
   height: 16px;
   width: auto;
 }
+/* Compact phone footer */
+@media (max-width: 680px) {
+  .AgriEra-footer {
+    padding-top: 1.1rem;
+    padding-bottom: .65rem;
+  }
+
+  .AgriEra-footer-container {
+    padding-inline: .75rem;
+  }
+
+  .AgriEra-footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem .85rem;
+    padding-bottom: 1rem;
+  }
+
+  .AgriEra-brand-col {
+    grid-column: span 2;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: .55rem;
+    padding-bottom: .8rem;
+    text-align: left;
+  }
+
+  .AgriEra-brand-logo {
+    justify-content: flex-start;
+    gap: .5rem !important;
+  }
+
+  .AgriEra-brand-logo img {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .AgriEra-brand-title {
+    font-size: 1.05rem !important;
+  }
+
+  .AgriEra-brand-tagline {
+    font-size: .56rem;
+  }
+
+  .AgriEra-brand-desc {
+    display: none;
+  }
+
+  .AgriEra-social-links {
+    justify-content: flex-end;
+    gap: .2rem;
+    margin: 0;
+  }
+
+  .AgriEra-social-icon {
+    width: 27px;
+    height: 27px;
+  }
+
+  .AgriEra-social-icon svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .AgriEra-footer-col-title {
+    margin-bottom: .45rem;
+    font-size: .78rem;
+  }
+
+  .AgriEra-footer-links-list {
+    gap: .28rem;
+  }
+
+  .AgriEra-footer-link {
+    font-size: .7rem;
+    line-height: 1.3;
+  }
+
+  .AgriEra-footer-grid > div:last-child {
+    grid-column: span 2;
+    padding-top: .7rem;
+  }
+
+  .AgriEra-contact-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: .4rem .7rem;
+  }
+
+  .AgriEra-contact-item {
+    justify-content: flex-start;
+    gap: .35rem;
+    text-align: left;
+    font-size: .68rem;
+    line-height: 1.35;
+  }
+
+  .AgriEra-contact-item:last-child {
+    grid-column: span 2;
+  }
+
+  .AgriEra-contact-icon {
+    width: 13px;
+    height: 13px;
+  }
+
+  .AgriEra-footer-bottom-bar {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: .45rem;
+    padding-top: .7rem;
+    text-align: left;
+  }
+
+  .AgriEra-copyright {
+    font-size: .62rem;
+  }
+
+  .AgriEra-payment-badges {
+    justify-content: flex-end;
+    gap: .22rem;
+  }
+
+  .AgriEra-payment-badge {
+    height: 21px;
+    padding: .15rem .3rem;
+  }
+
+  .AgriEra-payment-badge svg {
+    max-width: 22px;
+    height: 11px;
+  }
+
+  .AgriEra-footer-grid > div:nth-child(3) li:nth-child(n+4):not(:last-child),
+  .AgriEra-footer-grid > div:nth-child(4) li:nth-child(n+4):not(:last-child) {
+    display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .AgriEra-footer {
+    padding-top: .75rem;
+    padding-bottom: .4rem;
+  }
+
+  .AgriEra-footer-container {
+    padding-inline: .6rem;
+  }
+
+  .AgriEra-footer-grid {
+    gap: .7rem .65rem;
+    padding-bottom: .65rem;
+  }
+
+  .AgriEra-brand-col {
+    gap: .35rem;
+    padding-bottom: .55rem;
+  }
+
+  .AgriEra-brand-logo img {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .AgriEra-brand-title {
+    font-size: .92rem !important;
+  }
+
+  .AgriEra-brand-tagline {
+    display: none;
+  }
+
+  .AgriEra-social-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .AgriEra-social-icon svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  .AgriEra-footer-col-title {
+    margin-bottom: .3rem;
+    font-size: .72rem;
+  }
+
+  .AgriEra-footer-links-list {
+    gap: .18rem;
+  }
+
+  .AgriEra-footer-link {
+    font-size: .65rem;
+    line-height: 1.22;
+  }
+
+  .AgriEra-footer-grid > div:last-child {
+    padding-top: .45rem;
+  }
+
+  .AgriEra-contact-list {
+    gap: .25rem .5rem;
+  }
+
+  .AgriEra-contact-item {
+    font-size: .62rem;
+  }
+
+  .AgriEra-footer-bottom-bar {
+    gap: .3rem;
+    padding-top: .5rem;
+  }
+
+  .AgriEra-copyright {
+    font-size: .56rem;
+  }
+
+  .AgriEra-payment-badge {
+    height: 18px;
+    padding: .1rem .22rem;
+  }
+}

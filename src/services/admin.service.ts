@@ -8,7 +8,7 @@ export interface CustomerRecord {
   phone: string;
   location: string;
   crops: string;
-  status: 'Verified' | 'Pending' | 'Active';
+  status: 'Verified' | 'Pending' | 'Active' | 'Deactivated';
   avatarUrl?: string;
   totalOrders: number;
   totalSpent: string;

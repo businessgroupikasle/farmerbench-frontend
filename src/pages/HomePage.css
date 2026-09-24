@@ -1,12 +1,17 @@
 /* ==========================================================================
    HOMEPAGE STYLES (Consolidated single page stylesheet)
    ========================================================================== */
-
 .homepage-layout {
   display: flex;
   flex-direction: column;
   background-color: var(--bg-primary, #ffffff);
   color: var(--text-primary, #17251E);
+}
+
+@media (max-width: 980px) {
+  .homepage-layout {
+    padding-top: 84px;
+  }
 }
 
 .home-coupon-offer-wrap { padding-block: 1.25rem .5rem; }
@@ -1260,6 +1265,174 @@
   background: #fff;
 }
 
+/* Featured collection banners below Best Selling Products */
+.home-promo-banners {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0 0 3rem;
+}
+
+.home-promo-banner {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(180px, 0.95fr);
+  min-height: 190px;
+  overflow: hidden;
+  border: 1px solid #DFE8DD;
+  border-radius: 14px;
+  background: linear-gradient(100deg, #F3F7EE 0%, #F7F5E8 62%, #EEF2E5 100%);
+  box-shadow: 0 5px 18px rgba(31, 78, 45, 0.07);
+}
+
+.home-promo-banner.seeds {
+  background: linear-gradient(100deg, #FFF8EA 0%, #F8F3E4 62%, #EFF4E4 100%);
+}
+
+.home-promo-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 1.5rem 0.75rem 1.5rem 1.5rem;
+}
+
+.home-promo-content h2 {
+  margin: 0 0 0.45rem;
+  color: #17251E;
+  font-size: clamp(1.25rem, 2vw, 1.65rem);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.home-promo-content p {
+  max-width: 310px;
+  margin: 0 0 1rem;
+  color: #506057;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.home-promo-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 36px;
+  padding: 0.55rem 0.9rem;
+  border-radius: 6px;
+  background: #2F7D32;
+  color: #FFFFFF;
+  font-size: 0.76rem;
+  font-weight: 750;
+  text-decoration: none;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.home-promo-action:hover {
+  transform: translateY(-1px);
+  background: #185B2D;
+}
+
+.home-promo-visual {
+  position: relative;
+  min-width: 0;
+}
+
+.home-promo-visual::before {
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 1;
+  width: 46%;
+  background: linear-gradient(90deg, #F5F7ED 5%, rgba(245, 247, 237, 0));
+  content: '';
+}
+
+.home-promo-banner.seeds .home-promo-visual::before {
+  background: linear-gradient(90deg, #FAF4E6 5%, rgba(250, 244, 230, 0));
+}
+
+.home-promo-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+@media (max-width: 820px) {
+  .home-promo-banners {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .home-promo-banners {
+    width: calc(100% + 0.75rem);
+    margin-left: -0.375rem;
+    gap: 0.35rem;
+    margin-bottom: 2rem;
+  }
+
+  .home-promo-banner {
+    display: block;
+    min-height: 86px;
+    border-radius: 8px;
+  }
+
+  .home-promo-content {
+    width: 66%;
+    min-height: 86px;
+    padding: 0.42rem 0 0.42rem 0.55rem;
+    box-sizing: border-box;
+  }
+
+  .home-promo-content h2 {
+    margin-bottom: 0.15rem;
+    font-size: 0.61rem;
+    line-height: 1.1;
+  }
+
+  .home-promo-content p {
+    display: -webkit-box;
+    margin-bottom: 0.28rem;
+    overflow: hidden;
+    max-width: 88%;
+    font-size: 0.43rem;
+    line-height: 1.2;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+
+  .home-promo-action {
+    min-height: 18px;
+    gap: 0.14rem;
+    padding: 0.18rem 0.28rem;
+    font-size: 0.41rem;
+  }
+
+  .home-promo-action svg {
+    width: 9px;
+    height: 9px;
+  }
+
+  .home-promo-visual {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: 57%;
+  }
+
+  .home-promo-visual::before {
+    width: 58%;
+  }
+
+  .home-promo-visual img {
+    transform: scale(1.08);
+    transform-origin: center;
+  }
+}
+
 .agriflow-products-header {
   display: flex;
   flex-direction: column;
@@ -1790,9 +1963,81 @@
     width: 100%;
     max-width: none;
     margin: 0;
-    padding: 18px 12px;
+    padding: 8px 0;
     background: #f6fbf4;
     box-sizing: border-box;
+  }
+
+  .home-coupon-offer {
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-height: 78px;
+    gap: 0.55rem;
+    padding: 0.6rem 0.75rem;
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+    text-align: left;
+    box-shadow: 0 3px 12px rgba(71, 104, 24, .06);
+  }
+
+  .home-coupon-copy {
+    min-width: 0;
+    text-align: left;
+  }
+
+  .home-coupon-eyebrow {
+    font-size: 0.55rem;
+    letter-spacing: 0.06em;
+  }
+
+  .home-coupon-copy h2 {
+    margin: 0.08rem 0 0.25rem;
+    font-size: 0.94rem;
+    line-height: 1.1;
+  }
+
+  .home-coupon-code-row {
+    justify-content: flex-start;
+    gap: 0.28rem;
+    font-size: 0.62rem;
+    line-height: 1;
+  }
+
+  .home-coupon-code-row button {
+    gap: 0.2rem;
+    padding: 0.2rem 0.42rem;
+    font-size: 0.58rem;
+  }
+
+  .home-coupon-code-row button svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  .home-coupon-code-row small {
+    width: 100%;
+    margin: 0.12rem 0 0;
+    font-size: 0.54rem;
+  }
+
+  .home-coupon-shop-btn {
+    min-width: 72px;
+    min-height: 30px;
+    padding: 0.4rem 0.65rem;
+    font-size: 0.65rem;
+    justify-self: end;
+  }
+
+  .home-coupon-decoration--left {
+    left: 0.25rem;
+    bottom: 0.15rem;
+    transform: scale(0.65) rotate(-25deg);
+  }
+
+  .home-coupon-decoration--right {
+    right: 0.25rem;
+    top: 0.15rem;
+    transform: scale(0.65) rotate(25deg);
   }
 
   .homepage-sections-container {

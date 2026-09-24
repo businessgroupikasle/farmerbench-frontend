@@ -107,13 +107,16 @@ const AppContent: React.FC = () => {
     location.pathname.startsWith(path)
   );
   const isAdminPage = location.pathname.startsWith('/admin');
+  const isCheckoutFlow = location.pathname === '/cart' || location.pathname === '/checkout';
+  const isProductPage = location.pathname === '/products' || location.pathname.startsWith('/product/');
   const hideNavAndFooter = isAuthPage || isAdminPage;
+  const hideFooter = hideNavAndFooter || isProductPage;
   if (maintenanceSettings.maintenanceMode && !isAdminPage && !isAuthPage) {
     return <MaintenanceScreen settings={maintenanceSettings} />;
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <div className={!hideNavAndFooter ? 'app-shell has-site-navigation' : 'app-shell'} style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <ScrollToTop />
       {!hideNavAndFooter && <Navbar />}
 
@@ -185,11 +188,11 @@ const AppContent: React.FC = () => {
         </Suspense>
       </main>
 
-      {!hideNavAndFooter && <Footer />}
+      {!hideFooter && <Footer />}
       <CartDrawer />
       <AuthModal />
       <ToastContainer />
-      {!isAdminPage && <ChatWidget />}
+      {!isAdminPage && !isAuthPage && !isCheckoutFlow && <ChatWidget />}
     </div>
   );
 };

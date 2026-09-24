@@ -495,7 +495,7 @@ export const CartPage: React.FC = () => {
               </div>
 
               <div className="cart-rec-grid">
-                {recommendedProducts.slice(recStartIndex, recStartIndex + 3).map((prod) => {
+                {recommendedProducts.slice(recStartIndex, recStartIndex + 4).map((prod) => {
                   const isWishlisted = isInWishlist(prod.id);
                   const price = prod.discountPrice ?? prod.price ?? 0;
                   const prodImage = prod.images?.[0];

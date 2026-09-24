@@ -15,9 +15,7 @@ import {
   Headphones,
   RotateCcw,
   Truck,
-  Search,
   CheckCircle2,
-  Sprout,
   X,
   Send,
   Sparkles,
@@ -42,7 +40,7 @@ export const ProductDetailPage: React.FC = () => {
     limit: 12,
     categoryId,
     sortBy: 'popular',
-  });
+  }, Boolean(categoryId));
   const { addToCart } = useCart();
   const { user, isAuthenticated } = useAuth();
   const { addToast } = useUIStore();
@@ -70,6 +68,16 @@ export const ProductDetailPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<
     'description' | 'details' | 'benefits' | 'how-to-use' | 'dosage' | 'ingredients' | 'faqs' | 'reviews'
   >('description');
+  const activeTabLabel = {
+    description: 'Description',
+    details: 'Product Details',
+    benefits: 'Benefits',
+    'how-to-use': 'How to Use',
+    dosage: 'Dosage',
+    ingredients: 'Ingredients',
+    faqs: 'FAQs',
+    reviews: `Reviews (${product?.numReviews ?? 0})`,
+  }[activeTab];
   const [isWishlisted, setIsWishlisted] = useState(false);
 
   // Delivery pincode state
@@ -89,9 +97,12 @@ export const ProductDetailPage: React.FC = () => {
   const [isGalleryCompact, setIsGalleryCompact] = useState(false);
 
   useEffect(() => {
+    const desktopGallery = window.matchMedia('(min-width: 993px)');
+    let frameId: number | null = null;
+
     const updateGalleryMode = () => {
       const grid = mainGridRef.current;
-      if (!grid || window.innerWidth <= 992) {
+      if (!grid || !desktopGallery.matches) {
         setIsGalleryCompact(false);
         return;
       }
@@ -100,12 +111,23 @@ export const ProductDetailPage: React.FC = () => {
       setIsGalleryCompact(bounds.top <= 96 && bounds.bottom > 440);
     };
 
+    const scheduleGalleryUpdate = () => {
+      if (!desktopGallery.matches || frameId !== null) return;
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null;
+        updateGalleryMode();
+      });
+    };
+
     updateGalleryMode();
-    window.addEventListener('scroll', updateGalleryMode, { passive: true });
-    window.addEventListener('resize', updateGalleryMode);
+    window.addEventListener('scroll', scheduleGalleryUpdate, { passive: true });
+    window.addEventListener('resize', scheduleGalleryUpdate);
+    desktopGallery.addEventListener('change', updateGalleryMode);
     return () => {
-      window.removeEventListener('scroll', updateGalleryMode);
-      window.removeEventListener('resize', updateGalleryMode);
+      window.removeEventListener('scroll', scheduleGalleryUpdate);
+      window.removeEventListener('resize', scheduleGalleryUpdate);
+      desktopGallery.removeEventListener('change', updateGalleryMode);
+      if (frameId !== null) window.cancelAnimationFrame(frameId);
     };
   }, []);
 
@@ -414,7 +436,12 @@ export const ProductDetailPage: React.FC = () => {
                   className={`pdp-thumbnail-item ${selectedImageIndex === idx ? 'active' : ''}`}
                   aria-label={`Select product image ${idx + 1}`}
                 >
-                  <img src={getUploadUrl(img, 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800')} alt="" />
+                  <img
+                    src={getUploadUrl(img, 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800')}
+                    alt=""
+                    loading="lazy"
+                    decoding="async"
+                  />
                 </button>
               ))}
             </div>
@@ -422,10 +449,6 @@ export const ProductDetailPage: React.FC = () => {
 
           {/* Main Stage Display Box */}
           <div className="pdp-main-stage">
-            <div className="pdp-genuine-badge">
-              <Sprout size={14} /> 100% Genuine
-            </div>
-
             <div
               className="pdp-stage-img-wrap"
               ref={imageRef}
@@ -436,15 +459,14 @@ export const ProductDetailPage: React.FC = () => {
               <img
                 src={getUploadUrl(currentImage, 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800')}
                 alt={product.title}
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
                 style={{
                   transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
                   transform: isZooming ? 'scale(1.45)' : 'scale(1)',
                 }}
               />
-            </div>
-
-            <div className="pdp-zoom-indicator">
-              <Search size={14} /> Hover to zoom
             </div>
           </div>
         </div>
@@ -482,8 +504,10 @@ export const ProductDetailPage: React.FC = () => {
               className="pdp-write-review-btn"
               onClick={() => {
                 setActiveTab('reviews');
-                const el = document.getElementById('pdp-tabs-section');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
+                window.requestAnimationFrame(() => {
+                  const el = document.getElementById('pdp-tabs-section');
+                  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
               }}
             >
               Write a Review
@@ -695,8 +719,76 @@ export const ProductDetailPage: React.FC = () => {
         </button>
       </div>
 
+      <div className="pdp-mobile-info-accordion">
+        <details open>
+          <summary>Description</summary>
+          <div className="pdp-mobile-accordion-content"><p>{product.description}</p></div>
+        </details>
+
+        {(targetCrops || specifications.length > 0) && (
+          <details>
+            <summary>Product Details</summary>
+            <div className="pdp-mobile-accordion-content">
+              <div className="pdp-mobile-detail-rows">
+                {targetCrops && <div><span>Target Crops</span><strong>{targetCrops}</strong></div>}
+                {specifications.map((spec, idx) => <div key={idx}><span>{spec.label}</span><strong>{spec.value}</strong></div>)}
+              </div>
+            </div>
+          </details>
+        )}
+
+        {benefits.length > 0 && (
+          <details>
+            <summary>Benefits</summary>
+            <div className="pdp-mobile-accordion-content"><ul>{benefits.map((benefit, idx) => <li key={idx}>{benefit}</li>)}</ul></div>
+          </details>
+        )}
+
+        {usageSteps.length > 0 && (
+          <details>
+            <summary>How to Use</summary>
+            <div className="pdp-mobile-accordion-content pdp-mobile-steps">
+              {usageSteps.map((step, idx) => <div key={idx}><b>{step.stepNumber || idx + 1}</b><span><strong>{step.title}</strong><small>{step.description}</small></span></div>)}
+            </div>
+          </details>
+        )}
+
+        {dosageTable.length > 0 && (
+          <details>
+            <summary>Dosage</summary>
+            <div className="pdp-mobile-accordion-content pdp-mobile-dosage-rows">
+              {dosageTable.map((row, idx) => (
+                <div className="pdp-mobile-dosage-card" key={idx}>
+                  <div><span>Crop</span><strong>{row.crop || '—'}</strong></div>
+                  <div><span>Target</span><strong>{row.target || '—'}</strong></div>
+                  <div><span>Dosage</span><strong>{row.dosage || row.foliarSpray || '—'}</strong></div>
+                  <div><span>Water Volume</span><strong>{row.waterVolume || row.dripIrrigation || '—'}</strong></div>
+                  <div><span>Waiting Period</span><strong>{row.waitingPeriod || '—'}</strong></div>
+                </div>
+              ))}
+            </div>
+          </details>
+        )}
+
+        {ingredients && (
+          <details>
+            <summary>Ingredients</summary>
+            <div className="pdp-mobile-accordion-content"><ol>{ingredientItems.map((ingredient, idx) => <li key={`${ingredient}-${idx}`}>{ingredient}</li>)}</ol></div>
+          </details>
+        )}
+
+        {faqs.length > 0 && (
+          <details>
+            <summary>FAQs</summary>
+            <div className="pdp-mobile-accordion-content pdp-mobile-faq-list">
+              {faqs.map((faq, idx) => <div key={idx}><strong>{faq.question}</strong><p>{faq.answer}</p></div>)}
+            </div>
+          </details>
+        )}
+      </div>
+
       {/* 4. Product Information Tabs */}
-      <div id="pdp-tabs-section">
+      <div id="pdp-tabs-section" className={activeTab === 'reviews' ? 'is-reviews-active' : ''}>
         <div className="pdp-tabs-container">
           <button
             type="button"
@@ -766,6 +858,11 @@ export const ProductDetailPage: React.FC = () => {
           >
             Reviews ({product.numReviews})
           </button>
+        </div>
+
+        <div className="pdp-mobile-active-section-heading">
+          <span>{activeTabLabel}</span>
+          <span aria-hidden="true">−</span>
         </div>
 
         {/* Tab Content Panes */}
@@ -1131,7 +1228,7 @@ export const ProductDetailPage: React.FC = () => {
                   return (
                     <Link
                       className="pdp-recommendation-card"
-                      to={`/products/${recommended.slug || recommended.id}`}
+                      to={`/product/${recommended.slug || recommended.id}`}
                       key={recommended.id}
                     >
                       <div className="pdp-recommendation-media">
@@ -1140,6 +1237,7 @@ export const ProductDetailPage: React.FC = () => {
                           src={getUploadUrl(recommended.images?.[0], 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=600')}
                           alt={recommended.title}
                           loading="lazy"
+                          decoding="async"
                         />
                       </div>
                       <div className="pdp-recommendation-body">

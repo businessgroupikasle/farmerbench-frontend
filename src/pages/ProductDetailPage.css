@@ -555,9 +555,9 @@
   flex: 1.3;
   min-width: 160px;
   height: 48px;
-  background-color: #15803d;
-  color: #ffffff;
-  border: none;
+  background-color: #ffffff;
+  color: #15803d;
+  border: 1.5px solid #15803d;
   border-radius: 10px;
   font-size: 1rem;
   font-weight: 700;
@@ -566,14 +566,14 @@
   justify-content: center;
   gap: 0.5rem;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(21, 128, 61, 0.25);
+  box-shadow: none;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .pdp-btn-add-cart:hover:not(:disabled) {
-  background-color: #166534;
+  background-color: #f0fdf4;
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(21, 128, 61, 0.32);
+  box-shadow: 0 4px 12px rgba(21, 128, 61, 0.15);
 }
 
 .pdp-btn-add-cart:disabled {
@@ -586,8 +586,8 @@
   flex: 1;
   min-width: 130px;
   height: 48px;
-  background-color: #ffffff;
-  color: #15803d;
+  background-color: #15803d;
+  color: #ffffff;
   border: 1.5px solid #15803d;
   border-radius: 10px;
   font-size: 1rem;
@@ -597,7 +597,9 @@
 }
 
 .pdp-btn-buy-now:hover:not(:disabled) {
-  background-color: #f0fdf4;
+  background-color: #166534;
+  box-shadow: 0 6px 16px rgba(21, 128, 61, 0.28);
+  transform: translateY(-1px);
 }
 
 .pdp-btn-buy-now:disabled {
@@ -908,6 +910,10 @@
   height: 3px;
   background-color: #15803d;
   border-radius: 3px 3px 0 0;
+}
+
+.pdp-mobile-active-section-heading {
+  display: none;
 }
 
 /* Two-Column Tab Content Layout */
@@ -1650,6 +1656,27 @@
   object-fit: cover;
 }
 
+@media (min-width: 641px) {
+  .pdp-main-stage {
+    width: 100%;
+    min-height: 0;
+    aspect-ratio: 1 / 1;
+    background: linear-gradient(180deg, #fbfdfc 0%, #f1f8f3 100%);
+  }
+
+  .pdp-stage-img-wrap img {
+    box-sizing: border-box;
+    width: calc(100% - 2rem);
+    height: calc(100% - 2rem);
+    padding: 0.75rem;
+    border: 1px solid #d7e4da;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 6px 18px rgba(15, 71, 38, 0.08);
+    object-fit: contain;
+  }
+}
+
 .pdp-zoom-indicator {
   position: absolute;
   left: 50%;
@@ -1759,6 +1786,98 @@
 }
 /* Compact mobile benefits and product details */
 @media (max-width: 640px) {
+  .pdp-tabs-container {
+    display: grid;
+    gap: 0;
+    margin-bottom: 8px;
+    overflow: hidden;
+    border: 1px solid #dbe7df;
+    border-radius: 8px;
+    background: #ffffff;
+  }
+
+  .pdp-tab-btn {
+    display: flex;
+    width: 100%;
+    min-height: 32px;
+    flex: none;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 9px;
+    border-bottom: 1px solid #edf2ef;
+    color: #475569;
+    font-size: 0.63rem;
+    line-height: 1.2;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .pdp-tab-btn:last-child {
+    border-bottom: 0;
+  }
+
+  .pdp-tab-btn::after {
+    content: '+';
+    position: static;
+    display: grid;
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    margin-left: 8px;
+    place-items: center;
+    border-radius: 50%;
+    background: #f0fdf4;
+    color: #15803d;
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+
+  .pdp-tab-btn.active {
+    background: #f0fdf4;
+    color: #166534;
+  }
+
+  .pdp-tab-btn.active::after {
+    content: '\2212';
+    position: static;
+    height: 18px;
+    background: #15803d;
+    color: #ffffff;
+  }
+
+  .pdp-mobile-active-section-heading {
+    display: flex;
+    min-height: 32px;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0;
+    padding: 6px 9px;
+    border: 1px solid #bbdec6;
+    border-bottom: 0;
+    border-radius: 8px 8px 0 0;
+    background: #f0fdf4;
+    color: #166534;
+    font-size: 0.63rem;
+    font-weight: 800;
+  }
+
+  .pdp-mobile-active-section-heading span:last-child {
+    display: grid;
+    width: 18px;
+    height: 18px;
+    place-items: center;
+    border-radius: 50%;
+    background: #15803d;
+    color: #ffffff;
+    font-size: 0.72rem;
+  }
+
+  .pdp-mobile-active-section-heading + * {
+    margin-top: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
   .pdp-tab-content-grid {
     gap: 8px;
   }
@@ -1809,6 +1928,31 @@
 
   .pdp-specs-value {
     padding-left: 5px;
+  }
+
+  .pdp-specs-card-full {
+    padding: 6px 7px;
+    border-radius: 7px;
+  }
+
+  .pdp-specs-card-full .pdp-specs-title {
+    margin-bottom: 2px;
+    font-size: 0.64rem;
+    line-height: 1.15;
+  }
+
+  .pdp-specs-card-full .pdp-specs-label {
+    width: 34%;
+    padding: 4px 5px 4px 0;
+    font-size: 0.58rem;
+    line-height: 1.15;
+  }
+
+  .pdp-specs-card-full .pdp-specs-value {
+    padding: 4px 0 4px 5px;
+    font-size: 0.63rem;
+    line-height: 1.2;
+    text-align: left;
   }
 }
 /* Compact mobile How to Use cards */
@@ -1871,23 +2015,26 @@
 
   .pdp-dosage-card tbody {
     display: grid;
-    gap: 10px;
+    gap: 6px;
   }
 
   .pdp-dosage-card tr {
-    padding: 4px 10px;
+    padding: 2px 7px;
     border: 1px solid #e2e8f0;
-    border-radius: 9px;
+    border-radius: 7px;
     background: #ffffff;
   }
 
   .pdp-dosage-card td {
     display: grid;
-    grid-template-columns: minmax(105px, 42%) minmax(0, 1fr);
-    gap: 10px;
-    padding: 8px 0;
+    grid-template-columns: minmax(76px, 36%) minmax(0, 1fr);
+    align-items: start;
+    gap: 6px;
+    padding: 5px 0;
     border-bottom: 1px solid #f1f5f9;
     text-align: left;
+    font-size: 0.66rem;
+    line-height: 1.25;
     overflow-wrap: anywhere;
   }
 
@@ -1898,9 +2045,16 @@
   .pdp-dosage-card td::before {
     content: attr(data-label);
     color: #166534;
-    font-size: 0.72rem;
+    font-size: 0.56rem;
     font-weight: 800;
+    line-height: 1.2;
     text-transform: uppercase;
+  }
+
+  .pdp-dosage-card .pdp-specs-title {
+    margin-bottom: 5px;
+    font-size: 0.66rem;
+    line-height: 1.2;
   }
 }
 /* Ingredients row layout */
@@ -2029,27 +2183,42 @@
 
 @media (max-width: 640px) {
   .pdp-faq-panel {
-    padding: 1rem;
+    padding: 4px;
+  }
+
+  .pdp-faq-panel .pdp-block-heading {
+    margin-bottom: 4px;
+    font-size: 0.64rem;
+    line-height: 1.15;
+  }
+
+  .pdp-faq-rows {
+    margin-top: 5px;
+    border-radius: 7px;
   }
 
   .pdp-faq-row {
-    grid-template-columns: 38px minmax(0, 1fr);
+    grid-template-columns: 28px minmax(0, 1fr);
   }
 
   .pdp-faq-number {
-    min-height: 68px;
+    min-height: 48px;
+    font-size: 0.65rem;
   }
 
   .pdp-faq-content {
-    padding: 0.75rem 0.8rem;
+    padding: 6px 7px;
   }
 
   .pdp-faq-content h4 {
-    font-size: 0.82rem;
+    margin-bottom: 2px;
+    font-size: 0.63rem;
+    line-height: 1.25;
   }
 
   .pdp-faq-content p {
-    font-size: 0.76rem;
+    font-size: 0.58rem;
+    line-height: 1.35;
   }
 }
 
@@ -2288,5 +2457,213 @@
 
   .pdp-carousel-controls {
     display: none;
+  }
+}
+
+/* Mobile purchase actions stay in their original place and scroll with content. */
+.pdp-mobile-info-accordion {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  #pdp-tabs-section:not(.is-reviews-active) {
+    display: none;
+  }
+
+  #pdp-tabs-section.is-reviews-active {
+    display: block;
+    scroll-margin-top: 72px;
+  }
+
+  #pdp-tabs-section.is-reviews-active .pdp-tabs-container,
+  #pdp-tabs-section.is-reviews-active .pdp-mobile-active-section-heading {
+    display: none;
+  }
+
+  .pdp-mobile-info-accordion {
+    display: grid;
+    margin-bottom: 14px;
+    overflow: hidden;
+    border: 1px solid #dbe7df;
+    border-radius: 8px;
+    background: #ffffff;
+  }
+
+  .pdp-mobile-info-accordion details {
+    border-bottom: 1px solid #edf2ef;
+  }
+
+  .pdp-mobile-info-accordion details:last-child {
+    border-bottom: 0;
+  }
+
+  .pdp-mobile-info-accordion summary {
+    display: flex;
+    min-height: 34px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 9px;
+    color: #475569;
+    font-size: 0.65rem;
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .pdp-mobile-info-accordion summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .pdp-mobile-info-accordion summary::after {
+    content: '+';
+    display: grid;
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    place-items: center;
+    border-radius: 50%;
+    background: #f0fdf4;
+    color: #15803d;
+    font-size: 0.72rem;
+  }
+
+  .pdp-mobile-info-accordion details[open] > summary {
+    background: #f0fdf4;
+    color: #166534;
+  }
+
+  .pdp-mobile-info-accordion details[open] > summary::after {
+    content: '\2212';
+    background: #15803d;
+    color: #ffffff;
+  }
+
+  .pdp-mobile-accordion-content {
+    padding: 7px 9px;
+    border-top: 1px solid #dbe7df;
+    color: #475569;
+    font-size: 0.62rem;
+    line-height: 1.4;
+  }
+
+  .pdp-mobile-accordion-content p,
+  .pdp-mobile-accordion-content ul,
+  .pdp-mobile-accordion-content ol {
+    margin: 0;
+  }
+
+  .pdp-mobile-accordion-content ul,
+  .pdp-mobile-accordion-content ol {
+    display: grid;
+    gap: 4px;
+    padding-left: 16px;
+  }
+
+  .pdp-mobile-detail-rows > div,
+  .pdp-mobile-dosage-card > div {
+    display: grid;
+    grid-template-columns: 34% minmax(0, 1fr);
+    gap: 6px;
+    padding: 5px 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  .pdp-mobile-detail-rows > div:last-child,
+  .pdp-mobile-dosage-card > div:last-child {
+    border-bottom: 0;
+  }
+
+  .pdp-mobile-detail-rows span,
+  .pdp-mobile-dosage-card span {
+    color: #64748b;
+    font-size: 0.56rem;
+  }
+
+  .pdp-mobile-detail-rows strong,
+  .pdp-mobile-dosage-card strong {
+    color: #1e293b;
+    font-size: 0.62rem;
+  }
+
+  .pdp-mobile-steps,
+  .pdp-mobile-dosage-rows,
+  .pdp-mobile-faq-list {
+    display: grid;
+    gap: 6px;
+  }
+
+  .pdp-mobile-steps > div {
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 6px;
+  }
+
+  .pdp-mobile-steps > div > b {
+    display: grid;
+    width: 20px;
+    height: 20px;
+    place-items: center;
+    border-radius: 50%;
+    background: #dcfce7;
+    color: #15803d;
+  }
+
+  .pdp-mobile-steps span {
+    display: grid;
+    gap: 2px;
+  }
+
+  .pdp-mobile-steps small {
+    color: #64748b;
+    font-size: 0.58rem;
+  }
+
+  .pdp-mobile-dosage-card,
+  .pdp-mobile-faq-list > div {
+    padding: 3px 7px;
+    border: 1px solid #e2e8f0;
+    border-radius: 7px;
+  }
+
+  .pdp-mobile-faq-list > div {
+    display: grid;
+    gap: 2px;
+    padding: 7px;
+  }
+}
+
+@media (max-width: 640px) {
+  .pdp-mobile-actions-shell {
+    position: static;
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .pdp-mobile-actions-shell .pdp-actions-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+    margin: 0;
+  }
+
+  .pdp-mobile-actions-shell .pdp-qty-wrap,
+  .pdp-mobile-actions-shell .pdp-actions-secondary-row {
+    display: none;
+  }
+
+  .pdp-mobile-actions-shell .pdp-btn-add-cart,
+  .pdp-mobile-actions-shell .pdp-btn-buy-now {
+    width: 100%;
+    min-width: 0;
+    height: 44px;
+    padding: 0 8px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    white-space: nowrap;
   }
 }

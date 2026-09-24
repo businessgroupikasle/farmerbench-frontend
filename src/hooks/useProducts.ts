@@ -22,7 +22,7 @@ const normalizeProductNames = <T extends { category?: unknown; subcategory?: unk
   } as T;
 };
 
-export const useProducts = (params?: Partial<ProductQueryInput>) => {
+export const useProducts = (params?: Partial<ProductQueryInput>, enabled = true) => {
   return useQuery({
     queryKey: ['products', params],
     queryFn: async () => {
@@ -30,6 +30,7 @@ export const useProducts = (params?: Partial<ProductQueryInput>) => {
       return { ...res, data: (res.data || []).map(normalizeProductNames) };
     },
     staleTime: 1000 * 60 * 2, // 2 minutes
+    enabled,
   });
 };
 

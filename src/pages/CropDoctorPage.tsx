@@ -3,8 +3,6 @@ import { Link } from 'react-router-dom';
 import {
   ShieldCheck,
   Clock,
-  ArrowDown,
-  ArrowRight,
   Leaf,
   Upload,
   Camera,
@@ -34,9 +32,6 @@ import './CropDoctorPage.css';
 import { serviceBookingService } from '../services/serviceBooking.service';
 import { postalCodeService } from '../services/postalCode.service';
 import { authService } from '../services/auth.service';
-
-// Hero asset
-import cropDoctorHeroImg from '../assets/crop-doctor-hero.jpg';
 
 interface PreviewPhoto {
   id: string;
@@ -331,13 +326,6 @@ export const CropDoctorPage: React.FC = () => {
     }
   };
 
-  const scrollToDiagnosisForm = () => {
-    const el = document.getElementById('diagnosis-form-section');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(true);
@@ -450,94 +438,6 @@ export const CropDoctorPage: React.FC = () => {
 
   return (
     <div className="crop-doctor-page">
-      {/* ====================================================================
-          1. HERO SECTION (Pixel-Perfect from Design Screenshot)
-          ==================================================================== */}
-      <section className="crop-doctor-hero-section">
-        <div className="crop-doctor-hero-leaf-accent" aria-hidden="true" />
-
-        <div className="crop-doctor-hero-container">
-          {/* Left Hero Content */}
-          <div className="crop-doctor-hero-content">
-            {/* Breadcrumbs */}
-            <nav className="crop-doctor-breadcrumbs" aria-label="Breadcrumbs">
-              <Link to="/">Home</Link>
-              <span className="breadcrumb-separator">/</span>
-              <span className="breadcrumb-current">Crop Doctor</span>
-            </nav>
-
-            {/* Badge */}
-            <div className="crop-doctor-badge">
-              <span>CROP HEALTH SUPPORT</span>
-              <Leaf size={14} className="crop-doctor-badge-leaf" />
-            </div>
-
-            {/* Main Headline */}
-            <h1 className="crop-doctor-hero-title">
-              What’s Happening
-              <span className="title-accent">to Your Crop?</span>
-            </h1>
-
-            {/* Subtitle / Description */}
-            <p className="crop-doctor-hero-desc">
-              Upload clear crop photos and share the symptoms. Our agriculture
-              experts will review the problem and recommend the next steps.
-            </p>
-
-            {/* Feature Chips */}
-            <div className="crop-doctor-features-row">
-              <div className="crop-doctor-feature-chip">
-                <ShieldCheck size={17} />
-                <span>Expert Reviewed</span>
-              </div>
-              <div className="crop-doctor-feature-chip">
-                <Clock size={17} />
-                <span>Response within 24 hours</span>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="crop-doctor-hero-actions">
-              <button
-                type="button"
-                onClick={scrollToDiagnosisForm}
-                className="crop-doctor-btn-primary"
-              >
-                <span>Start Diagnosis</span>
-                <ArrowDown size={17} />
-              </button>
-
-              <Link to="/dashboard" className="crop-doctor-btn-link">
-                <span>View My Requests</span>
-                <ArrowRight size={17} />
-              </Link>
-            </div>
-          </div>
-
-          {/* Right Hero Visual Media */}
-          <div className="crop-doctor-hero-media">
-            <div className="crop-doctor-hero-image-wrap">
-              <img
-                src={cropDoctorHeroImg}
-                alt="Agricultural Doctor inspecting diseased crop leaves with magnifying glass in field"
-                className="crop-doctor-hero-img"
-              />
-
-              {/* Floating Certification Badge */}
-              <div className="crop-doctor-floating-badge">
-                <div className="crop-doctor-floating-icon">
-                  <Stethoscope size={20} />
-                </div>
-                <div className="crop-doctor-floating-text">
-                  <strong>Senior Agronomist Panel</strong>
-                  <span>Pathology & Entomological Diagnostics</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ====================================================================
           2. FOUR-STEP WORKFLOW PROCESS BAR (Exact from Design Screenshot)
           ==================================================================== */}

@@ -10,7 +10,7 @@ export interface CustomerRecord {
   totalOrders: number;
   totalSpent: string;
   lastOrder: string;
-  status: 'Verified' | 'Pending' | 'Active';
+  status: 'Verified' | 'Pending' | 'Active' | 'Deactivated';
   registeredAt: string;
   avatarUrl?: string;
 }

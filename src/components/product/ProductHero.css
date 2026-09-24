@@ -124,3 +124,8 @@
 [data-theme='dark'] .product-hero-container { border-color: #294433; background: linear-gradient(100deg, #13241b, #172b20); }
 [data-theme='dark'] .product-hero-title { color: #f3f7f2; }
 [data-theme='dark'] .product-hero-description { color: #b7c4bb; }
+@media (max-width: 980px) {
+  .product-hero-banner {
+    display: none;
+  }
+}

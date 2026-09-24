@@ -1,6 +1,8 @@
 import React from 'react';
+import { useQueries } from '@tanstack/react-query';
 import { useCategories } from '../../hooks/useCategories';
 import { useFilterStore } from '../../store/filterStore';
+import { productService } from '../../services/product.service';
 import { RotateCcw, Filter, Star, CheckSquare, Square, Sparkles, Tag, Layers } from 'lucide-react';
 
 export const ProductFilters: React.FC = () => {
@@ -17,6 +19,34 @@ export const ProductFilters: React.FC = () => {
     setInStockOnly,
     resetFilters,
   } = useFilterStore();
+
+  const selectedCategory = categories.find(
+    (category) => filters.category === category.slug || filters.category === category.id
+  );
+  const activeSubcategories = (selectedCategory?.subcategories || []).filter(
+    (subcategory) => subcategory.isActive
+  );
+  const subcategoryCountQueries = useQueries({
+    queries: activeSubcategories.map((subcategory) => ({
+      queryKey: ['products', 'subcategory-count', subcategory.id],
+      queryFn: async () => {
+        const response = await productService.getProducts({
+          subcategoryId: subcategory.id,
+          page: 1,
+          limit: 1,
+          sortBy: 'newest',
+        });
+        return response.pagination.total;
+      },
+      staleTime: 1000 * 60 * 2,
+    })),
+  });
+  const subcategoryCounts = new Map(
+    activeSubcategories.map((subcategory, index) => [
+      subcategory.id,
+      subcategoryCountQueries[index]?.data ?? subcategory._count?.products ?? 0,
+    ])
+  );
 
   const sortOptions = [
     { label: 'Newest Arrivals', value: 'newest' },
@@ -120,8 +150,8 @@ export const ProductFilters: React.FC = () => {
       </div>
 
       {filters.category && (() => {
-        const selected = categories.find((cat) => filters.category === cat.slug || filters.category === cat.id);
-        const children = (selected?.subcategories || []).filter((sub) => sub.isActive);
+        const selected = selectedCategory;
+        const children = activeSubcategories;
         return children.length > 0 ? (
           <div className="fb-filter-section">
             <label className="fb-filter-section-title"><Layers size={15} /><span>Subcategories</span></label>
@@ -129,7 +159,7 @@ export const ProductFilters: React.FC = () => {
               <button type="button" onClick={() => setSubcategory(undefined)} className={`fb-category-item-btn ${!filters.subcategoryId ? 'active' : ''}`}>All {selected?.name}</button>
               {children.map((sub) => (
                 <button key={sub.id} type="button" onClick={() => setSubcategory(filters.subcategoryId === sub.id ? undefined : sub.id)} className={`fb-category-item-btn ${filters.subcategoryId === sub.id ? 'active' : ''}`}>
-                  <span className="fb-cat-name">{sub.name}</span><span className="fb-cat-count">{sub._count?.products ?? 0}</span>
+                  <span className="fb-cat-name">{sub.name}</span><span className="fb-cat-count">{subcategoryCounts.get(sub.id) ?? 0}</span>
                 </button>
               ))}
             </div>

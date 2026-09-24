@@ -55,6 +55,8 @@ import {
   Smartphone,
   Mail,
   Menu,
+  UserCheck,
+  UserX,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useAdminReviews, useProducts, useProductMutations } from '../hooks/useProducts';
@@ -697,6 +699,7 @@ export const AdminPage: React.FC = () => {
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
   const [customerStatusFilter, setCustomerStatusFilter] = useState('All');
   const [customerSearchQuery, setCustomerSearchQuery] = useState('');
+  const [customerStatusUpdatingId, setCustomerStatusUpdatingId] = useState<string | null>(null);
 
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
   const [subcatModal, setSubcatModal] = useState<{
@@ -1682,6 +1685,33 @@ export const AdminPage: React.FC = () => {
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  const handleToggleCustomerStatus = (customer: any) => {
+    const isDeactivated = customer.status === 'Deactivated';
+    const nextStatus = isDeactivated ? 'Active' : 'Deactivated';
+
+    openConfirmModal({
+      title: `${isDeactivated ? 'Reactivate' : 'Deactivate'} ${customer.name}?`,
+      message: isDeactivated
+        ? 'This customer will be restored to Active status and can use their account again.'
+        : 'This customer will be marked as Deactivated. Their profile and order history will remain available.',
+      confirmText: isDeactivated ? 'Yes, Reactivate' : 'Yes, Deactivate',
+      cancelText: 'Cancel',
+      type: isDeactivated ? 'info' : 'danger',
+      icon: isDeactivated ? <UserCheck size={26} /> : <UserX size={26} />,
+      onConfirm: async () => {
+        setCustomerStatusUpdatingId(customer.id);
+        try {
+          await updateCustomer({ id: customer.id, data: { status: nextStatus } });
+          showToast(`Customer '${customer.name}' ${isDeactivated ? 'reactivated' : 'deactivated'} successfully.`);
+        } catch (err: any) {
+          showToast(err.message || `Failed to ${isDeactivated ? 'reactivate' : 'deactivate'} customer`);
+        } finally {
+          setCustomerStatusUpdatingId(null);
+        }
+      },
+    });
   };
 
   // Dynamic Team & Staff Access State (Zero hardcoded records, persistent across sessions)
@@ -3573,7 +3603,7 @@ export const AdminPage: React.FC = () => {
               {/* Customer Filter Bar */}
               <div className="admin-filter-bar">
                 <div className="admin-filter-tabs">
-                  {['All', 'Verified', 'Active', 'Pending'].map((st) => (
+                  {['All', 'Verified', 'Active', 'Pending', 'Deactivated'].map((st) => (
                     <button
                       key={st}
                       className={`admin-filter-tab-btn ${customerStatusFilter === st ? 'active' : ''}`}
@@ -3658,7 +3688,13 @@ export const AdminPage: React.FC = () => {
                           <td style={{ fontWeight: 800, color: '#0F291B' }}>{c.totalSpent || '₹0'}</td>
                           <td style={{ color: '#64748B', fontSize: '0.78rem' }}>{c.lastOrder || c.registeredAt || '31 Aug 2026'}</td>
                           <td>
-                            <span className={`admin-status-badge ${c.status === 'Verified' || c.status === 'Active' ? 'paid' : 'pending'}`}>
+                            <span className={`admin-status-badge ${
+                              c.status === 'Verified' || c.status === 'Active'
+                                ? 'paid'
+                                : c.status === 'Deactivated'
+                                  ? 'cancelled'
+                                  : 'pending'
+                            }`}>
                               {c.status || 'Verified'}
                             </span>
                           </td>
@@ -3672,6 +3708,22 @@ export const AdminPage: React.FC = () => {
                                 }}
                               >
                                 <Edit3 size={13} /> Edit
+                              </button>
+                              <button
+                                type={'button'}
+                                className={`admin-mini-btn ${c.status === 'Deactivated' ? 'btn-success' : 'btn-danger'}`}
+                                disabled={customerStatusUpdatingId === c.id}
+                                onClick={() => handleToggleCustomerStatus(c)}
+                                title={c.status === 'Deactivated' ? 'Reactivate customer' : 'Deactivate customer'}
+                              >
+                                {customerStatusUpdatingId === c.id ? (
+                                  <Loader2 size={13} className={'spin'} />
+                                ) : c.status === 'Deactivated' ? (
+                                  <UserCheck size={13} />
+                                ) : (
+                                  <UserX size={13} />
+                                )}
+                                {c.status === 'Deactivated' ? 'Reactivate' : 'Deactivate'}
                               </button>
                             </div>
                           </td>

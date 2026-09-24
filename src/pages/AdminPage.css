@@ -1445,6 +1445,23 @@
   background-color: #FEF2F2;
 }
 
+.admin-mini-btn.btn-success {
+  border-color: #86EFAC;
+  color: #15803D;
+  background-color: #F0FDF4;
+}
+
+.admin-mini-btn.btn-success:hover {
+  border-color: #15803D;
+  color: #166534;
+  background-color: #DCFCE7;
+}
+
+.admin-mini-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 /* Category Cards Grid */
 .admin-category-grid {
   display: grid;

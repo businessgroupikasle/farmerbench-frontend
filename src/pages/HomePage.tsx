@@ -7,6 +7,7 @@ import { HomeMarketPrices } from '../components/home/HomeMarketPrices';
 import { HomeCategories } from '../components/home/HomeCategories';
 import { HomeCouponOffer } from '../components/home/HomeCouponOffer';
 import { HomeMobileSearchBar } from '../components/home/HomeMobileSearchBar';
+import { HomePromoBanners } from '../components/home/HomePromoBanners';
 import './HomePage.css';
 
 export const HomePage: React.FC = () => {
@@ -57,6 +58,9 @@ export const HomePage: React.FC = () => {
         {/* Live Featured Products Section from Database (Best Selling Products) */}
         <HomeOurProducts />
 
+        {/* Featured collections directly after Best Selling Products */}
+        <HomePromoBanners />
+
         {/* Farmer tools and live information hub */}
         <HomeSmartHub />
 
@@ -73,7 +77,6 @@ export const HomePage: React.FC = () => {
 };
 
 export default HomePage;
-
 
 
 
