@@ -16,3 +16,13 @@
 
 @media(max-width:640px){.pdp-bulk-modal-backdrop{align-items:center;padding:12px 0}.pdp-bulk-modal{margin:0 8px;max-height:calc(100dvh - 24px)}}
 
+
+/* Keep the product visible while the customer fills the enquiry. */
+.pdp-bulk-modal-backdrop{display:flex;align-items:stretch;justify-content:flex-end;padding:0;background:rgba(15,23,42,.28);backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+.pdp-bulk-modal{width:min(560px,46vw);max-height:100dvh;height:100dvh;margin:0;border:0;border-left:1px solid #d7eadc;border-radius:20px 0 0 20px;box-shadow:-18px 0 50px rgba(15,23,42,.16);animation:pdp-bulk-panel-in .24s ease-out}
+.pdp-bulk-modal-header{padding:1.15rem 1.25rem;background:linear-gradient(135deg,#f5fff7 0%,#ecfdf3 100%)}
+.pdp-bulk-modal .pdp-bulk-form{padding:1.15rem 1.25rem 1.5rem}
+@keyframes pdp-bulk-panel-in{from{opacity:.7;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
+@media(max-width:900px){.pdp-bulk-modal{width:min(560px,72vw)}}
+@media(max-width:640px){.pdp-bulk-modal-backdrop{align-items:flex-end;justify-content:center;padding:0;background:rgba(15,23,42,.34)}.pdp-bulk-modal{width:100%;height:auto;max-height:92dvh;margin:0;border:1px solid #d7eadc;border-bottom:0;border-radius:18px 18px 0 0;box-shadow:0 -14px 40px rgba(15,23,42,.16);animation:pdp-bulk-sheet-in .24s ease-out}@keyframes pdp-bulk-sheet-in{from{opacity:.75;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}}
+@media(prefers-reduced-motion:reduce){.pdp-bulk-modal{animation:none}}

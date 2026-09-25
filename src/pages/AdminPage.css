@@ -5552,3 +5552,21 @@
 @media (max-width: 900px) {
   .admin-dosage-row { grid-template-columns: 1fr; }
 }
+
+/* Product catalog action bar correction */
+.admin-products-view .admin-product-header-actions{display:flex;align-items:center;justify-content:flex-end;gap:.6rem;flex-wrap:wrap}
+.admin-products-view .admin-product-header-actions>button{min-height:40px;justify-content:center;border-radius:9px;white-space:nowrap}
+.admin-products-view .admin-product-header-actions .admin-quick-btn{border-color:#cbd8d0;background:#fff;color:#284536}
+.admin-products-view .admin-product-header-actions .admin-primary-btn{box-shadow:0 6px 14px rgba(15,71,38,.16)}
+@media(max-width:600px){
+  .admin-products-view> .admin-card-header{display:flex;flex-direction:column;align-items:stretch;gap:.8rem;margin-bottom:.8rem}
+  .admin-products-view .admin-welcome-sub{max-width:none}
+  .admin-products-view .admin-product-header-actions{display:grid;grid-template-columns:1fr 1.25fr;width:100%;gap:.5rem}
+  .admin-products-view .admin-product-header-actions>button,.admin-products-view> .admin-card-header .admin-primary-btn{width:100%;min-width:0;min-height:38px;padding:.5rem .55rem;font-size:.7rem}
+  .admin-products-view> .admin-filter-bar{display:flex!important;flex-direction:column;padding:.55rem!important;gap:.5rem}
+  .admin-products-view> .admin-filter-bar>span{order:-1;align-self:flex-start;margin:0!important;padding:0 .15rem .45rem!important;border-top:0!important;border-bottom:1px solid #e2e8f0;width:100%;max-width:none;font-size:.68rem!important;text-align:left!important;color:#475569!important}
+  .admin-products-view .admin-filter-tabs{width:100%}
+}
+@media(max-width:360px){
+  .admin-products-view .admin-product-header-actions{grid-template-columns:1fr}
+}

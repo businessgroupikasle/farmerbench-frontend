@@ -76,6 +76,7 @@ import { useBlogs, useBlogMutations } from '../hooks/useBlogs';
 import { BlogPost } from '../types/blog';
 import { adminService, CouponRecord } from '../services/admin.service';
 import { HeroBannerManager } from '../components/admin/HeroBannerManager';
+import { BulkProductImport } from '../components/admin/BulkProductImport';
 import { useServiceBookings, useServiceBookingStats, useServiceBookingMutations } from '../hooks/useServiceBookings';
 import { ServiceBooking, ServiceBookingStatus } from '../types/serviceBooking';
 import { useContacts, useContactStats, useContactMutations, Contact } from '../hooks/useContacts';
@@ -529,6 +530,7 @@ export const AdminPage: React.FC = () => {
   };
 
   // Product CMS Multi-Tab Form State
+  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
   const [cmsTab, setCmsTab] = useState<'basic' | 'media' | 'highlights' | 'steps' | 'dosage' | 'specs' | 'faqs'>('basic');
   const [cmsForm, setCmsForm] = useState<any>({
     title: '',
@@ -3291,6 +3293,7 @@ export const AdminPage: React.FC = () => {
                   <p className="admin-welcome-sub">Manage product stock, pricing, bio-certifications, and catalog visibility.</p>
                 </div>
                 <div className="admin-product-header-actions">
+                  <button onClick={() => setIsBulkImportOpen(true)} className="admin-quick-btn"><Upload size={16} /> Bulk Import</button>
                   <button onClick={openAddProductCMS} className="admin-primary-btn"><Plus size={16} /> Add New Product</button>
                 </div>
               </div>
@@ -5739,6 +5742,16 @@ export const AdminPage: React.FC = () => {
           ==================================================================== */}
 
       {/* Modal: Full Product CMS (Add / Edit) */}
+      {isBulkImportOpen && (
+        <BulkProductImport
+          categories={dbCategories}
+          subcategories={dbSubcategories}
+          createProduct={createProduct}
+          onClose={() => setIsBulkImportOpen(false)}
+          onComplete={() => { refetchProducts?.(); setIsBulkImportOpen(false); }}
+        />
+      )}
+
       {(isAddProductOpen || isEditProductOpen) && (
         <div className="admin-modal-overlay" onMouseDown={(event) => { if (event.target === event.currentTarget) event.preventDefault(); }}>
           <div className="admin-modal-card admin-cms-modal-card" onMouseDown={(event) => event.stopPropagation()}>
