@@ -164,6 +164,7 @@ export const useAuth = () => {
     queryClient.removeQueries({ queryKey: ['cart'] });
     queryClient.removeQueries({ queryKey: ['orders'] });
     addToast({ type: 'info', message: 'Logged out successfully' });
+    window.location.replace('/');
   };
 
   return {

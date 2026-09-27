@@ -307,7 +307,6 @@ export const AdminPage: React.FC = () => {
         localStorage.removeItem('formerbench_auth_token');
         localStorage.removeItem('formerbench_auth_user');
         localStorage.removeItem('AgriEra_demo_admin');
-        navigate('/login');
       },
     });
   };

@@ -758,7 +758,6 @@ export const DashboardPage: React.FC = () => {
         onConfirm={() => {
           logout();
           setIsLogoutModalOpen(false);
-          navigate('/');
         }}
         userName={user?.name}
       />
