@@ -34,6 +34,50 @@ export const useProducts = (params?: Partial<ProductQueryInput>, enabled = true)
   });
 };
 
+/**
+ * Loads every product page for admin views. The products API deliberately caps
+ * each request at 100 records, so requesting only `limit: 100` would silently
+ * hide page 2 and beyond from the dashboard.
+ */
+export const useAllProducts = (enabled = true) => {
+  return useQuery({
+    queryKey: ['products', 'all'],
+    queryFn: async () => {
+      const firstPage = await productService.getProducts({ page: 1, limit: 100 } as ProductQueryInput);
+      const totalPages = firstPage.pagination?.totalPages ?? 1;
+
+      if (totalPages <= 1) {
+        return { ...firstPage, data: (firstPage.data || []).map(normalizeProductNames) };
+      }
+
+      const remainingPages = await Promise.all(
+        Array.from({ length: totalPages - 1 }, (_, index) =>
+          productService.getProducts({ page: index + 2, limit: 100 } as ProductQueryInput)
+        )
+      );
+      const data = [firstPage, ...remainingPages]
+        .flatMap((response) => response.data || [])
+        .map(normalizeProductNames);
+
+      return {
+        ...firstPage,
+        data,
+        pagination: {
+          ...firstPage.pagination,
+          page: 1,
+          limit: data.length,
+          total: firstPage.pagination?.total ?? data.length,
+          totalPages: 1,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      };
+    },
+    staleTime: 1000 * 60 * 2,
+    enabled,
+  });
+};
+
 export const useFeaturedProducts = (limit: number = 8) => {
   return useQuery({
     queryKey: ['products', 'featured', limit],

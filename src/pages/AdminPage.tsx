@@ -59,7 +59,7 @@ import {
   UserX,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { useAdminReviews, useProducts, useProductMutations } from '../hooks/useProducts';
+import { useAdminReviews, useAllProducts, useProductMutations } from '../hooks/useProducts';
 import { useCategories, useCategoryMutations } from '../hooks/useCategories';
 import { useSubcategories, useSubcategoryMutations } from '../hooks/useSubcategories';
 import { useUIStore } from '../store/uiStore';
@@ -1062,7 +1062,7 @@ export const AdminPage: React.FC = () => {
   }, [orders, dateRange, searchQuery]);
 
   // 2. Database-Driven Products & Categories (PostgreSQL Single Source of Truth)
-  const { data: productsResponse, refetch: refetchProducts } = useProducts({ limit: 100 });
+  const { data: productsResponse, refetch: refetchProducts } = useAllProducts(isAdmin);
   const { data: dbCategories = [], refetch: refetchCategories } = useCategories();
   const { data: dbSubcategories = [], refetch: refetchSubcategories } = useSubcategories();
 

@@ -1,8 +1,8 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import farmEquipmentImage from '../../assets/categories/farm-equipment.jpg';
-import seedsImage from '../../assets/categories/seeds.jpg';
+import farmEquipmentImage from '../../assets/categories/farm-equipment.png';
+import seedsImage from '../../assets/categories/seeds.png';
 
 const promotions = [
   {
