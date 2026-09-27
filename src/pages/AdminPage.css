@@ -1445,6 +1445,60 @@
   background-color: #FEF2F2;
 }
 
+/* Structured field cards for the bulk-order request detail modal. */
+.admin-contact-detail-modal .admin-bulk-request-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin-top: 0.45rem;
+}
+
+.admin-contact-detail-modal .admin-bulk-request-detail-grid > div {
+  min-width: 0;
+  padding: 0.75rem 0.8rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  background: #f8fafc;
+}
+
+.admin-contact-detail-modal .admin-bulk-request-detail-grid > div.wide {
+  grid-column: 1 / -1;
+}
+
+.admin-contact-detail-modal .admin-bulk-request-detail-grid span {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: #94a3b8;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.admin-contact-detail-modal .admin-bulk-request-detail-grid strong {
+  display: block;
+  color: #1e293b;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+@media (max-width: 600px) {
+  .admin-contact-detail-modal .admin-bulk-request-detail-grid {
+    grid-template-columns: 1fr;
+    gap: 0.45rem;
+  }
+
+  .admin-contact-detail-modal .admin-bulk-request-detail-grid > div,
+  .admin-contact-detail-modal .admin-bulk-request-detail-grid > div.wide {
+    grid-column: auto;
+    margin-top: 0 !important;
+    padding: 0.55rem 0.6rem !important;
+  }
+}
+
 .admin-mini-btn.btn-success {
   border-color: #86EFAC;
   color: #15803D;
@@ -5566,6 +5620,26 @@
   .admin-products-view> .admin-filter-bar{display:flex!important;flex-direction:column;padding:.55rem!important;gap:.5rem}
   .admin-products-view> .admin-filter-bar>span{order:-1;align-self:flex-start;margin:0!important;padding:0 .15rem .45rem!important;border-top:0!important;border-bottom:1px solid #e2e8f0;width:100%;max-width:none;font-size:.68rem!important;text-align:left!important;color:#475569!important}
   .admin-products-view .admin-filter-tabs{width:100%}
+}
+
+.admin-contact-detail-modal .admin-contact-delete-btn {
+  display: inline-flex;
+  width: auto;
+  height: auto;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 8px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.admin-contact-detail-modal .admin-contact-delete-btn > span {
+  display: inline;
+  margin: 0;
+  line-height: 1;
 }
 @media(max-width:360px){
   .admin-products-view .admin-product-header-actions{grid-template-columns:1fr}

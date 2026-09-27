@@ -3201,12 +3201,14 @@ export const AdminPage: React.FC = () => {
                       className={`admin-filter-tab-btn ${orderFilter === st ? 'active' : ''}`}
                       onClick={() => setOrderFilter(st)}
                     >
-                      {st} ({st === 'All' ? orders.length : orders.filter((o) => o.status === st).length})
+                      {st} ({st === 'All' ? orders.length + bulkOrderRequests.length : orders.filter((o) => o.status === st).length})
                     </button>
                   ))}
                 </div>
                 <div style={{ fontSize: '0.85rem', color: '#64748B', fontWeight: 600 }}>
-                  Showing {filteredOrders.length} orders
+                  {orderFilter === 'All'
+                    ? `Showing ${filteredOrders.length + bulkOrderRequests.length} total (${filteredOrders.length} checkout, ${bulkOrderRequests.length} bulk)`
+                    : `Showing ${filteredOrders.length} orders`}
                 </div>
               </div>
 
@@ -8208,7 +8210,7 @@ export const AdminPage: React.FC = () => {
                     },
                   });
                 }}
-                className="admin-icon-btn danger"
+                className="admin-icon-btn danger admin-contact-delete-btn"
                 title="Delete this message"
                 style={{ width: 'auto', padding: '0.5rem 0.85rem', borderRadius: '8px', gap: '0.4rem', color: '#DC2626' }}
               >

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Building2, CheckCircle2, PackagePlus, Send, X } from 'lucide-react';
+import { Building2, CheckCircle2, ChevronDown, PackagePlus, Send } from 'lucide-react';
 import { contactService } from '../../services/contact.service';
 import { useUIStore } from '../../store/uiStore';
 import './BulkOrderForm.css';
@@ -35,14 +35,11 @@ export const BulkOrderForm: React.FC<Props> = ({ product, packSize, sku, user })
 
   useEffect(() => {
     if (!open) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setOpen(false);
     };
     window.addEventListener('keydown', handleEscape);
     return () => {
-      document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', handleEscape);
     };
   }, [open]);
@@ -84,22 +81,14 @@ export const BulkOrderForm: React.FC<Props> = ({ product, packSize, sku, user })
     } finally { setSubmitting(false); }
   };
 
-  return <section className="pdp-bulk-order">
-    <button type="button" className="pdp-bulk-toggle" onClick={() => setOpen(true)} aria-haspopup="dialog">
+  return <section className={`pdp-bulk-order${open ? ' is-open' : ''}`}>
+    <button type="button" className="pdp-bulk-toggle" onClick={() => setOpen((current) => !current)} aria-expanded={open} aria-controls="pdp-bulk-dropdown">
       <span className="pdp-bulk-toggle-icon"><PackagePlus size={20} /></span>
       <span><strong>Need a bulk quantity?</strong><small>Get special pricing for farms, dealers and institutions</small></span>
-      <span className="pdp-bulk-open-label">Open form</span>
+      <span className="pdp-bulk-open-label">{open ? 'Close form' : 'Open form'}</span>
+      <ChevronDown className="pdp-bulk-chevron" size={18} aria-hidden="true" />
     </button>
-    {open && <div className="pdp-bulk-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
-      <div className="pdp-bulk-modal" role="dialog" aria-modal="true" aria-labelledby="pdp-bulk-modal-title">
-        <div className="pdp-bulk-modal-header">
-          <div>
-            <strong id="pdp-bulk-modal-title">Bulk Order Enquiry</strong>
-            <small>{product.title}</small>
-            <span>Selected: {packSize} · {sku}</span>
-          </div>
-          <button type="button" onClick={() => setOpen(false)} aria-label="Close bulk order form"><X size={19} /></button>
-        </div>
+    {open && <div id="pdp-bulk-dropdown" className="pdp-bulk-dropdown">
     {submitted ? <div className="pdp-bulk-success"><CheckCircle2 size={28} /><div><strong>Request received!</strong><span>Our sales team will contact you with bulk pricing.</span></div></div> :
       <form className="pdp-bulk-form" onSubmit={submit}>
         <div className="pdp-bulk-form-heading"><Building2 size={18} /><span>Bulk Order Enquiry</span><small>Selected: {packSize} · {sku}</small></div>
@@ -113,7 +102,6 @@ export const BulkOrderForm: React.FC<Props> = ({ product, packSize, sku, user })
         </div>
         <div className="pdp-bulk-footer"><span>No payment required now. We’ll confirm price and availability.</span><button disabled={submitting} type="submit"><Send size={16} /> {submitting ? 'Sending...' : 'Request Bulk Quote'}</button></div>
       </form>}
-      </div>
     </div>}
   </section>;
 };

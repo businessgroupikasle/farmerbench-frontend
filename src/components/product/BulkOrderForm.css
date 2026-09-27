@@ -26,3 +26,53 @@
 @media(max-width:900px){.pdp-bulk-modal{width:min(560px,72vw)}}
 @media(max-width:640px){.pdp-bulk-modal-backdrop{align-items:flex-end;justify-content:center;padding:0;background:rgba(15,23,42,.34)}.pdp-bulk-modal{width:100%;height:auto;max-height:92dvh;margin:0;border:1px solid #d7eadc;border-bottom:0;border-radius:18px 18px 0 0;box-shadow:0 -14px 40px rgba(15,23,42,.16);animation:pdp-bulk-sheet-in .24s ease-out}@keyframes pdp-bulk-sheet-in{from{opacity:.75;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}}
 @media(prefers-reduced-motion:reduce){.pdp-bulk-modal{animation:none}}
+
+/* Final modal sizing: fit the form instead of forcing an empty full-height drawer. */
+@media(min-width:641px){
+  .pdp-bulk-modal-backdrop{
+    align-items:center;
+    justify-content:flex-end;
+    padding:24px;
+  }
+  .pdp-bulk-modal{
+    width:min(560px,calc(100vw - 48px));
+    height:auto;
+    max-height:calc(100dvh - 48px);
+    margin:0;
+    overflow-y:auto;
+    border:1px solid #d7eadc;
+    border-radius:18px;
+  }
+}
+
+/* Inline accordion used on the product page. */
+.pdp-bulk-dropdown{
+  border-top:1px solid #dcfce7;
+  background:#fff;
+  animation:pdp-bulk-dropdown-in .2s ease-out;
+}
+.pdp-bulk-dropdown .pdp-bulk-form{
+  border-top:0;
+  padding:1rem;
+}
+.pdp-bulk-dropdown .pdp-bulk-success{
+  border-top:0;
+  padding:1rem;
+}
+.pdp-bulk-chevron{
+  flex:0 0 auto;
+  color:#15803d;
+  transition:transform .2s ease;
+}
+.pdp-bulk-order.is-open .pdp-bulk-chevron{transform:rotate(180deg)}
+@keyframes pdp-bulk-dropdown-in{
+  from{opacity:0;transform:translateY(-6px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@media(max-width:640px){
+  .pdp-bulk-dropdown .pdp-bulk-form{padding:.8rem}
+  .pdp-bulk-dropdown .pdp-bulk-grid{grid-template-columns:1fr}
+  .pdp-bulk-dropdown .pdp-bulk-wide{grid-column:auto}
+  .pdp-bulk-dropdown .pdp-bulk-footer{align-items:stretch;flex-direction:column}
+  .pdp-bulk-dropdown .pdp-bulk-footer button{justify-content:center;width:100%}
+}
