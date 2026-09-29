@@ -161,7 +161,7 @@ export const Navbar: React.FC = () => {
                       <span className="agriflow-dropdown-sub">AI & expert disease, pest diagnostics</span>
                     </div>
                   </Link>
-                  <Link to="/services#crop-calendar" className="agriflow-dropdown-subitem">
+                  <Link to="/crop-calendar" className="agriflow-dropdown-subitem">
                     <div className="agriflow-dropdown-icon-box">
                       <CalendarDays size={17} />
                     </div>
@@ -318,7 +318,7 @@ export const Navbar: React.FC = () => {
               </summary>
               <div className="agriflow-mobile-submenu">
                 <Link to="/crop-doctor" onClick={() => setIsMobileMenuOpen(false)}><Stethoscope size={14} /> Crop Doctor</Link>
-                <Link to="/services#crop-calendar" onClick={() => setIsMobileMenuOpen(false)}><CalendarDays size={14} /> Crop Calendar</Link>
+                <Link to="/crop-calendar" onClick={() => setIsMobileMenuOpen(false)}><CalendarDays size={14} /> Crop Calendar</Link>
               </div>
             </details>
             <Link to="/products" onClick={() => setIsMobileMenuOpen(false)} className={`agriflow-nav-link ${isProducts ? 'active-text' : ''}`}>
@@ -353,6 +353,7 @@ export const Navbar: React.FC = () => {
         )}
       </header>
 
+{!location.pathname.startsWith('/product/') && (
       <nav className="agriflow-mobile-bottom-nav" aria-label="Mobile primary navigation">
         <Link to="/" className={`agriflow-mobile-bottom-link ${isHome ? 'is-active' : ''}`} aria-current={isHome ? 'page' : undefined}>
           <House size={23} strokeWidth={isHome ? 2.7 : 2.1} />
@@ -378,6 +379,7 @@ export const Navbar: React.FC = () => {
           <span>Cart</span>
         </Link>
       </nav>
+      )}
 
       {/* Logout Confirmation Modal */}
       <LogoutModal

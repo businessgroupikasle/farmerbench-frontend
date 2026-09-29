@@ -8,12 +8,6 @@
   color: var(--text-primary, #17251E);
 }
 
-@media (max-width: 980px) {
-  .homepage-layout {
-    padding-top: 84px;
-  }
-}
-
 .home-coupon-offer-wrap { padding-block: 1.25rem .5rem; }
 
 .home-coupon-offer {

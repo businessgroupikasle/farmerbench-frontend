@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { ArrowRight, CalendarDays, ChartNoAxesCombined, CloudSun, Leaf, ShieldCheck, Smartphone, Sprout } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -31,10 +31,10 @@ const WeatherSnapshot: React.FC = () => {
   });
 
   return <>
-    <p className="smart-hub-weather-copy">{data ? `${weatherLabel(data.weather_code)} · Humidity ${data.relative_humidity_2m}% · Wind ${Math.round(data.wind_speed_10m)} km/h` : 'Current Coimbatore weather and farm conditions.'}</p>
+    <p className="smart-hub-weather-copy">{data ? `${weatherLabel(data.weather_code)} Â· Humidity ${data.relative_humidity_2m}% Â· Wind ${Math.round(data.wind_speed_10m)} km/h` : 'Current Coimbatore weather and farm conditions.'}</p>
     <div className="smart-hub-weather-art" aria-label={data ? `${Math.round(data.temperature_2m)} degrees Celsius` : 'Loading weather'}>
       <CloudSun size={61} fill="white" />
-      <span>{isLoading ? '--' : `${Math.round(data?.temperature_2m ?? 28)}°C`}<small>Coimbatore</small></span>
+      <span>{isLoading ? '--' : `${Math.round(data?.temperature_2m ?? 28)}Â°C`}<small>Coimbatore</small></span>
     </div>
   </>;
 };
@@ -62,7 +62,7 @@ const tools = [
     heading: 'Plan Your Crop Season',
     description: 'Get crop-wise schedule for sowing, irrigation, fertilizer & harvesting.',
     action: 'View Calendar',
-    to: '/services/farm-development',
+    to: '/crop-calendar',
     art: (
       <div className="smart-hub-calendar-art" aria-hidden="true">
         <Sprout size={33} />
@@ -75,7 +75,7 @@ const tools = [
     icon: <CloudSun size={19} />,
     title: 'Weather Update',
     heading: 'Live Farm Weather',
-    description: 'Live weather loading…',
+    description: 'Live weather loadingâ€¦',
     action: 'Check Weather',
     to: '/services',
     art: null,
@@ -87,7 +87,7 @@ const tools = [
     heading: "Today's Agriculture Prices",
     description: 'Check daily market prices of crops, seeds, fertilizers and more.',
     action: 'View Market Prices',
-    to: '',
+    to: '/#market-prices',
     art: <ChartNoAxesCombined className="smart-hub-market-art" size={67} aria-hidden="true" />,
   },
 ];
@@ -114,3 +114,4 @@ export const HomeSmartHub: React.FC = () => (
 );
 
 export default HomeSmartHub;
+

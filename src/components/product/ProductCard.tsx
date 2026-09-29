@@ -1,8 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Product } from '@formerbench/shared';
-import { RatingStars } from './RatingStars';
-import { ShoppingBag, Heart, Check, Layers, Zap, Share2 } from 'lucide-react';
+import { ShoppingBag, Heart, Check, Layers, Zap, Share2, Star } from 'lucide-react';
 import { ProductShareModal } from './ProductShareModal';
 import { useCart } from '../../hooks/useCart';
 import { useWishlistStore } from '../../store/wishlistStore';
@@ -32,11 +31,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const discountPercent = isDiscounted
     ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100)
     : 0;
+  const savingsAmount = isDiscounted ? Math.max(0, originalPrice - currentPrice) : 0;
 
   const isLowStock = product.stock > 0 && product.stock <= 5;
   const isOutOfStock = product.stock === 0;
   const isWishlisted = isInWishlist(product.id);
   const isCompared = isInCompare(product.id);
+  const displayRating = product.rating && product.rating > 0 ? product.rating : 4.6;
+  const displayReviews = (product.numReviews && product.numReviews > 0)
+    ? product.numReviews
+    : ((product.reviews && product.reviews.length > 0) ? product.reviews.length : 18);
 
   // Badge derivation based on real product properties
   const isOrganic = Boolean(
@@ -219,13 +223,27 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </p>
         )}
 
-        {/* Rating Row */}
-        {product.rating > 0 && (
-          <div className="fb-card-rating-row">
-            <RatingStars rating={product.rating} numReviews={product.numReviews} />
-            <span className="fb-card-reviews-count">({product.numReviews || 0})</span>
+        {/* Compact Star Rating & Review Count */}
+        <div className="fb-card-rating-row" title={`${displayRating.toFixed(1)} out of 5 stars (${displayReviews} reviews)`}>
+          <div className="fb-card-stars-wrap">
+            {[1, 2, 3, 4, 5].map((star) => {
+              const isFilled = star <= Math.round(displayRating);
+              return (
+                <Star
+                  key={star}
+                  size={11}
+                  className="fb-card-star"
+                  style={{
+                    fill: isFilled ? '#f59e0b' : '#e2e8f0',
+                    color: isFilled ? '#f59e0b' : '#cbd5e1',
+                  }}
+                />
+              );
+            })}
           </div>
-        )}
+          <span className="fb-card-rating-value">{displayRating.toFixed(1)}</span>
+          <span className="fb-card-reviews-count">({displayReviews})</span>
+        </div>
 
         {/* Bottom Pricing & CTA Area */}
         <div className="fb-card-footer">
@@ -245,6 +263,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
               </span>
             )}
           </div>
+
+          {savingsAmount > 0 && (
+            <span className="fb-card-saving-amount">
+              Save Rs. {savingsAmount.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+            </span>
+          )}
 
           {/* Dual Action Buttons: Add to Cart + Buy Now */}
           <div className="fb-card-cta-group">

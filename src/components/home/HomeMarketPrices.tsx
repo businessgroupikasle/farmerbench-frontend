@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+﻿import React, { useMemo } from 'react';
 import { ArrowRight, TrendingDown, TrendingUp } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { marketPriceService } from '../../services/marketPrice.service';
@@ -120,7 +120,7 @@ export const HomeMarketPrices: React.FC = () => {
   }, [data]);
 
   return (
-    <section className="home-market-section" aria-labelledby="home-market-title">
+    <section id="market-prices" className="home-market-section" aria-labelledby="home-market-title">
       <div className="home-market-header">
         <div>
           <h2 id="home-market-title">Today&apos;s Market Prices</h2>
@@ -135,7 +135,7 @@ export const HomeMarketPrices: React.FC = () => {
         </a>
       </div>
 
-      {isLoading && <p className="home-market-status">Loading today&apos;s live market prices…</p>}
+      {isLoading && <p className="home-market-status">Loading today&apos;s live market pricesâ€¦</p>}
       {isError && <p className="home-market-status home-market-status--error">Live prices are temporarily unavailable.</p>}
       {!isLoading && !isError && (
         <div className="home-market-list">
@@ -145,7 +145,7 @@ export const HomeMarketPrices: React.FC = () => {
               <article
                 className="home-market-item"
                 key={`${item.commodity}-${item.market}`}
-                title={`${item.market}, ${item.district}, ${item.state} • ${item.arrivalDate}`}
+                title={`${item.market}, ${item.district}, ${item.state} â€¢ ${item.arrivalDate}`}
               >
                 <span className="home-market-icon">
                   <img
@@ -179,3 +179,4 @@ export const HomeMarketPrices: React.FC = () => {
 };
 
 export default HomeMarketPrices;
+

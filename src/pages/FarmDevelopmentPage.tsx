@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Sprout,
@@ -251,7 +251,7 @@ export const FarmDevelopmentPage: React.FC = () => {
         : (cleanPostOffice || place.city || place.district || '');
       const fullLoc = [town, place.district, place.state].filter(Boolean).join(', ');
       setFormData((current) => ({ ...current, location: fullLoc }));
-      setPostalStatus(`✓ ${fullLoc}`);
+      setPostalStatus(`âœ“ ${fullLoc}`);
     }).catch((error) => active && setPostalStatus(error.message || 'Pincode not found'));
     return () => { active = false; };
   }, [formData.pincode]);
@@ -803,7 +803,7 @@ export const FarmDevelopmentPage: React.FC = () => {
                       <label className="farm-dev-label">Development Budget</label>
                       <input
                         type="text"
-                        placeholder="e.g. ₹5,00,000"
+                        placeholder="e.g. â‚¹5,00,000"
                         value={formData.budget}
                         onChange={(e) =>
                           setFormData({ ...formData, budget: e.target.value })
@@ -909,8 +909,8 @@ export const FarmDevelopmentPage: React.FC = () => {
                         className="farm-dev-checkbox"
                       />
                       <span>
-                        I agree to the <Link to="/about">terms</Link> and{' '}
-                        <Link to="/about">privacy policy</Link> and consent to being contacted.
+                        I agree to the <Link to="/terms">terms</Link> and{' '}
+                        <Link to="/privacy">privacy policy</Link> and consent to being contacted.
                       </span>
                     </label>
                   </div>
@@ -1109,3 +1109,5 @@ export const FarmDevelopmentPage: React.FC = () => {
 };
 
 export default FarmDevelopmentPage;
+
+

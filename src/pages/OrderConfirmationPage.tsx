@@ -28,6 +28,9 @@ export const OrderConfirmationPage: React.FC = () => {
     );
   }
 
+  // Keep the UUID for API operations, but show customers a compact reference.
+  const displayOrderId = `#AE-${order.id.replace(/-/g, '').slice(0, 8).toUpperCase()}`;
+
   return (
     <div style={{ maxWidth: '780px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       {/* Header Banner */}
@@ -66,7 +69,7 @@ export const OrderConfirmationPage: React.FC = () => {
 
         <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>Order ID:</span>
-          <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '0.95rem' }}>{order.id}</span>
+          <span style={{ fontFamily: 'monospace', fontWeight: 700, fontSize: '0.95rem', letterSpacing: '0.04em' }}>{displayOrderId}</span>
           <Badge variant="success">{order.orderStatus}</Badge>
         </div>
       </div>

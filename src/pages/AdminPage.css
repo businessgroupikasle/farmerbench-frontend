@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    AgriEra ADMIN PANEL - MASTER STYLESHEET
    ========================================================================== */
 
@@ -2958,7 +2958,7 @@
   line-height: 1;
 }
 
-.hero-banner-guide[open] summary::after { content: '−'; }
+.hero-banner-guide[open] summary::after { content: 'âˆ’'; }
 
 .hero-banner-guide-grid {
   display: grid;
@@ -5643,4 +5643,79 @@
 }
 @media(max-width:360px){
   .admin-products-view .admin-product-header-actions{grid-template-columns:1fr}
+}
+
+/* Crop Calendar Requests */
+.admin-crop-calendar-requests-view {
+  overflow: hidden;
+  padding: 0;
+}
+
+.admin-crop-calendar-requests-view > .admin-card-header {
+  padding: 1.35rem 1.5rem 1rem;
+  margin-bottom: 0;
+  border-bottom: 1px solid #e7eee8;
+}
+
+.admin-crop-calendar-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #b9cbbd transparent;
+}
+
+.admin-crop-calendar-table {
+  min-width: 1180px;
+  table-layout: fixed;
+}
+
+.admin-crop-calendar-table th,
+.admin-crop-calendar-table td {
+  padding: 0.9rem 0.8rem;
+  vertical-align: top;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.admin-crop-calendar-table th {
+  white-space: nowrap;
+  color: #405348;
+  background: #f5f9f5;
+}
+
+.admin-crop-calendar-table th:nth-child(1),
+.admin-crop-calendar-table td:nth-child(1) { width: 120px; }
+.admin-crop-calendar-table th:nth-child(2),
+.admin-crop-calendar-table td:nth-child(2) { width: 170px; }
+.admin-crop-calendar-table th:nth-child(3),
+.admin-crop-calendar-table td:nth-child(3) { width: 170px; }
+.admin-crop-calendar-table th:nth-child(4),
+.admin-crop-calendar-table td:nth-child(4) { width: 130px; }
+.admin-crop-calendar-table th:nth-child(5),
+.admin-crop-calendar-table td:nth-child(5) { width: 95px; }
+.admin-crop-calendar-table th:nth-child(6),
+.admin-crop-calendar-table td:nth-child(6) { width: 175px; }
+.admin-crop-calendar-table th:nth-child(7),
+.admin-crop-calendar-table td:nth-child(7) { width: 105px; white-space: nowrap; }
+.admin-crop-calendar-table th:nth-child(8),
+.admin-crop-calendar-table td:nth-child(8) { width: 90px; text-align: center; }
+.admin-crop-calendar-table th:nth-child(9),
+.admin-crop-calendar-table td:nth-child(9) { width: 125px; text-align: center; }
+
+.admin-crop-calendar-table td:nth-child(8),
+.admin-crop-calendar-table td:nth-child(9) {
+  vertical-align: middle;
+}
+
+.admin-crop-calendar-table .admin-primary-btn {
+  justify-content: center;
+  white-space: nowrap;
+  min-width: 104px;
+}
+
+@media (max-width: 768px) {
+  .admin-crop-calendar-requests-view > .admin-card-header { padding: 1rem; }
+  .admin-crop-calendar-table { min-width: 1080px; }
+  .admin-crop-calendar-table th,
+  .admin-crop-calendar-table td { padding: 0.75rem 0.65rem; }
 }

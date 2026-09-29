@@ -50,6 +50,6 @@ export const HomeHero: React.FC<{ onReady?: () => void }> = ({ onReady }) => {
       </section>
     );
   };
-  return <div className="home-hero-wrap">{banners.length ? <HeroCarousel banners={banners} renderSlide={(banner, index) => render(banner, index)} /> : render()}<TrustItems mobile /></div>;
+  return <div className="home-hero-wrap">{banners.length ? <HeroCarousel banners={banners} renderSlide={(banner, index) => render(banner, index)} /> : render()}</div>;
 };
 export default HomeHero;

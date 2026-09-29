@@ -8,7 +8,7 @@ import { ProductFilters } from '../components/product/ProductFilters';
 import { ProductHero } from '../components/product/ProductHero';
 import { CompareDrawer } from '../components/product/CompareDrawer';
 import { Pagination } from '../components/common/Pagination';
-import { X, Search, SlidersHorizontal, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, SlidersHorizontal, ArrowUpDown, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import './ProductsPage.css';
 
 export const ProductsPage: React.FC = () => {
@@ -17,6 +17,7 @@ export const ProductsPage: React.FC = () => {
     filters,
     inStockOnly,
     setCategory,
+    setSubcategory,
     setSearch,
     setPriceRange,
     setMinRating,
@@ -28,13 +29,25 @@ export const ProductsPage: React.FC = () => {
   } = useFilterStore();
 
   const { data: apiCategories = [] } = useCategories();
+  const { data: mobileCatalogResponse } = useProducts({ page: 1, limit: 100 });
+  const mobileCatalogProducts = mobileCatalogResponse?.data || [];
   const [showMobileFilters, setShowMobileFilters] = useState(false);
-  const [catalogSearch, setCatalogSearch] = useState(filters.search || '');
   const categoryPillsRef = useRef<HTMLDivElement>(null);
+  const [searchTerm, setSearchTerm] = useState(filters.search || '');
 
   useEffect(() => {
-    setCatalogSearch(filters.search || '');
+    setSearchTerm(filters.search || '');
   }, [filters.search]);
+
+  const handleCatalogSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleHeroSearch(searchTerm.trim());
+  };
+
+  const handleClearCatalogSearch = () => {
+    setSearchTerm('');
+    handleHeroSearch('');
+  };
 
   const scrollCategoryPills = (direction: -1 | 1) => {
     categoryPillsRef.current?.scrollBy({
@@ -46,6 +59,7 @@ export const ProductsPage: React.FC = () => {
   // Sync URL query parameters with filterStore on initial load and param change
   useEffect(() => {
     const urlCategory = searchParams.get('category');
+    const urlSubcategory = searchParams.get('subcategory');
     const urlSearch = searchParams.get('search');
     const urlFeatured = searchParams.get('featured') === 'true';
     const urlSort = searchParams.get('sort');
@@ -54,6 +68,7 @@ export const ProductsPage: React.FC = () => {
     if (urlCategory) {
       setCategory(urlCategory);
     }
+    setSubcategory(urlSubcategory || undefined);
     if (urlSearch) {
       setSearch(urlSearch);
     }
@@ -93,6 +108,25 @@ export const ProductsPage: React.FC = () => {
     } else {
       nextParams.delete('category');
     }
+    nextParams.delete('subcategory');
+    nextParams.set('page', '1');
+    setSearchParams(nextParams);
+  };
+
+  const activeCategories = apiCategories.filter((category) => category.isActive);
+
+  const categoryImage = (categoryId: string, imageUrl?: string | null) =>
+    imageUrl || mobileCatalogProducts.find((product) => product.categoryId === categoryId)?.images?.[0];
+
+  const subcategoryImage = (subcategoryId: string, imageUrl?: string | null) =>
+    imageUrl || mobileCatalogProducts.find((product) => product.subcategoryId === subcategoryId)?.images?.[0];
+
+  const handleSubcategoryClick = (categorySlug: string, subcategoryId: string) => {
+    setCategory(categorySlug);
+    setSubcategory(subcategoryId);
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('category', categorySlug);
+    nextParams.set('subcategory', subcategoryId);
     nextParams.set('page', '1');
     setSearchParams(nextParams);
   };
@@ -174,7 +208,7 @@ export const ProductsPage: React.FC = () => {
   }
 
   return (
-    <div className="fb-products-page">
+    <div className={'fb-products-page ' + (!filters.category ? 'is-mobile-category-index' : 'is-mobile-product-results')}>
       {/* 1. Promotional Hero Banner matching reference design */}
       <ProductHero
         initialSearch={filters.search || ''}
@@ -228,38 +262,30 @@ export const ProductsPage: React.FC = () => {
           </div>
 
           <div className="fb-catalog-toolbar-actions">
-            <form
-              className="fb-catalog-search"
-              role="search"
-              onSubmit={(event) => {
-                event.preventDefault();
-                handleHeroSearch(catalogSearch.trim());
-              }}
-            >
-              <Search size={17} aria-hidden="true" />
-              <label className="sr-only" htmlFor="catalog-product-search">Search products</label>
-              <input
-                id="catalog-product-search"
-                type="search"
-                value={catalogSearch}
-                onChange={(event) => setCatalogSearch(event.target.value)}
-                placeholder="Search products..."
-                autoComplete="off"
-              />
-              {catalogSearch && (
-                <button
-                  type="button"
-                  className="fb-catalog-search-clear"
-                  aria-label="Clear product search"
-                  onClick={() => {
-                    setCatalogSearch('');
-                    handleHeroSearch('');
-                  }}
-                >
-                  <X size={15} />
-                </button>
-              )}
-              <button type="submit" className="fb-catalog-search-submit">
+            {/* Desktop Catalog Search Bar - hidden on mobile view */}
+            <form onSubmit={handleCatalogSearchSubmit} className="fb-catalog-search-form hide-mobile" role="search">
+              <div className="fb-catalog-search-input-wrap">
+                <Search size={16} className="fb-catalog-search-icon" aria-hidden="true" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search catalogue..."
+                  className="fb-catalog-search-input"
+                  aria-label="Search catalog products"
+                />
+                {searchTerm && (
+                  <button
+                    type="button"
+                    onClick={handleClearCatalogSearch}
+                    className="fb-catalog-search-clear-btn"
+                    aria-label="Clear search"
+                  >
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
+              <button type="submit" className="fb-catalog-search-btn">
                 Search
               </button>
             </form>
@@ -324,6 +350,64 @@ export const ProductsPage: React.FC = () => {
         )}
       </section>
 
+
+      {!filters.category && (
+      <section className="fb-mobile-category-panel" aria-labelledby="fb-mobile-category-title">
+        <header className="fb-mobile-category-banner">
+          <div>
+            <span>SELECT PRODUCT</span>
+            <strong id="fb-mobile-category-title">CATEGORY</strong>
+          </div>
+          <span className="fb-mobile-category-banner-art" aria-hidden="true">AG</span>
+        </header>
+
+        <div className="fb-mobile-category-content">
+          <h3 className="fb-mobile-category-section-title">Main Categories</h3>
+          <nav className="fb-mobile-subcategory-nav" aria-label="Main product categories">
+            {activeCategories.map((category) => {
+              const categorySlug = category.slug || category.id;
+              const selected = filters.category === categorySlug && !filters.subcategoryId;
+              return (
+                <button key={category.id} type="button" className={'fb-mobile-subcategory-item ' + (selected ? 'active' : '')} onClick={() => handleCategoryClick(categorySlug)} aria-pressed={selected}>
+                  <span className="fb-mobile-subcategory-image-wrap">
+                    {categoryImage(category.id, category.imageUrl) ? <img src={categoryImage(category.id, category.imageUrl)} alt="" loading="lazy" /> : <span aria-hidden="true">{category.name.charAt(0)}</span>}
+                  </span>
+                  <span className="fb-mobile-subcategory-name">{category.name}</span>
+                </button>
+              );
+            })}
+          </nav>
+
+          <div className="fb-mobile-subcategory-groups">
+            {activeCategories.map((category) => {
+              const children = (category.subcategories || []).filter((subcategory) => subcategory.isActive);
+              if (!children.length) return null;
+              const categorySlug = category.slug || category.id;
+              return (
+                <section key={category.id} className="fb-mobile-subcategory-group" aria-labelledby={'mobile-subcategory-' + category.id}>
+                  <h3 id={'mobile-subcategory-' + category.id}>{category.name}</h3>
+                  <nav className="fb-mobile-subcategory-nav" aria-label={category.name + ' subcategories'}>
+                    {children.map((subcategory) => (
+                      <button key={subcategory.id} type="button" className={'fb-mobile-subcategory-item ' + (filters.subcategoryId === subcategory.id ? 'active' : '')} onClick={() => handleSubcategoryClick(categorySlug, subcategory.id)} aria-pressed={filters.subcategoryId === subcategory.id}>
+                        <span className="fb-mobile-subcategory-image-wrap">
+                          {subcategoryImage(subcategory.id, subcategory.imageUrl) ? <img src={subcategoryImage(subcategory.id, subcategory.imageUrl)} alt="" loading="lazy" /> : <span aria-hidden="true">{subcategory.name.charAt(0)}</span>}
+                        </span>
+                        <span className="fb-mobile-subcategory-name">{subcategory.name}</span>
+                      </button>
+                    ))}
+                  </nav>
+                </section>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+      )}
+      {filters.category && (
+        <button type="button" className="fb-mobile-back-to-categories hide-desktop" onClick={() => handleCategoryClick('')}>
+          <ChevronLeft size={18} /> Back to Categories
+        </button>
+      )}
       {/* 3. Main Catalog Grid (Sticky Sidebar + Product Grid) */}
       <div className="fb-catalog-main-layout">
         {/* Left Sidebar Filters */}

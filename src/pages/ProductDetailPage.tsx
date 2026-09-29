@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+﻿import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useProduct, useProductMutations, useProducts } from '../hooks/useProducts';
 import { useCart } from '../hooks/useCart';
@@ -95,6 +95,25 @@ export const ProductDetailPage: React.FC = () => {
   const mainGridRef = useRef<HTMLDivElement>(null);
   const recommendationsRef = useRef<HTMLDivElement>(null);
   const [isGalleryCompact, setIsGalleryCompact] = useState(false);
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Lock body scroll on mobile for full-screen fixed product layout
+  useEffect(() => {
+    document.body.classList.add('pdp-mobile-active');
+    document.documentElement.classList.add('pdp-mobile-active');
+    return () => {
+      document.body.classList.remove('pdp-mobile-active');
+      document.documentElement.classList.remove('pdp-mobile-active');
+    };
+  }, []);
+
+  // Reset scroll position of the middle container when product changes
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = 0;
+    }
+  }, [idOrSlug]);
 
   useEffect(() => {
     const desktopGallery = window.matchMedia('(min-width: 993px)');
@@ -383,6 +402,16 @@ export const ProductDetailPage: React.FC = () => {
   };
 
   // Structured content parsed from PostgreSQL
+  const descriptionPoints: string[] = product?.description
+    ? product.description
+        .split(/\r?\n|(?<=[.!?])\s+/)
+        .map((s: string) => s.trim().replace(/^[-â€¢*]\s*/, ''))
+        .filter((s: string) => s.length > 2)
+    : [];
+  const displayDescriptionPoints: string[] = descriptionPoints.length > 0
+    ? descriptionPoints
+    : product?.description ? [product.description] : [];
+
   const targetCrops: string = typeof attrs.targetCrops === 'string' ? attrs.targetCrops : '';
   const benefits: string[] = Array.isArray(attrs.benefits) ? attrs.benefits : [];
   const usageSteps: Array<{ stepNumber: number; title: string; description: string }> = Array.isArray(attrs.usageSteps) ? attrs.usageSteps : [];
@@ -405,7 +434,10 @@ export const ProductDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="pdp-wrapper animate-fade-in">
+    <div className="pdp-screen-container">
+      {/* Scrollable middle container - flex: 1; min-height: 0; overflow-y: auto */}
+      <div className="pdp-scrollable-content" ref={scrollContainerRef}>
+        <div className="pdp-wrapper animate-fade-in">
       {/* 1. Breadcrumbs */}
       <nav className="pdp-breadcrumbs" aria-label="Breadcrumb">
         <Link to="/">Home</Link>
@@ -519,7 +551,7 @@ export const ProductDetailPage: React.FC = () => {
             <span>
               <strong>SKU:</strong> {skuCode}
             </span>
-            <span>•</span>
+            <span>â€¢</span>
             <span
               className={`pdp-stock-status ${
                 isOutOfStock ? 'out-of-stock' : currentStock <= 10 ? 'low-stock' : 'in-stock'
@@ -555,23 +587,37 @@ export const ProductDetailPage: React.FC = () => {
             <div className="pdp-pack-size-section">
               <span className="pdp-section-label">Pack Size</span>
               <div className="pdp-pack-options">
-                {availablePackSizes.map((size) => (
-                  <button
-                    key={size}
-                    type="button"
-                    onClick={() => setSelectedPackSize(size)}
-                    className={`pdp-pack-btn ${selectedPackSize === size ? 'active' : ''}`}
-                  >
-                    {size}
-                  </button>
-                ))}
+                {availablePackSizes.map((size) => {
+                  const variant = getPackSizeVariant(size);
+                  const isSelected = selectedPackSize === size;
+                  const variantSavings = Math.max(0, variant.mrp - variant.sellingPrice);
+                  return (
+                    <button
+                      key={size}
+                      type="button"
+                      onClick={() => {
+                        setSelectedPackSize(size);
+                        setQuantity(1);
+                      }}
+                      className={'pdp-pack-btn ' + (isSelected ? 'active' : '')}
+                      aria-pressed={isSelected}
+                    >
+                      <strong className="pdp-pack-card-label">{size}</strong>
+                      <small className="pdp-pack-card-meta">{variant.stock > 0 ? `${variant.stock} available` : 'Out of stock'}</small>
+                      <span className="pdp-pack-card-price">Rs. {variant.sellingPrice.toLocaleString('en-IN')}</span>
+                      {variantSavings > 0 && (
+                        <span className="pdp-pack-card-saving">
+                          Save Rs. {variantSavings.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
 
-          <BulkOrderForm product={product} packSize={selectedPackSize} sku={skuCode} user={user} />
-
-          <div className="pdp-mobile-actions-shell">
+          <div className="pdp-inline-actions">
           {/* Quantity & CTA Row */}
           <div className="pdp-actions-row">
             <div className="pdp-qty-wrap">
@@ -603,7 +649,7 @@ export const ProductDetailPage: React.FC = () => {
               type="button"
               disabled={isOutOfStock}
               onClick={handleAddToCart}
-              className="pdp-btn-add-cart"
+              className="pdp-btn-add-cart pdp-desktop-cta"
             >
               <ShoppingBag size={18} /> Add to Cart
             </button>
@@ -612,7 +658,7 @@ export const ProductDetailPage: React.FC = () => {
               type="button"
               disabled={isOutOfStock}
               onClick={handleBuyNow}
-              className="pdp-btn-buy-now"
+              className="pdp-btn-buy-now pdp-desktop-cta"
             >
               Buy Now
             </button>
@@ -642,6 +688,8 @@ export const ProductDetailPage: React.FC = () => {
             </button>
           </div>
           </div>
+
+          <BulkOrderForm product={product} packSize={selectedPackSize} sku={skuCode} user={user} />
 
           {/* Check Delivery Box */}
           <div className="pdp-delivery-card">
@@ -673,7 +721,7 @@ export const ProductDetailPage: React.FC = () => {
             )}
             <div className="pdp-delivery-estimate">
               <Truck size={14} style={{ color: '#16a34a' }} />
-              <span>Usually delivered in 3–5 business days directly to your farm address</span>
+              <span>Usually delivered in 3â€“5 business days directly to your farm address</span>
             </div>
           </div>
 
@@ -702,7 +750,7 @@ export const ProductDetailPage: React.FC = () => {
       {/* 3. Crop Expert Assistance Banner */}
       <div className="pdp-expert-banner">
         <div className="pdp-expert-left">
-          <div className="pdp-expert-icon-wrap">🌱</div>
+          <div className="pdp-expert-icon-wrap">ðŸŒ±</div>
           <div>
             <h3 className="pdp-expert-title">Need help using this product?</h3>
             <p className="pdp-expert-sub">
@@ -722,17 +770,36 @@ export const ProductDetailPage: React.FC = () => {
       <div className="pdp-mobile-info-accordion">
         <details open>
           <summary>Description</summary>
-          <div className="pdp-mobile-accordion-content"><p>{product.description}</p></div>
+          <div className="pdp-mobile-accordion-content">
+            <ul className="pdp-mobile-bullet-list">
+              {displayDescriptionPoints.map((point: string, idx: number) => (
+                <li key={idx}>
+                  <span className="pdp-bullet-dot" />
+                  <span>{point}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </details>
 
         {(targetCrops || specifications.length > 0) && (
           <details>
             <summary>Product Details</summary>
             <div className="pdp-mobile-accordion-content">
-              <div className="pdp-mobile-detail-rows">
-                {targetCrops && <div><span>Target Crops</span><strong>{targetCrops}</strong></div>}
-                {specifications.map((spec, idx) => <div key={idx}><span>{spec.label}</span><strong>{spec.value}</strong></div>)}
-              </div>
+              <ul className="pdp-mobile-bullet-list pdp-detail-points">
+                {targetCrops && (
+                  <li>
+                    <span className="pdp-bullet-dot" />
+                    <span><strong>Target Crops:</strong> {targetCrops}</span>
+                  </li>
+                )}
+                {specifications.map((spec, idx) => (
+                  <li key={idx}>
+                    <span className="pdp-bullet-dot" />
+                    <span><strong>{spec.label}:</strong> {spec.value}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </details>
         )}
@@ -740,15 +807,34 @@ export const ProductDetailPage: React.FC = () => {
         {benefits.length > 0 && (
           <details>
             <summary>Benefits</summary>
-            <div className="pdp-mobile-accordion-content"><ul>{benefits.map((benefit, idx) => <li key={idx}>{benefit}</li>)}</ul></div>
+            <div className="pdp-mobile-accordion-content">
+              <ul className="pdp-mobile-bullet-list">
+                {benefits.map((benefit, idx) => (
+                  <li key={idx}>
+                    <span className="pdp-bullet-dot" />
+                    <span>{benefit}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </details>
         )}
 
         {usageSteps.length > 0 && (
           <details>
             <summary>How to Use</summary>
-            <div className="pdp-mobile-accordion-content pdp-mobile-steps">
-              {usageSteps.map((step, idx) => <div key={idx}><b>{step.stepNumber || idx + 1}</b><span><strong>{step.title}</strong><small>{step.description}</small></span></div>)}
+            <div className="pdp-mobile-accordion-content">
+              <ul className="pdp-mobile-bullet-list pdp-steps-points">
+                {usageSteps.map((step, idx) => (
+                  <li key={idx}>
+                    <span className="pdp-step-badge">{step.stepNumber || idx + 1}</span>
+                    <div className="pdp-step-content">
+                      <strong>{step.title}</strong>
+                      {step.description && <p>{step.description}</p>}
+                    </div>
+                  </li>
+                ))}
+              </ul>
             </div>
           </details>
         )}
@@ -756,16 +842,23 @@ export const ProductDetailPage: React.FC = () => {
         {dosageTable.length > 0 && (
           <details>
             <summary>Dosage</summary>
-            <div className="pdp-mobile-accordion-content pdp-mobile-dosage-rows">
-              {dosageTable.map((row, idx) => (
-                <div className="pdp-mobile-dosage-card" key={idx}>
-                  <div><span>Crop</span><strong>{row.crop || '—'}</strong></div>
-                  <div><span>Target</span><strong>{row.target || '—'}</strong></div>
-                  <div><span>Dosage</span><strong>{row.dosage || row.foliarSpray || '—'}</strong></div>
-                  <div><span>Water Volume</span><strong>{row.waterVolume || row.dripIrrigation || '—'}</strong></div>
-                  <div><span>Waiting Period</span><strong>{row.waitingPeriod || '—'}</strong></div>
-                </div>
-              ))}
+            <div className="pdp-mobile-accordion-content">
+              <div className="pdp-mobile-dosage-list">
+                {dosageTable.map((row, idx) => (
+                  <div className="pdp-dosage-point-card" key={idx}>
+                    <div className="pdp-dosage-point-title">
+                      <span className="pdp-bullet-dot" />
+                      <strong>{row.crop || `Dosage Application #${idx + 1}`}</strong>
+                    </div>
+                    <ul className="pdp-dosage-subpoints">
+                      {row.target && <li><span>Target:</span> <strong>{row.target}</strong></li>}
+                      {(row.dosage || row.foliarSpray) && <li><span>Dosage:</span> <strong>{row.dosage || row.foliarSpray}</strong></li>}
+                      {(row.waterVolume || row.dripIrrigation) && <li><span>Water Volume:</span> <strong>{row.waterVolume || row.dripIrrigation}</strong></li>}
+                      {row.waitingPeriod && <li><span>Waiting Period:</span> <strong>{row.waitingPeriod}</strong></li>}
+                    </ul>
+                  </div>
+                ))}
+              </div>
             </div>
           </details>
         )}
@@ -773,15 +866,34 @@ export const ProductDetailPage: React.FC = () => {
         {ingredients && (
           <details>
             <summary>Ingredients</summary>
-            <div className="pdp-mobile-accordion-content"><ol>{ingredientItems.map((ingredient, idx) => <li key={`${ingredient}-${idx}`}>{ingredient}</li>)}</ol></div>
+            <div className="pdp-mobile-accordion-content">
+              <ul className="pdp-mobile-bullet-list">
+                {ingredientItems.map((ingredient, idx) => (
+                  <li key={`${ingredient}-${idx}`}>
+                    <span className="pdp-bullet-dot" />
+                    <span>{ingredient}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </details>
         )}
 
         {faqs.length > 0 && (
           <details>
             <summary>FAQs</summary>
-            <div className="pdp-mobile-accordion-content pdp-mobile-faq-list">
-              {faqs.map((faq, idx) => <div key={idx}><strong>{faq.question}</strong><p>{faq.answer}</p></div>)}
+            <div className="pdp-mobile-accordion-content">
+              <div className="pdp-mobile-faq-list">
+                {faqs.map((faq, idx) => (
+                  <div className="pdp-faq-point-card" key={idx}>
+                    <div className="pdp-faq-q">
+                      <span className="pdp-bullet-dot" />
+                      <strong>{faq.question}</strong>
+                    </div>
+                    <p className="pdp-faq-a">{faq.answer}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           </details>
         )}
@@ -956,11 +1068,11 @@ export const ProductDetailPage: React.FC = () => {
                 <tbody>
                   {dosageTable.map((row, idx) => (
                     <tr key={idx}>
-                      <td data-label="Crop">{row.crop || '—'}</td>
-                      <td data-label="Target">{row.target || '—'}</td>
-                      <td data-label="Dosage (ml/acre)">{row.dosage || row.foliarSpray || '—'}</td>
-                      <td data-label="Water Volume (L/acre)">{row.waterVolume || row.dripIrrigation || '—'}</td>
-                      <td data-label="Waiting Period (days)">{row.waitingPeriod || '—'}</td>
+                      <td data-label="Crop">{row.crop || 'â€”'}</td>
+                      <td data-label="Target">{row.target || 'â€”'}</td>
+                      <td data-label="Dosage (ml/acre)">{row.dosage || row.foliarSpray || 'â€”'}</td>
+                      <td data-label="Water Volume (L/acre)">{row.waterVolume || row.dripIrrigation || 'â€”'}</td>
+                      <td data-label="Waiting Period (days)">{row.waitingPeriod || 'â€”'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1259,6 +1371,33 @@ export const ProductDetailPage: React.FC = () => {
           </div>
         </section>
       )}
+        </div>
+      </div>
+
+      {/* Mobile Fixed Bottom Action Bar: Always at the absolute bottom edge of the mobile screen */}
+      <div className="pdp-bottom-action-bar" aria-label="Purchase Actions">
+        <div className="pdp-bottom-action-bar-inner">
+          <button
+            type="button"
+            disabled={isOutOfStock}
+            onClick={handleAddToCart}
+            className="pdp-btn-add-cart pdp-mobile-action-btn"
+          >
+            <ShoppingBag size={18} />
+            <span>{isOutOfStock ? 'Out of Stock' : 'Add to Cart'}</span>
+          </button>
+
+          <button
+            type="button"
+            disabled={isOutOfStock}
+            onClick={handleBuyNow}
+            className="pdp-btn-buy-now pdp-mobile-action-btn"
+          >
+            <span>{isOutOfStock ? 'Sold Out' : 'Buy Now'}</span>
+          </button>
+        </div>
+      </div>
+
       {/* Crop Expert Advisory Modal */}
       {isExpertModalOpen && (
         <div className="agriflow-modal-overlay" onClick={() => setIsExpertModalOpen(false)}>
@@ -1364,3 +1503,5 @@ export const ProductDetailPage: React.FC = () => {
 };
 
 export default ProductDetailPage;
+
+

@@ -1,8 +1,10 @@
-import { apiClient } from './api';
+﻿import { apiClient } from './api';
 
 export interface PostalLocation {
   postalCode: string;
   city: string;
+  taluk: string;
+  taluks: string[];
   district: string;
   state: string;
   country: string;
@@ -16,3 +18,5 @@ export const postalCodeService = {
     return response.data;
   },
 };
+
+

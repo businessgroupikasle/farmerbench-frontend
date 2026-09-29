@@ -1396,7 +1396,6 @@ export const LoginPage: React.FC = () => {
                     size="large"
                     shape="rectangular"
                     text={mode === 'signup' ? 'signup_with' : 'continue_with'}
-                    width="360"
                   />
                 </div>
               </>

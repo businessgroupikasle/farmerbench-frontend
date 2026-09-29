@@ -1,4 +1,4 @@
-/* ==========================================================================
+﻿/* ==========================================================================
    ProductsPage Consolidated Stylesheet - AgriEra Agricultural Marketplace
    ========================================================================== */
 
@@ -107,6 +107,10 @@
   box-shadow: 0 4px 12px rgba(20, 78, 38, 0.25);
 }
 
+/* This navigation is intentionally absent from tablet and desktop layouts. */
+.fb-mobile-category-panel,
+.fb-mobile-subcategory-nav { display: none; }
+
 /* Controls Bar (Title + Meta + Toolbar) */
 .fb-catalog-controls-bar {
   display: flex;
@@ -142,80 +146,105 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
-/* Keep the accessible search label available to screen readers without
-   letting it take up space beside the input. */
-.fb-catalog-search .sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.fb-catalog-search {
+/* Catalog Desktop Search Form */
+.fb-catalog-search-form {
   display: flex;
-  width: min(360px, 32vw);
-  min-width: 260px;
-  height: 42px;
   align-items: center;
-  gap: 0.55rem;
-  padding-left: 0.8rem;
-  overflow: hidden;
+  gap: 0.45rem;
+}
+
+.fb-catalog-search-input-wrap {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
   border: 1px solid #d5e2d7;
   border-radius: 10px;
-  background: #ffffff;
-  color: #477052;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  padding: 0.38rem 0.65rem 0.38rem 0.75rem;
+  transition: all 0.2s ease;
+  width: 250px;
+  height: 38px;
+  box-sizing: border-box;
 }
 
-.fb-catalog-search:focus-within {
+.fb-catalog-search-input-wrap:focus-within {
   border-color: #166534;
   box-shadow: 0 0 0 3px rgba(22, 101, 52, 0.1);
+  width: 290px;
 }
 
-.fb-catalog-search input {
-  min-width: 0;
-  flex: 1;
-  border: 0;
-  outline: 0;
+.fb-catalog-search-icon {
+  color: #166534;
+  flex-shrink: 0;
+  margin-right: 0.45rem;
+}
+
+.fb-catalog-search-input {
+  border: none;
   background: transparent;
+  outline: none;
+  font-size: 0.85rem;
+  font-weight: 500;
   color: #17251e;
-  font: inherit;
-  font-size: 0.875rem;
+  width: 100%;
 }
 
-.fb-catalog-search input::-webkit-search-cancel-button { display: none; }
-
-.fb-catalog-search-clear {
-  display: grid;
-  flex: 0 0 auto;
-  padding: 0.2rem;
-  place-items: center;
-  border: 0;
-  background: transparent;
-  color: #64748b;
-  cursor: pointer;
-}
-
-.fb-catalog-search-submit {
-  align-self: stretch;
-  padding: 0 1rem;
-  border: 0;
-  background: #166534;
-  color: #ffffff;
+.fb-catalog-search-input::placeholder {
+  color: #8c9e92;
   font-size: 0.82rem;
+}
+
+.fb-catalog-search-clear-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #eaf1ec;
+  border: none;
+  border-radius: 50%;
+  color: #4b6354;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+
+.fb-catalog-search-clear-btn:hover {
+  background: #d6e5d9;
+  color: #166534;
+}
+
+.fb-catalog-search-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.95rem;
+  height: 38px;
+  background-color: #166534;
+  border: 1px solid #166534;
+  border-radius: 10px;
+  color: #ffffff;
+  font-size: 0.825rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
-.fb-catalog-search-submit:hover { background: #0f4e27; }
+.fb-catalog-search-btn:hover {
+  background-color: #0f4e27;
+  border-color: #0f4e27;
+  box-shadow: 0 2px 8px rgba(22, 101, 52, 0.22);
+}
+
+@media (max-width: 900px) {
+  .fb-catalog-search-form {
+    display: none !important;
+  }
+}
 
 /* Quick Sort Box */
 .fb-catalog-quick-sort {
@@ -880,13 +909,31 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.fb-card-stars-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 1.5px;
+}
+
+.fb-card-star {
+  flex-shrink: 0;
+}
+
+.fb-card-rating-value {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1;
 }
 
 .fb-card-reviews-count {
-  font-size: 0.75rem;
-  color: #94a3b8;
+  font-size: 0.72rem;
+  color: #64748b;
   font-weight: 500;
+  line-height: 1;
 }
 
 /* Card Footer (Price + Add to Cart + Buy Now) */
@@ -916,6 +963,10 @@
   font-size: 0.8rem;
   color: #94a3b8;
   text-decoration: line-through;
+}
+
+.fb-card-saving-amount {
+  display: none;
 }
 
 .fb-card-cta-group {
@@ -1546,6 +1597,72 @@
   }
   .fb-category-scroll-prev { left: 1px; }
   .fb-category-scroll-next { right: 1px; }
+  .fb-catalog-pills-bar { display: none; }
+  .fb-mobile-back-to-categories {
+    display: inline-flex; align-items: center; gap: 5px; align-self: flex-start;
+    margin: 0 10px; padding: 8px 12px; border: 1px solid #bad8c2; border-radius: 999px;
+    background: #f0f8f2; color: #14532d; font-size: 13px; font-weight: 800; cursor: pointer;
+  }
+  .fb-products-page.is-mobile-category-index .fb-catalog-controls-bar,
+  .fb-products-page.is-mobile-category-index .fb-active-chips-row,
+  .fb-products-page.is-mobile-category-index .fb-catalog-main-layout { display: none; }
+  .fb-mobile-category-panel {
+    display: block; width: 100%; overflow: hidden;
+    border-top: 1px solid #dce8dd; border-bottom: 1px solid #dce8dd; background: #fff;
+  }
+  .fb-mobile-category-banner {
+    min-height: 64px; padding: 10px 58px 11px 14px; box-sizing: border-box; background: linear-gradient(105deg, #0f7138, #159447);
+    color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px;
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .fb-mobile-category-banner button {
+    position: absolute; left: 10px; display: grid; place-items: center; width: 32px; height: 32px;
+    padding: 0; border: 1px solid rgba(255,255,255,.55); border-radius: 50%;
+    background: rgba(255,255,255,.14); color: #fff;
+  }
+  .fb-mobile-category-banner div { display: flex; flex-direction: column; justify-content: center; gap: 1px; min-height: 42px; line-height: normal; position: relative; z-index: 1; }
+  .fb-mobile-category-banner div > span { display: block; font-size: 12px; line-height: 1.2; font-weight: 800; letter-spacing: .03em; white-space: nowrap; }
+  .fb-mobile-category-banner strong { display: block; color: #ffd21c; font-size: 19px; line-height: 1.15; font-weight: 900; letter-spacing: .025em; white-space: nowrap; }
+  .fb-mobile-category-banner .fb-mobile-category-banner-art {
+    position: absolute; right: 12px; width: 38px; height: 38px; display: grid; place-items: center;
+    border-radius: 10px; background: #ffd21c; color: #0f7138; font-size: 14px; transform: rotate(-5deg);
+  }
+  .fb-mobile-subcategory-nav {
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 15px 4px;
+    width: 100%; padding: 17px 8px 16px; background: #fff;
+  }
+  .fb-mobile-category-content { padding-bottom: 8px; }
+  .fb-mobile-category-section-title {
+    margin: 14px 12px 0; color: #164627; font-size: 15px; font-weight: 900;
+  }
+  .fb-mobile-subcategory-groups { border-top: 8px solid #f2f6f3; }
+  .fb-mobile-subcategory-group { padding-top: 13px; border-bottom: 1px solid #e7eee9; }
+  .fb-mobile-subcategory-group > h3 {
+    margin: 0 12px; color: #164627; font-size: 14px; font-weight: 900;
+  }
+  .fb-mobile-subcategory-group .fb-mobile-subcategory-nav { padding-top: 12px; }
+  .fb-mobile-subcategory-item {
+    min-width: 0; padding: 0; border: 0; background: transparent; color: #111;
+    cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 5px; font: inherit;
+  }
+  .fb-mobile-subcategory-image-wrap {
+    display: grid; place-items: center; width: 58px; height: 58px; overflow: hidden;
+    border: 3px solid transparent; border-radius: 50%; background: #138c43;
+    font-size: 15px; font-weight: 800;
+    transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+  }
+  .fb-mobile-subcategory-image-wrap img { width: 100%; height: 100%; object-fit: contain; padding: 3px; }
+  .fb-mobile-subcategory-name {
+    width: 100%; min-height: 2.4em; font-size: 11px; font-weight: 700;
+    line-height: 1.15; text-align: center; overflow-wrap: anywhere;
+  }
+  .fb-mobile-subcategory-item.active .fb-mobile-subcategory-image-wrap {
+    border-color: #166534; box-shadow: 0 0 0 2px #dcfce7; transform: translateY(-1px);
+  }
+  .fb-mobile-subcategory-item.active .fb-mobile-subcategory-name { color: #166534; }
+  .fb-mobile-subcategory-item:focus-visible {
+    outline: 2px solid #166534; outline-offset: 3px; border-radius: 6px;
+  }
   .fb-products-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 6px;
@@ -1585,16 +1702,38 @@
     white-space: normal !important;
   }
   .fb-card-description { display: none; }
-  .fb-card-rating-row { max-width: 160%; margin-bottom: 2px; transform: scale(.6); transform-origin: left center; }
-  .fb-card-footer { gap: 3px; padding-top: 4px; border-top: 1px solid #F0F4F1; }
+  .fb-card-rating-row {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin-bottom: 4px;
+    transform: none;
+  }
+  .fb-card-stars-wrap { gap: 1px !important; }
+  .fb-card-star { width: 10px !important; height: 10px !important; }
+  .fb-card-rating-value { font-size: 0.68rem; font-weight: 700; color: #334155; }
+  .fb-card-reviews-count { color: #64748b; font-size: 0.65rem; font-weight: 500; }
+  .fb-card-footer { gap: 5px; padding-top: 5px; border-top: 1px solid #F0F4F1; }
   .fb-card-price-group { flex-wrap: wrap; gap: 2px 4px; }
-  .fb-card-current-price { font-size: .63rem; }
-  .fb-card-original-price { font-size: .43rem; }
-  .fb-card-cta-group { flex-direction: row; gap: 3px; }
-  .fb-add-to-cart-btn, .fb-buy-now-btn { width: auto; flex: 1 1 0; min-width: 0; min-height: 25px; padding: 3px 2px; font-size: .48rem; border-radius: 5px; gap: 2px; }
-  .fb-add-to-cart-btn svg, .fb-buy-now-btn svg { width: 10px; height: 10px; }
-  .fb-cta-label-full { display: none; }
-  .fb-cta-label-mobile { display: inline; }
+  .fb-card-current-price { font-size: 1.02rem; line-height: 1; font-weight: 900; }
+  .fb-card-original-price { font-size: .62rem; }
+  .fb-card-saving-amount {
+    display: inline-flex;
+    width: fit-content;
+    padding: 2px 5px;
+    border-radius: 3px;
+    background: #ef4444;
+    color: #ffffff;
+    font-size: .58rem;
+    font-weight: 800;
+    line-height: 1.2;
+  }
+  .fb-card-cta-group { flex-direction: row; gap: 0; }
+  .fb-add-to-cart-btn { display: none; }
+  .fb-buy-now-btn { width: 100%; flex: 1 1 100%; min-width: 0; min-height: 31px; padding: 5px 6px; font-size: .72rem; border-radius: 5px; gap: 4px; }
+  .fb-buy-now-btn svg { width: 12px; height: 12px; }
+  .fb-buy-now-btn .fb-cta-label-full { display: inline; }
+  .fb-buy-now-btn .fb-cta-label-mobile { display: none; }
 
   .fb-catalog-controls-bar {
     box-sizing: border-box;
@@ -1606,19 +1745,48 @@
   }
 
   .fb-catalog-title { font-size: 1.45rem; }
-  .fb-catalog-count-text { font-size: .85rem; }
+  .fb-catalog-count-text { display: none; }
 
   .fb-catalog-toolbar-actions {
     width: 100%;
     flex-wrap: wrap;
     justify-content: space-between;
-    gap: .5rem;
+    gap: .35rem;
   }
 
-  .fb-catalog-search {
-    width: 100%;
-    min-width: 0;
-    order: -1;
+  .fb-catalog-quick-sort {
+    min-height: 32px;
+    gap: .25rem;
+    padding: .25rem .5rem;
+    border-radius: 8px;
+  }
+
+  .fb-catalog-quick-sort .fb-sort-icon {
+    width: 13px;
+    height: 13px;
+  }
+
+  .fb-quick-sort-select {
+    font-size: .72rem;
+  }
+
+  .fb-mobile-filter-btn {
+    min-height: 32px;
+    gap: .3rem;
+    padding: .25rem .55rem;
+    border-radius: 8px;
+    font-size: .72rem;
+  }
+
+  .fb-mobile-filter-btn > svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  .fb-mobile-filter-badge {
+    width: 15px;
+    height: 15px;
+    font-size: .62rem;
   }
 
   .fb-pagination-container {
@@ -1631,5 +1799,21 @@
 @media (max-width: 360px) {
   .fb-products-grid { gap: 4px; }
   .fb-card-content { padding: 4px; }
-  .fb-add-to-cart-btn, .fb-buy-now-btn { font-size: .46rem; }
+  .fb-buy-now-btn { font-size: .7rem; }
 }
+
+/* Ensure mobile back to categories is hidden on desktop by default */
+.fb-mobile-back-to-categories,
+.fb-mobile-category-panel {
+  display: none !important;
+}
+
+@media (max-width: 540px) {
+  .fb-mobile-category-panel {
+    display: block !important;
+  }
+  .fb-mobile-back-to-categories {
+    display: inline-flex !important;
+  }
+}
+

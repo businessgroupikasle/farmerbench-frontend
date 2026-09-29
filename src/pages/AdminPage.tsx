@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -9,6 +9,7 @@ import {
   Users,
   TicketPercent,
   CalendarCheck,
+  CalendarDays,
   Stethoscope,
   GraduationCap,
   MessageSquareQuote,
@@ -362,7 +363,7 @@ export const AdminPage: React.FC = () => {
     const handleNewCustomer = (e: any) => {
       const detail = e.detail;
       if (detail) {
-        setToastMessage(`⚡ Real-Time Sync: New Verified Customer Registered — ${detail.name} (${detail.location || 'Tamil Nadu'})`);
+        setToastMessage(`âš¡ Real-Time Sync: New Verified Customer Registered â€” ${detail.name} (${detail.location || 'Tamil Nadu'})`);
         setTimeout(() => setToastMessage(null), 5500);
       }
     };
@@ -1101,7 +1102,7 @@ export const AdminPage: React.FC = () => {
     isActive: c.isActive,
     sortOrder: c.sortOrder,
     subcategories: c.subcategories || [],
-    icon: c.name.toLowerCase().includes('pesticide') ? '🛡️' : c.name.toLowerCase().includes('fertilizer') ? '🌱' : c.name.toLowerCase().includes('seed') ? '🌾' : '🧪',
+    icon: c.name.toLowerCase().includes('pesticide') ? 'ðŸ›¡ï¸' : c.name.toLowerCase().includes('fertilizer') ? 'ðŸŒ±' : c.name.toLowerCase().includes('seed') ? 'ðŸŒ¾' : 'ðŸ§ª',
     imageUrl: c.imageUrl,
   }));
 
@@ -1132,16 +1133,19 @@ export const AdminPage: React.FC = () => {
   } = useServiceBookings(bookingQueryFilter);
 
   const { data: cropDoctorBookingData } = useServiceBookings({ serviceSlug: 'crop-doctor', limit: 100 });
+  const { data: cropCalendarBookingData } = useServiceBookings({ serviceSlug: 'crop-calendar', limit: 100 });
   const { data: bookingStats, isLoading: isStatsLoading, refetch: refetchBookingStats } = useServiceBookingStats();
   const { updateBookingStatus: mutateBookingStatus, deleteBooking: mutateDeleteBooking } = useServiceBookingMutations();
 
-  const serviceBookings: ServiceBooking[] = bookingData?.bookings || [];
+  const specializedServiceSlugs = new Set(['crop-doctor', 'crop-calendar']);
+  const serviceBookings: ServiceBooking[] = ((bookingData?.bookings || []) as ServiceBooking[])
+    .filter((booking) => !specializedServiceSlugs.has(booking.serviceSlug));
 
   useEffect(() => {
     const handleNewBooking = (e: any) => {
       const b = e.detail;
       if (b) {
-        setToastMessage(`⚡ Real-Time Alert: New Service Request — ${b.name} (${b.serviceName || 'Service'}) [${b.bookingReference}]`);
+        setToastMessage(`âš¡ Real-Time Alert: New Service Request â€” ${b.name} (${b.serviceName || 'Service'}) [${b.bookingReference}]`);
         setTimeout(() => setToastMessage(null), 6000);
         refetchBookings();
         refetchBookingStats();
@@ -1176,6 +1180,10 @@ export const AdminPage: React.FC = () => {
         location: booking.location,
       };
     });
+
+  const cropCalendarRequests = ((cropCalendarBookingData?.bookings || []) as ServiceBooking[])
+    .filter((booking) => booking.serviceSlug === 'crop-calendar')
+    .map((booking) => ({ booking, details: parseCropDoctorDetails(booking.message) }));
 
   // 7. Experts (shared PostgreSQL records)
   const { data: expertRecords = [] } = useExperts();
@@ -1851,7 +1859,7 @@ export const AdminPage: React.FC = () => {
       ]);
       const nowStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
       setLastSyncedTime(nowStr);
-      showToast(`⚡ Live database sync completed at ${nowStr}`);
+      showToast(`âš¡ Live database sync completed at ${nowStr}`);
     } catch {
       showToast('Live database sync completed');
     } finally {
@@ -2258,7 +2266,7 @@ export const AdminPage: React.FC = () => {
                 <CalendarCheck size={17} />
                 <span>Service Bookings</span>
               </div>
-              <span className="admin-nav-badge badge-green">{isStatsLoading ? serviceBookings.length : (bookingStats?.totalBookings ?? serviceBookings.length)}</span>
+              <span className="admin-nav-badge badge-green">{serviceBookings.length}</span>
             </button>
             <button
               className={`admin-nav-item ${activeNav === 'Crop Doctor' ? 'active' : ''}`}
@@ -2271,6 +2279,12 @@ export const AdminPage: React.FC = () => {
               <span className="admin-nav-badge badge-green">{cropDoctorRequests.length}</span>
             </button>
             <button
+              className={`admin-nav-item ${activeNav === 'Crop Calendar Requests' ? 'active' : ''}`}
+              onClick={() => setActiveNav('Crop Calendar Requests')}
+            >
+              <div className="admin-nav-item-left"><CalendarDays size={17} /><span>Crop Calendar Requests</span></div>
+              <span className="admin-nav-badge badge-green">{cropCalendarRequests.length}</span>
+            </button>            <button
               className={`admin-nav-item ${activeNav === 'Experts' ? 'active' : ''}`}
               onClick={() => setActiveNav('Experts')}
             >
@@ -2477,7 +2491,7 @@ export const AdminPage: React.FC = () => {
                               <img src={getUploadUrl(p.image)} alt={p.name} className="admin-search-item-thumb" />
                               <div className="admin-search-item-meta">
                                 <span className="admin-search-item-title">{p.name}</span>
-                                <span className="admin-search-item-sub">{p.category} • {p.sku}</span>
+                                <span className="admin-search-item-sub">{p.category} â€¢ {p.sku}</span>
                               </div>
                             </div>
                             <div className="admin-search-item-right">
@@ -2514,8 +2528,8 @@ export const AdminPage: React.FC = () => {
                                 <ShoppingCart size={15} />
                               </div>
                               <div className="admin-search-item-meta">
-                                <span className="admin-search-item-title">{ord.id} — {ord.customer}</span>
-                                <span className="admin-search-item-sub">{ord.phone} • {ord.products}</span>
+                                <span className="admin-search-item-title">{ord.id} â€” {ord.customer}</span>
+                                <span className="admin-search-item-sub">{ord.phone} â€¢ {ord.products}</span>
                               </div>
                             </div>
                             <div className="admin-search-item-right">
@@ -2552,7 +2566,7 @@ export const AdminPage: React.FC = () => {
                               </div>
                               <div className="admin-search-item-meta">
                                 <span className="admin-search-item-title">{cust.name}</span>
-                                <span className="admin-search-item-sub">{cust.phone || cust.email} • {cust.location || 'Customer'}</span>
+                                <span className="admin-search-item-sub">{cust.phone || cust.email} â€¢ {cust.location || 'Customer'}</span>
                               </div>
                             </div>
                           </div>
@@ -2582,8 +2596,8 @@ export const AdminPage: React.FC = () => {
                                 <CalendarCheck size={15} />
                               </div>
                               <div className="admin-search-item-meta">
-                                <span className="admin-search-item-title">{b.bookingReference ? `#${b.bookingReference}` : 'Booking'} — {b.name}</span>
-                                <span className="admin-search-item-sub">{b.serviceName || b.serviceSlug} • {b.phone}</span>
+                                <span className="admin-search-item-title">{b.bookingReference ? `#${b.bookingReference}` : 'Booking'} â€” {b.name}</span>
+                                <span className="admin-search-item-sub">{b.serviceName || b.serviceSlug} â€¢ {b.phone}</span>
                               </div>
                             </div>
                             <div className="admin-search-item-right">
@@ -2619,7 +2633,7 @@ export const AdminPage: React.FC = () => {
                               </div>
                               <div className="admin-search-item-meta">
                                 <span className="admin-search-item-title">{blog.title}</span>
-                                <span className="admin-search-item-sub">{blog.category} • {blog.status === 'PUBLISHED' ? 'Published' : 'Draft'}</span>
+                                <span className="admin-search-item-sub">{blog.category} â€¢ {blog.status === 'PUBLISHED' ? 'Published' : 'Draft'}</span>
                               </div>
                             </div>
                           </div>
@@ -2687,7 +2701,7 @@ export const AdminPage: React.FC = () => {
                   {dateRange === 'Today (Live)' 
                     ? `Today, ${liveTodayFormatted}` 
                     : dateRange === 'Last 30 Days'
-                    ? `${liveTodayFormatted} • 30D`
+                    ? `${liveTodayFormatted} â€¢ 30D`
                     : dateRange}
                 </span>
                 <ChevronDown size={14} style={{ color: '#94A3B8' }} />
@@ -3013,7 +3027,7 @@ export const AdminPage: React.FC = () => {
                     <div className="admin-alert-text-box">
                       <span className="admin-alert-title">{products.filter((p) => p.stock <= 10).length} Low Stock Products</span>
                       <button onClick={() => setActiveNav('Inventory')} className="admin-alert-action-link" style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left' }}>
-                        Review Inventory →
+                        Review Inventory â†’
                       </button>
                     </div>
                   </div>
@@ -3023,7 +3037,7 @@ export const AdminPage: React.FC = () => {
                     <div className="admin-alert-text-box">
                       <span className="admin-alert-title">{reviews.length} User Product Reviews</span>
                       <button onClick={() => setActiveNav('Reviews & Feedback')} className="admin-alert-action-link" style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left' }}>
-                        View Reviews →
+                        View Reviews â†’
                       </button>
                     </div>
                   </div>
@@ -3033,7 +3047,7 @@ export const AdminPage: React.FC = () => {
                     <div className="admin-alert-text-box">
                       <span className="admin-alert-title">{(bookingStats?.new ?? serviceBookings.filter((b) => b.status === 'NEW').length)} New Service Requests</span>
                       <button onClick={() => setActiveNav('Service Bookings')} className="admin-alert-action-link" style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left' }}>
-                        Assign Experts →
+                        Assign Experts â†’
                       </button>
                     </div>
                   </div>
@@ -3046,7 +3060,7 @@ export const AdminPage: React.FC = () => {
                   <div className="admin-card-header">
                     <h3 className="admin-card-title">Recent Orders</h3>
                     <button onClick={() => setActiveNav('Orders')} className="admin-card-link" style={{ background: 'none', border: 'none' }}>
-                      View All Orders →
+                      View All Orders â†’
                     </button>
                   </div>
                   <div className="admin-table-wrap">
@@ -3107,7 +3121,7 @@ export const AdminPage: React.FC = () => {
                   <div className="admin-card-header">
                     <h3 className="admin-card-title">Top Selling Products</h3>
                     <button onClick={() => setActiveNav('Products')} className="admin-card-link" style={{ background: 'none', border: 'none' }}>
-                      View Catalog →
+                      View Catalog â†’
                     </button>
                   </div>
                   <div className="admin-top-product-list">
@@ -3409,7 +3423,7 @@ export const AdminPage: React.FC = () => {
               <div className="admin-card-header">
                 <div>
                   <h2 className="admin-welcome-title" style={{ fontSize: '1.4rem' }}>Category Taxonomy</h2>
-                  <p className="admin-welcome-sub">Manage the database-backed Category → Subcategory hierarchy.</p>
+                  <p className="admin-welcome-sub">Manage the database-backed Category â†’ Subcategory hierarchy.</p>
                 </div>
                 <button onClick={() => setIsAddCategoryOpen(true)} className="admin-primary-btn">
                   <Plus size={16} /> Add Category
@@ -3429,7 +3443,7 @@ export const AdminPage: React.FC = () => {
                       </div>
                       <p className="admin-cat-desc">{cat.description}</p>
                       <div style={{ fontSize: '0.75rem', color: cat.isActive ? '#16A34A' : '#DC2626', fontWeight: 700 }}>
-                        {cat.isActive ? 'Active' : 'Inactive'} · Sort {cat.sortOrder}
+                        {cat.isActive ? 'Active' : 'Inactive'} Â· Sort {cat.sortOrder}
                       </div>
                       <div className="admin-subcategory-list">
                         {cat.subcategories.map((sub: any) => (
@@ -3467,7 +3481,7 @@ export const AdminPage: React.FC = () => {
                             setActiveNav('Products');
                           }}
                         >
-                          View Items →
+                          View Items â†’
                         </button>
                       </div>
                     </div>
@@ -3779,7 +3793,7 @@ export const AdminPage: React.FC = () => {
                         </td>
                         <td style={{ fontWeight: 800, color: '#16A34A' }}>{coup.discountType === 'PERCENTAGE' ? `${coup.discountValue}% OFF` : `₹${coup.discountValue} OFF`}</td>
                         <td style={{ color: '#475569' }}>₹{coup.minimumSpend}</td>
-                        <td style={{ fontWeight: 600 }}>{coup.usageCount} / {coup.usageLimit || '∞'}</td>
+                        <td style={{ fontWeight: 600 }}>{coup.usageCount} / {coup.usageLimit || 'âˆž'}</td>
                         <td style={{ color: '#64748B' }}>{coup.validUntil ? new Date(coup.validUntil).toLocaleDateString() : 'No expiry'}</td>
                         <td>
                           <span className="admin-status-badge active-badge">{coup.active ? 'Active' : 'Inactive'}</span>
@@ -4101,7 +4115,7 @@ export const AdminPage: React.FC = () => {
                               {(b.farmSize || b.cropType) && (
                                 <div style={{ fontSize: '0.75rem', color: '#15803D', marginTop: '0.15rem' }}>
                                   {b.farmSize ? `${b.farmSize}` : ''}
-                                  {b.farmSize && b.cropType ? ' • ' : ''}
+                                  {b.farmSize && b.cropType ? ' â€¢ ' : ''}
                                   {b.cropType ? `${b.cropType}` : ''}
                                 </div>
                               )}
@@ -4136,7 +4150,7 @@ export const AdminPage: React.FC = () => {
                                   <strong>Note:</strong> {b.adminNotes}
                                 </div>
                               ) : (
-                                <span style={{ color: '#94A3B8', fontSize: '0.75rem' }}>—</span>
+                                <span style={{ color: '#94A3B8', fontSize: '0.75rem' }}>â€”</span>
                               )}
                             </td>
 
@@ -4281,6 +4295,12 @@ export const AdminPage: React.FC = () => {
             </div>
           )}
 
+          {activeNav === 'Crop Calendar Requests' && (
+            <div className="admin-card">
+              <div className="admin-card-header"><div><h2 className="admin-welcome-title" style={{ fontSize: '1.4rem' }}>Crop Calendar Requests</h2><p className="admin-welcome-sub">Location, crop, season, soil and irrigation details submitted by farmers.</p></div></div>
+              {cropCalendarRequests.length === 0 ? <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B' }}><CalendarDays size={42} /><h3>No Crop Calendar Requests</h3><p>New submissions will appear here automatically.</p></div> : <div className="admin-table-wrap admin-crop-calendar-table-wrap"><table className="admin-data-table admin-crop-calendar-table"><thead><tr><th>Reference</th><th>Farmer Details</th><th>Location</th><th>Crop</th><th>Season</th><th>Farm Details</th><th>Submitted</th><th>Status</th><th>Action</th></tr></thead><tbody>{cropCalendarRequests.map(({ booking, details }) => <tr key={booking.id}><td><strong>{booking.bookingReference}</strong><div style={{ fontSize: '.72rem', color: '#64748B' }}>{details.locationType || '-'}</div></td><td><strong>{booking.name}</strong><div style={{ fontSize: '.75rem', color: '#64748B' }}>{booking.phone}</div><div style={{ fontSize: '.72rem', color: '#64748B' }}>{booking.email || '-'}</div></td><td><strong>{details.district || '-'}</strong><div style={{ fontSize: '.75rem', color: '#64748B' }}>{details.state || '-'}</div><div style={{ fontSize: '.72rem', color: '#64748B' }}>City: {details.city || '-'}<br />Post: {details.postOffice || '-'}</div></td><td><strong style={{ color: '#166534' }}>{details.crop || booking.cropType || '-'}</strong><div style={{ fontSize: '.75rem' }}>{details.variety || 'Variety not specified'}</div></td><td>{details.season || '-'}</td><td><div>Soil: {details.soilType || '-'}</div><div>Irrigation: {details.irrigationType || '-'}</div></td><td>{new Date(booking.createdAt).toLocaleDateString('en-IN')}</td><td><span className={`admin-status-badge ${booking.status === 'COMPLETED' ? 'paid' : booking.status === 'CANCELLED' ? 'cancelled' : 'pending'}`}>{booking.status.replace('_', ' ')}</span></td><td><button className="admin-primary-btn" style={{ padding: '.4rem .7rem', fontSize: '.75rem' }} onClick={() => { setSelectedBookingForUpdate(booking); setAssignBookingId(booking.id); setStatusModalStatus(booking.status); setStatusModalNotes(booking.adminNotes || ''); setStatusModalExpert(''); setIsAssignModalOpen(true); }}>Update Status</button></td></tr>)}</tbody></table></div>}
+            </div>
+          )}
           {/* ================================================================
               VIEW 10: AGRONOMY EXPERTS
               ================================================================ */}
@@ -4384,14 +4404,14 @@ export const AdminPage: React.FC = () => {
                     {/* Rating & Crop info */}
                     <div>
                       <span className="admin-review-mobile-label">Rating</span>
-                      <div style={{ color: '#F59E0B', fontSize: '0.85rem', marginBottom: '0.2rem' }}>{'★'.repeat(rev.rating)}{'☆'.repeat(5 - rev.rating)}</div>
+                      <div style={{ color: '#F59E0B', fontSize: '0.85rem', marginBottom: '0.2rem' }}>{'â˜…'.repeat(rev.rating)}{'â˜†'.repeat(5 - rev.rating)}</div>
                       <div style={{ fontSize: '0.72rem', color: '#475569', fontWeight: 600 }}>{rev.rating}/5 rating</div>
                       <div style={{ fontSize: '0.68rem', color: '#64748B' }}>{new Date(rev.createdAt).toLocaleDateString('en-IN')}</div>
                     </div>
 
                     {/* Field Photos */}
                     {/* Review Text */}
-                    <div className="admin-review-text-quote"><span className="admin-review-mobile-label">Review</span>“{rev.comment}”</div>
+                    <div className="admin-review-text-quote"><span className="admin-review-mobile-label">Review</span>â€œ{rev.comment}â€</div>
 
                     {/* Action buttons */}
                     <div className="admin-review-actions">
@@ -4575,14 +4595,14 @@ export const AdminPage: React.FC = () => {
               <details className="hero-banner-guide blog-publishing-guide" open>
                 <summary><BookOpen size={17} /> Blog Publishing Guide</summary>
                 <div className="hero-banner-guide-grid">
-                  <div className="hero-guide-card"><strong>Featured image</strong><span>Recommended: 1200 × 630 px</span><span>Minimum: 800 × 420 px</span><small>Use a landscape WebP or JPG image under 1 MB.</small></div>
-                  <div className="hero-guide-card"><strong>Article title</strong><span>Recommended: 45–65 characters</span><span>Maximum: about 70 characters</span><small>Lead with the crop, problem, or benefit farmers search for.</small></div>
-                  <div className="hero-guide-card"><strong>Short excerpt</strong><span>Recommended: 120–160 characters</span><span>Use one or two clear sentences</span><small>This appears on blog cards and may be used in search results.</small></div>
-                  <div className="hero-guide-card"><strong>Article content</strong><span>Recommended: 800–1,500 words</span><span>Use short paragraphs and headings</span><small>Include practical steps, dosage cautions, and locally relevant advice.</small></div>
-                  <div className="hero-guide-card"><strong>Content images</strong><span>Recommended: 1200 × 800 px</span><span>Keep each image below 1 MB</span><small>Add an image only when it helps explain the farming guidance.</small></div>
-                  <div className="hero-guide-card"><strong>SEO title</strong><span>Recommended: 50–60 characters</span><span>Place the main keyword early</span><small>Example: Paddy Leaf Blast Control Guide | AgriEra.</small></div>
-                  <div className="hero-guide-card"><strong>Meta description</strong><span>Recommended: 140–160 characters</span><span>Summarize the exact reader benefit</span><small>Write a unique description for every article.</small></div>
-                  <div className="hero-guide-card"><strong>Slug and tags</strong><span>Slug: lowercase words with hyphens</span><span>Use 3–6 relevant tags</span><small>Example slug: paddy-leaf-blast-control.</small></div>
+                  <div className="hero-guide-card"><strong>Featured image</strong><span>Recommended: 1200 Ã— 630 px</span><span>Minimum: 800 Ã— 420 px</span><small>Use a landscape WebP or JPG image under 1 MB.</small></div>
+                  <div className="hero-guide-card"><strong>Article title</strong><span>Recommended: 45â€“65 characters</span><span>Maximum: about 70 characters</span><small>Lead with the crop, problem, or benefit farmers search for.</small></div>
+                  <div className="hero-guide-card"><strong>Short excerpt</strong><span>Recommended: 120â€“160 characters</span><span>Use one or two clear sentences</span><small>This appears on blog cards and may be used in search results.</small></div>
+                  <div className="hero-guide-card"><strong>Article content</strong><span>Recommended: 800â€“1,500 words</span><span>Use short paragraphs and headings</span><small>Include practical steps, dosage cautions, and locally relevant advice.</small></div>
+                  <div className="hero-guide-card"><strong>Content images</strong><span>Recommended: 1200 Ã— 800 px</span><span>Keep each image below 1 MB</span><small>Add an image only when it helps explain the farming guidance.</small></div>
+                  <div className="hero-guide-card"><strong>SEO title</strong><span>Recommended: 50â€“60 characters</span><span>Place the main keyword early</span><small>Example: Paddy Leaf Blast Control Guide | AgriEra.</small></div>
+                  <div className="hero-guide-card"><strong>Meta description</strong><span>Recommended: 140â€“160 characters</span><span>Summarize the exact reader benefit</span><small>Write a unique description for every article.</small></div>
+                  <div className="hero-guide-card"><strong>Slug and tags</strong><span>Slug: lowercase words with hyphens</span><span>Use 3â€“6 relevant tags</span><small>Example slug: paddy-leaf-blast-control.</small></div>
                 </div>
                 <div className="hero-guide-note"><strong>Before publishing:</strong> Check spelling, preview the complete article, verify image quality and links, add category/tags, complete SEO fields, and save as Draft when expert review is still required.</div>
               </details>
@@ -4745,7 +4765,7 @@ export const AdminPage: React.FC = () => {
                                 onClick={() => handleToggleBlogStatusClick(b)}
                                 title="Click to toggle status"
                               >
-                                {isPub ? '● Published' : '○ Draft'}
+                                {isPub ? 'â— Published' : 'â—‹ Draft'}
                               </span>
                             </td>
                             <td style={{ color: '#64748B', fontSize: '0.78rem' }}>{pubDate}</td>
@@ -4923,7 +4943,7 @@ export const AdminPage: React.FC = () => {
                       <td><span className="admin-status-badge paid">{activeAdminUser.role}</span></td>
                       <td style={{ color: '#475569' }}>Full System & Financial Access</td>
                       <td style={{ color: '#16A34A', fontWeight: 600 }}>Active Now</td>
-                      <td style={{ textAlign: 'center', color: '#94A3B8' }}>—</td>
+                      <td style={{ textAlign: 'center', color: '#94A3B8' }}>â€”</td>
                     </tr>
 
                     {/* Dynamic Staff Members (persisted in state & storage, zero hardcoded records) */}
@@ -5015,7 +5035,7 @@ export const AdminPage: React.FC = () => {
                 </div>
                 {settingsLastSaved && (
                   <span className="admin-settings-synced-badge">
-                    ✓ Synced at {settingsLastSaved}
+                    âœ“ Synced at {settingsLastSaved}
                   </span>
                 )}
               </div>
@@ -5385,7 +5405,7 @@ export const AdminPage: React.FC = () => {
                     <div className="admin-settings-toggle-grid">
                       <div className="admin-settings-toggle-card">
                         <div className="admin-settings-toggle-info">
-                          <span className="admin-settings-toggle-title">⚡ Instant UPI / QR</span>
+                          <span className="admin-settings-toggle-title">âš¡ Instant UPI / QR</span>
                           <span className="admin-settings-toggle-desc">Google Pay, PhonePe, Paytm, BHIM UPI with 0% gateway surcharge.</span>
                         </div>
                         <label className="admin-switch-label">
@@ -5403,7 +5423,7 @@ export const AdminPage: React.FC = () => {
 
                       <div className="admin-settings-toggle-card">
                         <div className="admin-settings-toggle-info">
-                          <span className="admin-settings-toggle-title">💳 Credit, Debit & RuPay Cards</span>
+                          <span className="admin-settings-toggle-title">ðŸ’³ Credit, Debit & RuPay Cards</span>
                           <span className="admin-settings-toggle-desc">Full 3D-secure payment gateway for major domestic cards.</span>
                         </div>
                         <label className="admin-switch-label">
@@ -5421,7 +5441,7 @@ export const AdminPage: React.FC = () => {
 
                       <div className="admin-settings-toggle-card">
                         <div className="admin-settings-toggle-info">
-                          <span className="admin-settings-toggle-title">💵 Cash on Delivery (COD)</span>
+                          <span className="admin-settings-toggle-title">ðŸ’µ Cash on Delivery (COD)</span>
                           <span className="admin-settings-toggle-desc">Pay cash to field delivery agent upon inspecting package.</span>
                         </div>
                         <label className="admin-switch-label">
@@ -5439,7 +5459,7 @@ export const AdminPage: React.FC = () => {
 
                       <div className="admin-settings-toggle-card">
                         <div className="admin-settings-toggle-info">
-                          <span className="admin-settings-toggle-title">🌾 Kisan Credit Card (KCC)</span>
+                          <span className="admin-settings-toggle-title">ðŸŒ¾ Kisan Credit Card (KCC)</span>
                           <span className="admin-settings-toggle-desc">Subsidized agri-finance payment schemes for registered farmers.</span>
                         </div>
                         <label className="admin-switch-label">
@@ -5727,7 +5747,7 @@ export const AdminPage: React.FC = () => {
 
           {/* Footer Bar */}
           <footer className="admin-footer-bar">
-            <div>© 2026 AgriEra Admin Panel</div>
+            <div>Â© 2026 AgriEra Admin Panel</div>
             <div className="admin-footer-status">
               <span>System Status:</span>
               <span className="admin-status-dot-pulse" />
@@ -7252,7 +7272,7 @@ export const AdminPage: React.FC = () => {
                       </span>
                     </div>
                     <div style={{ fontSize: '0.85rem', color: '#1E293B', marginTop: '0.4rem', fontWeight: 600 }}>
-                      Farmer: {selectedBookingForUpdate.name} • {selectedBookingForUpdate.phone}
+                      Farmer: {selectedBookingForUpdate.name} â€¢ {selectedBookingForUpdate.phone}
                     </div>
                     <div style={{ fontSize: '0.8rem', color: '#64748B', marginTop: '0.2rem' }}>
                       Location: {selectedBookingForUpdate.location}
@@ -7278,7 +7298,7 @@ export const AdminPage: React.FC = () => {
                     >
                       {serviceBookings.map((b) => (
                         <option key={b.id} value={b.id}>
-                          {b.bookingReference} — {b.name} ({b.serviceName} - {b.location})
+                          {b.bookingReference} â€” {b.name} ({b.serviceName} - {b.location})
                         </option>
                       ))}
                     </select>
@@ -7374,7 +7394,7 @@ export const AdminPage: React.FC = () => {
             <div className="admin-modal-header" style={{ padding: '1.25rem 1.75rem', borderBottom: '1px solid #E2E8F0' }}>
               <div>
                 <h3 className="admin-modal-title" style={{ fontSize: '1.25rem', fontWeight: 800, color: '#17251E' }}>
-                  {editingBlog ? '✏️ Edit Agricultural Article' : '📝 Create New Agricultural Article'}
+                  {editingBlog ? 'âœï¸ Edit Agricultural Article' : 'ðŸ“ Create New Agricultural Article'}
                 </h3>
                 <p style={{ fontSize: '0.775rem', color: '#64748B', margin: '0.2rem 0 0 0' }}>
                   {editingBlog ? `Editing ID: ${editingBlog.id}` : 'Draft or publish live agricultural insights for farmers.'}
@@ -7399,7 +7419,7 @@ export const AdminPage: React.FC = () => {
                       boxShadow: blogEditorTab === 'content' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
                     }}
                   >
-                    📝 Editor
+                    ðŸ“ Editor
                   </button>
                   <button
                     type="button"
@@ -7416,7 +7436,7 @@ export const AdminPage: React.FC = () => {
                       boxShadow: blogEditorTab === 'preview' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
                     }}
                   >
-                    👁️ Preview
+                    ðŸ‘ï¸ Preview
                   </button>
                   <button
                     type="button"
@@ -7433,7 +7453,7 @@ export const AdminPage: React.FC = () => {
                       boxShadow: blogEditorTab === 'seo' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
                     }}
                   >
-                    🔍 SEO & Meta
+                    ðŸ” SEO & Meta
                   </button>
                 </div>
 
@@ -7571,12 +7591,12 @@ export const AdminPage: React.FC = () => {
                             }}
                             title="Remove image"
                           >
-                            ×
+                            Ã—
                           </button>
                         </div>
                       ) : (
                         <div>
-                          <div style={{ fontSize: '1.75rem', marginBottom: '0.35rem' }}>🖼️</div>
+                          <div style={{ fontSize: '1.75rem', marginBottom: '0.35rem' }}>ðŸ–¼ï¸</div>
                           <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#334155' }}>
                             Upload High-Resolution Cover Image
                           </div>
@@ -7690,7 +7710,7 @@ export const AdminPage: React.FC = () => {
                         className="admin-mini-btn"
                         title="Bullet List"
                       >
-                        • List
+                        â€¢ List
                       </button>
                       <button
                         type="button"
@@ -7702,12 +7722,12 @@ export const AdminPage: React.FC = () => {
                       </button>
                       <button
                         type="button"
-                        onClick={() => insertFormattingTag('<div class="blog-expert-tip-box">\n  <div class="blog-tip-icon">💡</div>\n  <div>\n    <h4 class="blog-tip-title">Expert Agronomist Tip</h4>\n    <p class="blog-tip-text">', '</p>\n  </div>\n</div>\n')}
+                        onClick={() => insertFormattingTag('<div class="blog-expert-tip-box">\n  <div class="blog-tip-icon">ðŸ’¡</div>\n  <div>\n    <h4 class="blog-tip-title">Expert Agronomist Tip</h4>\n    <p class="blog-tip-text">', '</p>\n  </div>\n</div>\n')}
                         className="admin-mini-btn"
                         title="Expert Tip Callout Box"
                         style={{ color: '#166534', fontWeight: 700 }}
                       >
-                        💡 Expert Tip Box
+                        ðŸ’¡ Expert Tip Box
                       </button>
                       <button
                         type="button"
@@ -7715,7 +7735,7 @@ export const AdminPage: React.FC = () => {
                         className="admin-mini-btn"
                         title="Blockquote"
                       >
-                        “ Quote
+                        â€œ Quote
                       </button>
 
                       {/* Content Image Upload Trigger */}
@@ -7724,7 +7744,7 @@ export const AdminPage: React.FC = () => {
                         style={{ cursor: isUploadingContentImg ? 'wait' : 'pointer', color: '#0284C7' }}
                         title="Upload Inline Photo"
                       >
-                        📷 {isUploadingContentImg ? 'Uploading...' : 'Insert Photo'}
+                        ðŸ“· {isUploadingContentImg ? 'Uploading...' : 'Insert Photo'}
                         <input
                           type="file"
                           accept="image/*"
@@ -7766,9 +7786,9 @@ export const AdminPage: React.FC = () => {
                     <h1 className="blog-article-main-title">{blogForm.title || 'Untitled Article'}</h1>
                     <div className="blog-article-meta-row">
                       <span>{blogForm.author || 'Author'}</span>
-                      <span>•</span>
+                      <span>â€¢</span>
                       <span>{blogForm.readingTime || '5 min read'}</span>
-                      <span>•</span>
+                      <span>â€¢</span>
                       <span style={{ color: '#166534', fontWeight: 700 }}>
                         {blogForm.status === 'PUBLISHED' ? 'Status: Published' : 'Status: Draft'}
                       </span>
@@ -7893,7 +7913,7 @@ export const AdminPage: React.FC = () => {
         <div className="admin-modal-overlay" onClick={() => setIsAddCustomerOpen(false)}>
           <div className="admin-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="admin-modal-header">
-              <h3 className="admin-modal-title">➕ Register New Farmer / Customer</h3>
+              <h3 className="admin-modal-title">âž• Register New Farmer / Customer</h3>
               <button onClick={() => setIsAddCustomerOpen(false)} className="admin-modal-close-btn">
                 <X size={20} />
               </button>
@@ -7976,7 +7996,7 @@ export const AdminPage: React.FC = () => {
         <div className="admin-modal-overlay" onClick={() => setIsEditCustomerOpen(false)}>
           <div className="admin-modal-card" onClick={(e) => e.stopPropagation()}>
             <div className="admin-modal-header">
-              <h3 className="admin-modal-title">✏️ Edit Farmer Profile — {selectedCustomer.name}</h3>
+              <h3 className="admin-modal-title">âœï¸ Edit Farmer Profile â€” {selectedCustomer.name}</h3>
               <button onClick={() => setIsEditCustomerOpen(false)} className="admin-modal-close-btn">
                 <X size={20} />
               </button>
@@ -8365,3 +8385,11 @@ export const AdminPage: React.FC = () => {
 };
 
 export default AdminPage;
+
+
+
+
+
+
+
+

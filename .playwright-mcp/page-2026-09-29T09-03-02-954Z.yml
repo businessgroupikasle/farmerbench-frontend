@@ -1,0 +1,18 @@
+- generic [ref=f4e3]:
+  - banner [ref=f4e4]:
+    - generic [ref=f4e5]:
+      - link "AgriEra Logo AgriEra" [ref=f4e6] [cursor=pointer]:
+        - /url: /
+        - img "AgriEra Logo" [ref=f4e7]
+        - generic [ref=f4e8]: AgriEra
+      - generic [ref=f4e9]:
+        - button "English" [ref=f4e11] [cursor=pointer]
+        - button "Open mobile menu" [ref=f4e19] [cursor=pointer]
+  - main [ref=f4e21]:
+    - status "Loading AgriEra" [ref=f4e22]:
+      - generic [ref=f4e23]:
+        - generic [ref=f4e25]: AgriEra
+        - generic [ref=f4e26]: Growing better, together
+  - generic "AgriEra AI Assistant" [ref=f4e29]:
+    - button "Open AgriEra AI Chat" [ref=f4e30] [cursor=pointer]:
+      - generic [ref=f4e41]: AgriEra AI

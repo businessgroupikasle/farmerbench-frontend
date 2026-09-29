@@ -1,9 +1,9 @@
-import React from 'react';
+﻿import React from 'react';
 import { Target, Eye } from 'lucide-react';
 
 export const AboutDrivesUs: React.FC = () => {
   return (
-    <section className="about-drives-us-section">
+    <section id="mission" className="about-drives-us-section">
       <div className="container">
         {/* Header */}
         <div className="about-drives-us-header">
@@ -85,3 +85,4 @@ export const AboutDrivesUs: React.FC = () => {
 };
 
 export default AboutDrivesUs;
+

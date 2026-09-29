@@ -1,0 +1,28 @@
+[     509ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:21608
+[     856ms] [ERROR] Warning: React does not recognize the `%s` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `%s` instead. If you accidentally passed it from a parent component, remove it from the DOM element.%s fetchPriority fetchpriority 
+    at img
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at ProductDetailPage (http://localhost:3000/src/pages/ProductDetailPage.tsx?t=1790672078288:52:24)
+    at div
+    at RenderedRoute (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=b6da8a5a:6669:26)
+    at Routes (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=b6da8a5a:7604:3)
+    at Suspense
+    at main
+    at div
+    at AppContent (http://localhost:3000/src/App.tsx?t=1790672078288:198:3)
+    at LanguageProvider (http://localhost:3000/src/context/LanguageContext.tsx:23:36)
+    at Router (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=b6da8a5a:7543:13)
+    at BrowserRouter (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=b6da8a5a:10859:3)
+    at App (http://localhost:3000/src/App.tsx?t=1790672078288:714:21)
+    at QueryClientProvider (http://localhost:3000/node_modules/.vite/deps/@tanstack_react-query.js?v=b6da8a5a:26:30)
+    at GoogleOAuthProvider (http://localhost:3000/node_modules/.vite/deps/@react-oauth_google.js?v=b6da8a5a:44:32) @ http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:520
+[    4131ms] [WARNING] The resource http://localhost:3000/src/assets/home-hero-farmer-products-optimized.jpg was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3000/product/test-products-9735:0
+[  122321ms] [WARNING] The resource http://localhost:3000/src/assets/home-hero-farmer-products-optimized.jpg was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3000/product/test-products-9735:0
+[  149674ms] [WARNING] The resource http://localhost:3000/src/assets/home-hero-farmer-products-optimized.jpg was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3000/product/test-products-9735:0
+[  185878ms] [WARNING] The resource http://localhost:3000/src/assets/home-hero-farmer-products-optimized.jpg was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3000/product/test-products-9735:0

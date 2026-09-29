@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin } from 'lucide-react';
 import farmerLogo from '../../assets/AgriEra-logo-optimized.png';
@@ -90,7 +90,7 @@ export const Footer: React.FC = () => {
             <ul className="AgriEra-footer-links-list">
               <li><Link to="/about" className="AgriEra-footer-link">About Us</Link></li>
               <li><Link to="/about#mission" className="AgriEra-footer-link">Our Mission</Link></li>
-              <li><Link to="/terms" className="AgriEra-footer-link">Privacy Policy</Link></li>
+              <li><Link to="/privacy" className="AgriEra-footer-link">Privacy Policy</Link></li>
               <li><Link to="/terms" className="AgriEra-footer-link">Terms & Conditions</Link></li>
             </ul>
           </div>
@@ -171,7 +171,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Copyright & Payment Badges */}
         <div className="AgriEra-footer-bottom-bar">
           <p className="AgriEra-copyright">
-            © {new Date().getFullYear()} AgriEra. All Rights Reserved.
+            Â© {new Date().getFullYear()} AgriEra. All Rights Reserved.
           </p>
 
           <div className="AgriEra-payment-badges">
@@ -203,7 +203,7 @@ export const Footer: React.FC = () => {
 
             {/* UPI */}
             <div className="AgriEra-payment-badge" title="UPI">
-              <span style={{ fontSize: '0.7rem', fontWeight: 900, color: '#097938', letterSpacing: '0.04em' }}>UPI<span style={{ color: '#F37021' }}>▶</span></span>
+              <span style={{ fontSize: '0.7rem', fontWeight: 900, color: '#097938', letterSpacing: '0.04em' }}>UPI<span style={{ color: '#F37021' }}>â–¶</span></span>
             </div>
           </div>
         </div>
@@ -213,3 +213,4 @@ export const Footer: React.FC = () => {
 };
 
 export default Footer;
+

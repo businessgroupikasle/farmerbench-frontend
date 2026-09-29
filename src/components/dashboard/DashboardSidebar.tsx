@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard,
   Package,
@@ -46,7 +46,7 @@ export const DashboardMobileBar: React.FC<DashboardMobileBarProps> = ({
   };
 
   const activeLabel = tabLabels[activeTab] || 'Dashboard';
-  const totalBadges = (ordersCount || 0) + (wishlistCount || 0) + (doctorRequestsCount || 0);
+  const totalBadges = ordersCount + wishlistCount + doctorRequestsCount;
 
   return (
     <div
@@ -130,8 +130,6 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     { id: 'profile', label: 'Profile & Security', icon: <Shield size={18} /> },
   ];
 
-  const totalBadges = (ordersCount || 0) + (wishlistCount || 0) + (doctorRequestsCount || 0);
-
   // Lock background scrolling when mobile drawer is open
   useEffect(() => {
     if (isMobileOpen) {
@@ -167,20 +165,6 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
   return (
     <>
-      {/* Floating Action Button for easy thumb access on mobile when scrolled */}
-      <button
-        type="button"
-        className="fb-mobile-floating-menu-btn"
-        onClick={() => setIsMobileOpen(true)}
-        aria-label="Open navigation menu"
-      >
-        <Menu size={18} />
-        <span>Menu</span>
-        {totalBadges > 0 && (
-          <span className="fb-mobile-floating-badge">{totalBadges}</span>
-        )}
-      </button>
-
       {/* Backdrop overlay for mobile drawer */}
       <div
         className={`fb-mobile-sidebar-overlay ${isMobileOpen ? 'visible' : ''}`}
@@ -258,4 +242,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     </>
   );
 };
+
+
+
 

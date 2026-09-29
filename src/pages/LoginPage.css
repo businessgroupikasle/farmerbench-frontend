@@ -1205,3 +1205,27 @@
     flex-wrap: wrap;
   }
 }
+
+/* Centered & Responsive Google Sign-In Button */
+.auth-social-group {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  margin-top: 0.35rem !important;
+  margin-bottom: 0.65rem !important;
+}
+
+.auth-social-group > div {
+  width: 100% !important;
+  max-width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+}
+
+.auth-social-group iframe {
+  max-width: 100% !important;
+  margin: 0 auto !important;
+}
+

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+﻿import React, { useCallback, useState } from 'react';
 import { HomeHero } from '../components/home/HomeHero';
 import { HomeOurProducts } from '../components/home/HomeOurProducts';
 import { HomeLatestNews } from '../components/home/HomeLatestNews';
@@ -6,8 +6,6 @@ import { HomeSmartHub } from '../components/home/HomeSmartHub';
 import { HomeMarketPrices } from '../components/home/HomeMarketPrices';
 import { HomeCategories } from '../components/home/HomeCategories';
 import { HomeCouponOffer } from '../components/home/HomeCouponOffer';
-import { HomeMobileSearchBar } from '../components/home/HomeMobileSearchBar';
-import { HomePromoBanners } from '../components/home/HomePromoBanners';
 import './HomePage.css';
 
 export const HomePage: React.FC = () => {
@@ -18,9 +16,6 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="homepage-layout">
-      {/* Quick Search Bar for Mobile View */}
-      <HomeMobileSearchBar />
-
       {/* 1. Hero Section (Natural Organic Products) */}
       <HomeHero onReady={handleHeroReady} />
 
@@ -58,9 +53,6 @@ export const HomePage: React.FC = () => {
         {/* Live Featured Products Section from Database (Best Selling Products) */}
         <HomeOurProducts />
 
-        {/* Featured collections directly after Best Selling Products */}
-        <HomePromoBanners />
-
         {/* Farmer tools and live information hub */}
         <HomeSmartHub />
 
@@ -77,6 +69,7 @@ export const HomePage: React.FC = () => {
 };
 
 export default HomePage;
+
 
 
 

@@ -1,0 +1,335 @@
+[     607ms] [INFO] %cDownload the React DevTools for a better development experience: https://reactjs.org/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:21608
+[    2130ms] [ERROR] Warning: React has detected a change in the order of Hooks called by %s. This will lead to bugs and errors if not fixed. For more information, read the Rules of Hooks: https://reactjs.org/link/rules-of-hooks
+
+   Previous render            Next render
+   ------------------------------------------------------
+%s   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+%s ProductDetailPage 1. useContext                 useContext
+2. useContext                 useContext
+3. useContext                 useContext
+4. useContext                 useContext
+5. useContext                 useContext
+6. useContext                 useContext
+7. useContext                 useContext
+8. useContext                 useContext
+9. useRef                     useRef
+10. useContext                useContext
+11. useLayoutEffect           useLayoutEffect
+12. useCallback               useCallback
+13. useContext                useContext
+14. useContext                useContext
+15. useContext                useContext
+16. useEffect                 useEffect
+17. useState                  useState
+18. useCallback               useCallback
+19. useSyncExternalStore      useSyncExternalStore
+20. useEffect                 useEffect
+21. useContext                useContext
+22. useContext                useContext
+23. useContext                useContext
+24. useEffect                 useEffect
+25. useState                  useState
+26. useCallback               useCallback
+27. useSyncExternalStore      useSyncExternalStore
+28. useEffect                 useEffect
+29. useContext                useContext
+30. useContext                useContext
+31. useContext                useContext
+32. useContext                useContext
+33. useContext                useContext
+34. useContext                useContext
+35. useContext                useContext
+36. useContext                useContext
+37. useRef                    useRef
+38. useContext                useContext
+39. useLayoutEffect           useLayoutEffect
+40. useCallback               useCallback
+41. useContext                useContext
+42. useCallback               useCallback
+43. useCallback               useCallback
+44. useSyncExternalStore      useSyncExternalStore
+45. useDebugValue             useDebugValue
+46. useCallback               useCallback
+47. useCallback               useCallback
+48. useSyncExternalStore      useSyncExternalStore
+49. useDebugValue             useDebugValue
+50. useState                  useState
+51. useEffect                 useEffect
+52. useContext                useContext
+53. useContext                useContext
+54. useContext                useContext
+55. useEffect                 useEffect
+56. useState                  useState
+57. useCallback               useCallback
+58. useSyncExternalStore      useSyncExternalStore
+59. useEffect                 useEffect
+60. useContext                useContext
+61. useState                  useState
+62. useEffect                 useEffect
+63. useCallback               useCallback
+64. useSyncExternalStore      useSyncExternalStore
+65. useCallback               useCallback
+66. useContext                useContext
+67. useState                  useState
+68. useEffect                 useEffect
+69. useCallback               useCallback
+70. useSyncExternalStore      useSyncExternalStore
+71. useCallback               useCallback
+72. useContext                useContext
+73. useState                  useState
+74. useEffect                 useEffect
+75. useCallback               useCallback
+76. useSyncExternalStore      useSyncExternalStore
+77. useCallback               useCallback
+78. useContext                useContext
+79. useState                  useState
+80. useEffect                 useEffect
+81. useCallback               useCallback
+82. useSyncExternalStore      useSyncExternalStore
+83. useCallback               useCallback
+84. useCallback               useCallback
+85. useCallback               useCallback
+86. useSyncExternalStore      useSyncExternalStore
+87. useDebugValue             useDebugValue
+88. useCallback               useCallback
+89. useCallback               useCallback
+90. useSyncExternalStore      useSyncExternalStore
+91. useDebugValue             useDebugValue
+92. useContext                useContext
+93. useContext                useContext
+94. useContext                useContext
+95. useEffect                 useEffect
+96. useState                  useState
+97. useCallback               useCallback
+98. useSyncExternalStore      useSyncExternalStore
+99. useEffect                 useEffect
+100. useContext               useContext
+101. useState                 useState
+102. useEffect                useEffect
+103. useCallback              useCallback
+104. useSyncExternalStore     useSyncExternalStore
+105. useCallback              useCallback
+106. useContext               useContext
+107. useState                 useState
+108. useEffect                useEffect
+109. useCallback              useCallback
+110. useSyncExternalStore     useSyncExternalStore
+111. useCallback              useCallback
+112. useContext               useContext
+113. useState                 useState
+114. useEffect                useEffect
+115. useCallback              useCallback
+116. useSyncExternalStore     useSyncExternalStore
+117. useCallback              useCallback
+118. useContext               useContext
+119. useState                 useState
+120. useEffect                useEffect
+121. useCallback              useCallback
+122. useSyncExternalStore     useSyncExternalStore
+123. useCallback              useCallback
+124. useContext               useContext
+125. useCallback              useCallback
+126. useCallback              useCallback
+127. useSyncExternalStore     useSyncExternalStore
+128. useDebugValue            useDebugValue
+129. useCallback              useCallback
+130. useCallback              useCallback
+131. useSyncExternalStore     useSyncExternalStore
+132. useDebugValue            useDebugValue
+133. useState                 useState
+134. useEffect                useEffect
+135. useContext               useContext
+136. useContext               useContext
+137. useContext               useContext
+138. useEffect                useEffect
+139. useState                 useState
+140. useCallback              useCallback
+141. useSyncExternalStore     useSyncExternalStore
+142. useEffect                useEffect
+143. useContext               useContext
+144. useState                 useState
+145. useEffect                useEffect
+146. useCallback              useCallback
+147. useSyncExternalStore     useSyncExternalStore
+148. useCallback              useCallback
+149. useContext               useContext
+150. useState                 useState
+151. useEffect                useEffect
+152. useCallback              useCallback
+153. useSyncExternalStore     useSyncExternalStore
+154. useCallback              useCallback
+155. useContext               useContext
+156. useState                 useState
+157. useEffect                useEffect
+158. useCallback              useCallback
+159. useSyncExternalStore     useSyncExternalStore
+160. useCallback              useCallback
+161. useContext               useContext
+162. useState                 useState
+163. useEffect                useEffect
+164. useCallback              useCallback
+165. useSyncExternalStore     useSyncExternalStore
+166. useCallback              useCallback
+167. useCallback              useCallback
+168. useCallback              useCallback
+169. useSyncExternalStore     useSyncExternalStore
+170. useDebugValue            useDebugValue
+171. useContext               useContext
+172. useCallback              useCallback
+173. useCallback              useCallback
+174. useSyncExternalStore     useSyncExternalStore
+175. useDebugValue            useDebugValue
+176. useContext               useContext
+177. useState                 useState
+178. useEffect                useEffect
+179. useCallback              useCallback
+180. useSyncExternalStore     useSyncExternalStore
+181. useCallback              useCallback
+182. useContext               useContext
+183. useState                 useState
+184. useEffect                useEffect
+185. useCallback              useCallback
+186. useSyncExternalStore     useSyncExternalStore
+187. useCallback              useCallback
+188. useContext               useContext
+189. useState                 useState
+190. useEffect                useEffect
+191. useCallback              useCallback
+192. useSyncExternalStore     useSyncExternalStore
+193. useCallback              useCallback
+194. useContext               useContext
+195. useState                 useState
+196. useEffect                useEffect
+197. useCallback              useCallback
+198. useSyncExternalStore     useSyncExternalStore
+199. useCallback              useCallback
+200. useContext               useContext
+201. useState                 useState
+202. useEffect                useEffect
+203. useCallback              useCallback
+204. useSyncExternalStore     useSyncExternalStore
+205. useCallback              useCallback
+206. useContext               useContext
+207. useState                 useState
+208. useEffect                useEffect
+209. useCallback              useCallback
+210. useSyncExternalStore     useSyncExternalStore
+211. useCallback              useCallback
+212. useState                 useState
+213. useState                 useState
+214. useState                 useState
+215. useState                 useState
+216. useState                 useState
+217. useState                 useState
+218. useState                 useState
+219. useState                 useState
+220. useState                 useState
+221. useRef                   useRef
+222. useRef                   useRef
+223. useRef                   useRef
+224. useState                 useState
+225. useRef                   useRef
+226. useEffect                useEffect
+227. useEffect                useEffect
+228. useEffect                useEffect
+229. useState                 useState
+230. useState                 useState
+231. useState                 useState
+232. useState                 useState
+233. useState                 useState
+234. useState                 useState
+235. useState                 useState
+236. undefined                useMemo
+ 
+    at ProductDetailPage (http://localhost:3000/src/pages/ProductDetailPage.tsx?t=1790672280406:52:24)
+    at div
+    at RenderedRoute (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=b6da8a5a:6669:26)
+    at Routes (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=b6da8a5a:7604:3)
+    at Suspense
+    at main
+    at div
+    at AppContent (http://localhost:3000/src/App.tsx?t=1790672280406:198:3)
+    at LanguageProvider (http://localhost:3000/src/context/LanguageContext.tsx:23:36)
+    at Router (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=b6da8a5a:7543:13)
+    at BrowserRouter (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=b6da8a5a:10859:3)
+    at App (http://localhost:3000/src/App.tsx?t=1790672280406:714:21)
+    at QueryClientProvider (http://localhost:3000/node_modules/.vite/deps/@tanstack_react-query.js?v=b6da8a5a:26:30)
+    at GoogleOAuthProvider (http://localhost:3000/node_modules/.vite/deps/@react-oauth_google.js?v=b6da8a5a:44:32) @ http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:520
+[    2166ms] Error: Rendered more hooks than during the previous render.
+    at updateWorkInProgressHook (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:11726:21)
+    at updateMemo (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:12247:22)
+    at Object.useMemo (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:12774:24)
+    at Object.useMemo (http://localhost:3000/node_modules/.vite/deps/chunk-3TFVT2CW.js?v=b6da8a5a:1094:29)
+    at ProductDetailPage (http://localhost:3000/src/pages/ProductDetailPage.tsx?t=1790672280406:364:35)
+    at renderWithHooks (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:11596:26)
+    at updateFunctionComponent (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:14630:28)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:15972:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:3680:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:3705:24)
+[    2167ms] Error: Rendered more hooks than during the previous render.
+    at updateWorkInProgressHook (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:11726:21)
+    at updateMemo (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:12247:22)
+    at Object.useMemo (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:12774:24)
+    at Object.useMemo (http://localhost:3000/node_modules/.vite/deps/chunk-3TFVT2CW.js?v=b6da8a5a:1094:29)
+    at ProductDetailPage (http://localhost:3000/src/pages/ProductDetailPage.tsx?t=1790672280406:364:35)
+    at renderWithHooks (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:11596:26)
+    at updateFunctionComponent (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:14630:28)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:15972:22)
+    at HTMLUnknownElement.callCallback2 (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:3680:22)
+    at Object.invokeGuardedCallbackDev (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:3705:24)
+[    2138ms] [ERROR] The above error occurred in the <ProductDetailPage> component:
+
+    at ProductDetailPage (http://localhost:3000/src/pages/ProductDetailPage.tsx?t=1790672280406:52:24)
+    at div
+    at RenderedRoute (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=b6da8a5a:6669:26)
+    at Routes (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=b6da8a5a:7604:3)
+    at Suspense
+    at main
+    at div
+    at AppContent (http://localhost:3000/src/App.tsx?t=1790672280406:198:3)
+    at LanguageProvider (http://localhost:3000/src/context/LanguageContext.tsx:23:36)
+    at Router (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=b6da8a5a:7543:13)
+    at BrowserRouter (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=b6da8a5a:10859:3)
+    at App (http://localhost:3000/src/App.tsx?t=1790672280406:714:21)
+    at QueryClientProvider (http://localhost:3000/node_modules/.vite/deps/@tanstack_react-query.js?v=b6da8a5a:26:30)
+    at GoogleOAuthProvider (http://localhost:3000/node_modules/.vite/deps/@react-oauth_google.js?v=b6da8a5a:44:32)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries. @ http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:14079
+[    2167ms] Error: Rendered more hooks than during the previous render.
+    at updateWorkInProgressHook (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:11726:21)
+    at updateMemo (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:12247:22)
+    at Object.useMemo (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:12774:24)
+    at Object.useMemo (http://localhost:3000/node_modules/.vite/deps/chunk-3TFVT2CW.js?v=b6da8a5a:1094:29)
+    at ProductDetailPage (http://localhost:3000/src/pages/ProductDetailPage.tsx?t=1790672280406:364:35)
+    at renderWithHooks (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:11596:26)
+    at updateFunctionComponent (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:14630:28)
+    at beginWork (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:15972:22)
+    at beginWork$1 (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:19806:22)
+    at performUnitOfWork (http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:19251:20)
+[    5131ms] [WARNING] The resource http://localhost:3000/src/assets/home-hero-farmer-products-optimized.jpg was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3000/product/test-products-9735:0
+[  125634ms] [ERROR] Warning: React does not recognize the `%s` prop on a DOM element. If you intentionally want it to appear in the DOM as a custom attribute, spell it as lowercase `%s` instead. If you accidentally passed it from a parent component, remove it from the DOM element.%s fetchPriority fetchpriority 
+    at img
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at div
+    at ProductDetailPage (http://localhost:3000/src/pages/ProductDetailPage.tsx?t=1790672545670:52:24)
+    at div
+    at RenderedRoute (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=b6da8a5a:6669:26)
+    at Routes (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=b6da8a5a:7604:3)
+    at Suspense
+    at main
+    at div
+    at AppContent (http://localhost:3000/src/App.tsx?t=1790672280406:198:3)
+    at LanguageProvider (http://localhost:3000/src/context/LanguageContext.tsx:23:36)
+    at Router (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=b6da8a5a:7543:13)
+    at BrowserRouter (http://localhost:3000/node_modules/.vite/deps/react-router-dom.js?v=b6da8a5a:10859:3)
+    at App (http://localhost:3000/src/App.tsx?t=1790672280406:714:21)
+    at QueryClientProvider (http://localhost:3000/node_modules/.vite/deps/@tanstack_react-query.js?v=b6da8a5a:26:30)
+    at GoogleOAuthProvider (http://localhost:3000/node_modules/.vite/deps/@react-oauth_google.js?v=b6da8a5a:44:32) @ http://localhost:3000/node_modules/.vite/deps/chunk-PNGJSGSD.js?v=b6da8a5a:520
+[  129120ms] [WARNING] The resource http://localhost:3000/src/assets/home-hero-farmer-products-optimized.jpg was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3000/product/test-products-9735:0
+[  156369ms] [WARNING] The resource http://localhost:3000/src/assets/home-hero-farmer-products-optimized.jpg was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally. @ http://localhost:3000/product/test-products-9735:0
