@@ -289,6 +289,22 @@
   height: 16px;
   width: auto;
 }
+.AgriEra-footer-credit {
+  margin: 1rem 0 0;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.AgriEra-footer-credit a {
+  color: #f4b400;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 /* Compact phone footer */
 @media (max-width: 680px) {
   .AgriEra-footer {

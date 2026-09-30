@@ -24,6 +24,17 @@ export const HomePage: React.FC = () => {
       {/* Shop by Categories Carousel */}
       <HomeCategories />
 
+
+      <div className="container home-coupon-offer-wrap">
+        <HomeCouponOffer />
+      </div>
+
+      {/* 2. Main AgriFlow Sections */}
+      <div className="container homepage-sections-container">
+        {/* Live Featured Products Section from Database (Best Selling Products) */}
+        <HomeOurProducts />
+      </div>
+
       <section
         className="home-tagline-marquee"
         aria-label="Empowering Farmers, Growing Tomorrow. Smart Farming, Better Harvests. Innovation For Better Farming. Growing Agriculture, Creating Tomorrow."
@@ -44,14 +55,7 @@ export const HomePage: React.FC = () => {
         </div>
       </section>
 
-      <div className="container home-coupon-offer-wrap">
-        <HomeCouponOffer />
-      </div>
-
-      {/* 2. Main AgriFlow Sections */}
       <div className="container homepage-sections-container">
-        {/* Live Featured Products Section from Database (Best Selling Products) */}
-        <HomeOurProducts />
 
         {/* Farmer tools and live information hub */}
         <HomeSmartHub />

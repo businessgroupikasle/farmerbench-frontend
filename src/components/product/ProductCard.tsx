@@ -139,8 +139,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           {!isOutOfStock && isBestSeller && (
             <span className="fb-badge fb-badge-bestseller">Best Seller</span>
           )}
-          {!isOutOfStock && product.featured && !isBestSeller && (
-            <span className="fb-badge fb-badge-featured">Featured</span>
+          {!isOutOfStock && product.attributes?.recommended === true && (
+            <span className="fb-badge fb-badge-featured">Recommended</span>
           )}
           {!isOutOfStock && isOrganic && (
             <span className="fb-badge fb-badge-organic">Organic</span>

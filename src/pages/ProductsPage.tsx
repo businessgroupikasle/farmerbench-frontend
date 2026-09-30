@@ -8,9 +8,51 @@ import { ProductFilters } from '../components/product/ProductFilters';
 import { ProductHero } from '../components/product/ProductHero';
 import { CompareDrawer } from '../components/product/CompareDrawer';
 import { Pagination } from '../components/common/Pagination';
+import { getUploadUrl } from '../utils/image';
+import organicReference from '../assets/categories/organic-farming.png';
+import chemicalReference from '../assets/categories/chemical.png';
+import trapsReference from '../assets/categories/traps.png';
+import seedlingsReference from '../assets/categories/seedlings.png';
+import seedsReference from '../assets/categories/seeds.png';
+import farmEquipmentReference from '../assets/categories/farm-equipment.png?url';
+import bananaReference from '../assets/crops/banana.jpg';
+import coconutReference from '../assets/crops/coconut.jpg';
+import fungicideReference from '../assets/trichoderma-fungicide.jpg';
 import { X, SlidersHorizontal, ArrowUpDown, ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import './ProductsPage.css';
 
+const MAIN_CATEGORY_IMAGES: Record<string, string> = {
+  'organic-farming': organicReference,
+  chemical: chemicalReference,
+  traps: trapsReference,
+  seedlings: seedlingsReference,
+  seeds: seedsReference,
+  'farm-equipment': farmEquipmentReference,
+};
+const SUBCATEGORY_REFERENCE_IMAGES: Record<string, string> = {
+  'bio-fertilizers': organicReference,
+  'bio-fungicides': fungicideReference,
+  'bio-pesticides': organicReference,
+  'bio-stimulants': organicReference,
+  'pheromone-trap': trapsReference,
+  'sticky-traps': trapsReference,
+  'light-traps': trapsReference,
+  papaya: seedlingsReference,
+  'tissue-culture-banana': bananaReference,
+  'tuber-banana': bananaReference,
+  watermelon: seedlingsReference,
+  muskmelon: seedlingsReference,
+  'fruit-trees': seedlingsReference,
+  coconut: coconutReference,
+  arecanut: coconutReference,
+  pepper: seedlingsReference,
+  others: seedlingsReference,
+  'horticulture-crops': seedsReference,
+  'field-crops': seedsReference,
+};
+
+const subcategoryReferenceKey = (name: string) =>
+  name.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 export const ProductsPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const {
@@ -115,11 +157,33 @@ export const ProductsPage: React.FC = () => {
 
   const activeCategories = apiCategories.filter((category) => category.isActive);
 
-  const categoryImage = (categoryId: string, imageUrl?: string | null) =>
-    imageUrl || mobileCatalogProducts.find((product) => product.categoryId === categoryId)?.images?.[0];
+  const firstProductImage = (product?: (typeof mobileCatalogProducts)[number]) =>
+    product?.images?.find((image) => Boolean(image));
 
-  const subcategoryImage = (subcategoryId: string, imageUrl?: string | null) =>
-    imageUrl || mobileCatalogProducts.find((product) => product.subcategoryId === subcategoryId)?.images?.[0];
+  const categoryImage = (category: { id: string; slug?: string | null; imageUrl?: string | null }) => {
+    const categoryKey = (category.slug || '').toLowerCase();
+    const localImage = MAIN_CATEGORY_IMAGES[categoryKey];
+    if (localImage) return localImage;
+    const uploadedImage = category.imageUrl
+      || firstProductImage(mobileCatalogProducts.find((product) => product.categoryId === category.id));
+    return uploadedImage ? getUploadUrl(uploadedImage) : undefined;
+  };
+
+  const subcategoryImage = (subcategory: { id: string; name: string; imageUrl?: string | null }, categoryId: string) => {
+    const searchName = subcategory.name.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    const categoryProducts = mobileCatalogProducts.filter((product) => product.categoryId === categoryId);
+    const matchedProduct = categoryProducts.find((product) => product.subcategoryId === subcategory.id)
+      || categoryProducts.find((product) => product.subcategory?.name?.toLowerCase() === subcategory.name.toLowerCase())
+      || categoryProducts.find((product) => {
+        const productTitle = product.title.toLowerCase().replace(/[^a-z0-9]+/g, ' ');
+        return searchName.length > 2 && (productTitle.includes(searchName) || searchName.split(' ').some((word) => word.length > 3 && productTitle.includes(word)));
+      })
+      || categoryProducts.find((product) => firstProductImage(product));
+    const productImage = firstProductImage(matchedProduct);
+    if (productImage) return getUploadUrl(productImage);
+    if (subcategory.imageUrl) return getUploadUrl(subcategory.imageUrl);
+    return SUBCATEGORY_REFERENCE_IMAGES[subcategoryReferenceKey(subcategory.name)];
+  };
 
   const handleSubcategoryClick = (categorySlug: string, subcategoryId: string) => {
     setCategory(categorySlug);
@@ -370,7 +434,7 @@ export const ProductsPage: React.FC = () => {
               return (
                 <button key={category.id} type="button" className={'fb-mobile-subcategory-item ' + (selected ? 'active' : '')} onClick={() => handleCategoryClick(categorySlug)} aria-pressed={selected}>
                   <span className="fb-mobile-subcategory-image-wrap">
-                    {categoryImage(category.id, category.imageUrl) ? <img src={categoryImage(category.id, category.imageUrl)} alt="" loading="lazy" /> : <span aria-hidden="true">{category.name.charAt(0)}</span>}
+                    {categoryImage(category) ? <img src={categoryImage(category)} alt="" loading="lazy" /> : <span aria-hidden="true">{category.name.charAt(0)}</span>}
                   </span>
                   <span className="fb-mobile-subcategory-name">{category.name}</span>
                 </button>
@@ -390,7 +454,7 @@ export const ProductsPage: React.FC = () => {
                     {children.map((subcategory) => (
                       <button key={subcategory.id} type="button" className={'fb-mobile-subcategory-item ' + (filters.subcategoryId === subcategory.id ? 'active' : '')} onClick={() => handleSubcategoryClick(categorySlug, subcategory.id)} aria-pressed={filters.subcategoryId === subcategory.id}>
                         <span className="fb-mobile-subcategory-image-wrap">
-                          {subcategoryImage(subcategory.id, subcategory.imageUrl) ? <img src={subcategoryImage(subcategory.id, subcategory.imageUrl)} alt="" loading="lazy" /> : <span aria-hidden="true">{subcategory.name.charAt(0)}</span>}
+                          {subcategoryImage(subcategory, category.id) ? <img src={subcategoryImage(subcategory, category.id)} alt="" loading="lazy" /> : <span aria-hidden="true">{subcategory.name.charAt(0)}</span>}
                         </span>
                         <span className="fb-mobile-subcategory-name">{subcategory.name}</span>
                       </button>

@@ -541,6 +541,8 @@ export const AdminPage: React.FC = () => {
     discountPrice: '',
     stock: '',
     featured: false,
+    showOnHomepage: false,
+    recommended: false,
     description: '',
     images: [],
     targetCrops: '',
@@ -592,6 +594,8 @@ export const AdminPage: React.FC = () => {
       discountPrice: '',
       stock: '',
       featured: false,
+      showOnHomepage: false,
+      recommended: false,
       description: '',
       images: [],
       targetCrops: '',
@@ -646,6 +650,8 @@ export const AdminPage: React.FC = () => {
       discountPrice: prod.discountPrice || prod.price || '',
       stock: prod.stock || '',
       featured: Boolean(prod.featured),
+      showOnHomepage: attrs.showOnHomepage === true,
+      recommended: attrs.recommended === true,
       description: existingDesc,
       images: prod.images && prod.images.length > 0 ? prod.images : (prod.image ? [prod.image] : []),
       variants: existingVariants.map((variant: any) => ({ ...variant, sku: variant.sku || buildVariantSku(prod.title || prod.name || '', variant.label || '') })),
@@ -678,6 +684,8 @@ export const AdminPage: React.FC = () => {
       discountPrice: '',
       stock: '',
       featured: false,
+      showOnHomepage: false,
+      recommended: false,
       description: '',
       images: [],
       targetCrops: '',
@@ -5897,6 +5905,8 @@ export const AdminPage: React.FC = () => {
                 const attributes = {
                   variants,
                   packSizes,
+                  showOnHomepage: Boolean(cmsForm.showOnHomepage),
+                  recommended: Boolean(cmsForm.recommended),
                   targetCrops: cmsForm.targetCrops.trim(),
                   features: cmsForm.features.filter((f: string) => Boolean(f.trim())),
                   benefits: cmsForm.benefits.filter((b: string) => Boolean(b.trim())),
@@ -6158,15 +6168,18 @@ export const AdminPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginTop: '0.75rem' }}>
-                      <input
-                        type="checkbox"
-                        id="prodFeatured"
-                        checked={cmsForm.featured}
-                        onChange={(e) => setCmsForm({ ...cmsForm, featured: e.target.checked })}
-                      />
-                      <label htmlFor="prodFeatured" style={{ fontSize: '0.85rem', fontWeight: 600, color: '#1E293B', cursor: 'pointer' }}>
-                        Feature on Homepage & Recommended Badges
+                    <div style={{ display: 'grid', gap: '0.65rem', marginTop: '0.75rem', padding: '0.85rem', border: '1px solid #E2E8F0', borderRadius: '10px', background: '#F8FAFC' }}>
+                      <label htmlFor="prodFeatured" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.85rem', fontWeight: 600, color: '#1E293B', cursor: 'pointer' }}>
+                        <input type="checkbox" id="prodFeatured" checked={cmsForm.featured} onChange={(e) => setCmsForm({ ...cmsForm, featured: e.target.checked })} />
+                        Best Seller
+                      </label>
+                      <label htmlFor="prodShowOnHomepage" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.85rem', fontWeight: 600, color: '#1E293B', cursor: 'pointer' }}>
+                        <input type="checkbox" id="prodShowOnHomepage" checked={Boolean(cmsForm.showOnHomepage)} onChange={(e) => setCmsForm({ ...cmsForm, showOnHomepage: e.target.checked })} />
+                        Show in Selected Category on Homepage
+                      </label>
+                      <label htmlFor="prodRecommended" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', fontSize: '0.85rem', fontWeight: 600, color: '#1E293B', cursor: 'pointer' }}>
+                        <input type="checkbox" id="prodRecommended" checked={Boolean(cmsForm.recommended)} onChange={(e) => setCmsForm({ ...cmsForm, recommended: e.target.checked })} />
+                        Show Recommended Badge
                       </label>
                     </div>
                   </div>

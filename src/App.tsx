@@ -110,6 +110,7 @@ const AppContent: React.FC = () => {
     location.pathname.startsWith(path)
   );
   const isAdminPage = location.pathname.startsWith('/admin');
+  const isHomePage = location.pathname === '/' || location.pathname === '/home';
   const isCheckoutFlow = location.pathname === '/cart' || location.pathname === '/checkout';
   const isProductsCatalog = location.pathname === '/products';
   const isProductDetailPage = location.pathname.startsWith('/product/');
@@ -131,7 +132,7 @@ const AppContent: React.FC = () => {
     >
       <ScrollToTop />
       {!hideNavAndFooter && <Navbar />}
-      {!hideNavAndFooter && !isProductDetailPage && <HomeMobileSearchBar />}
+      {!hideNavAndFooter && !isHomePage && !isProductDetailPage && <HomeMobileSearchBar />}
 
       <main className="main-content" style={{ padding: 0, flex: 1 }}>
         <Suspense fallback={<PageLoader />}>

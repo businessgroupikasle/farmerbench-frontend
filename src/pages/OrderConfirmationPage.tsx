@@ -174,7 +174,7 @@ export const OrderConfirmationPage: React.FC = () => {
                 </div>
               </div>
               <span style={{ fontWeight: 700, fontSize: '1rem' }}>
-                ${(item.price * item.quantity).toFixed(2)}
+                ₹{(item.price * item.quantity).toFixed(2)}
               </span>
             </div>
           ))}
@@ -184,15 +184,15 @@ export const OrderConfirmationPage: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.9rem', marginLeft: 'auto', width: '260px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: 'var(--text-secondary)' }}>Items Subtotal:</span>
-            <span>${order.itemsPrice.toFixed(2)}</span>
+            <span>₹{order.itemsPrice.toFixed(2)}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: 'var(--text-secondary)' }}>Shipping:</span>
-            <span>{order.shippingPrice === 0 ? 'FREE' : `$${order.shippingPrice.toFixed(2)}`}</span>
+            <span>{order.shippingPrice === 0 ? 'FREE' : `₹${order.shippingPrice.toFixed(2)}`}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between' }}>
             <span style={{ color: 'var(--text-secondary)' }}>Tax:</span>
-            <span>${order.taxPrice.toFixed(2)}</span>
+            <span>₹{order.taxPrice.toFixed(2)}</span>
           </div>
           <div
             style={{
@@ -205,7 +205,7 @@ export const OrderConfirmationPage: React.FC = () => {
             }}
           >
             <span>Total Paid:</span>
-            <span style={{ color: 'var(--brand-primary)' }}>${order.totalPrice.toFixed(2)}</span>
+            <span style={{ color: 'var(--brand-primary)' }}>₹{order.totalPrice.toFixed(2)}</span>
           </div>
         </div>
 

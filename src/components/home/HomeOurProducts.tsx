@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Star, Search, X } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCategories } from '../../hooks/useCategories';
-import { useFeaturedProducts } from '../../hooks/useProducts';
+import { useProducts } from '../../hooks/useProducts';
 import { formatPrice } from '../../utils/currency';
 import { getUploadUrl } from '../../utils/image';
 
@@ -11,7 +11,8 @@ const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1574943320219-553eb213
 export const HomeOurProducts: React.FC = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
-  const { data: products = [], isLoading } = useFeaturedProducts(100);
+  const { data: productResponse, isLoading } = useProducts({ limit: 100 });
+  const products = productResponse?.data || [];
   const { data: categories = [] } = useCategories();
 
   const productSections = useMemo(() => {
@@ -39,7 +40,7 @@ export const HomeOurProducts: React.FC = () => {
         id: category.id,
         name: category.name,
         products: products
-          .filter((product) => product.featured === true && product.categoryId === category.id && matchesSearch(product))
+          .filter((product) => product.attributes?.showOnHomepage === true && product.categoryId === category.id && matchesSearch(product))
           .slice(0, 8),
       })),
     ];
@@ -139,6 +140,7 @@ export const HomeOurProducts: React.FC = () => {
                     <div className="agriflow-product-img-box">
                       <img src={image} alt={item.title} loading="lazy" onError={(event) => { event.currentTarget.src = FALLBACK_IMAGE; }} />
                       {discounted && <span className="agriflow-product-discount">{discount}% off</span>}
+                      {item.attributes?.recommended === true && <span className="agriflow-product-recommended">Recommended</span>}
                     </div>
                     <div className="agriflow-product-info">
                       <div className="agriflow-product-meta">

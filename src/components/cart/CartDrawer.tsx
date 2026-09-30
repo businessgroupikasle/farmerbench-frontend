@@ -142,10 +142,10 @@ export const CartDrawer: React.FC = () => {
                     </Link>
 
                     <div style={{ fontSize: '0.925rem', fontWeight: 700, marginBottom: '0.5rem' }}>
-                      ${(unitPrice * item.quantity).toFixed(2)}
+                      ₹{(unitPrice * item.quantity).toFixed(2)}
                       {item.quantity > 1 && (
                         <span style={{ fontSize: '0.75rem', fontWeight: 400, color: 'var(--text-muted)', marginLeft: '0.35rem' }}>
-                          (${unitPrice.toFixed(2)} ea)
+                          (₹{unitPrice.toFixed(2)} ea)
                         </span>
                       )}
                     </div>
@@ -194,7 +194,7 @@ export const CartDrawer: React.FC = () => {
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Subtotal</span>
-              <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>${subtotal.toFixed(2)}</span>
+              <span style={{ fontSize: '1.25rem', fontWeight: 700 }}>₹{subtotal.toFixed(2)}</span>
             </div>
 
             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '-0.5rem' }}>

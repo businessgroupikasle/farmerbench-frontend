@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin } from 'lucide-react';
 import farmerLogo from '../../assets/AgriEra-logo-optimized.png';
@@ -207,6 +207,10 @@ export const Footer: React.FC = () => {
             </div>
           </div>
         </div>
+
+        <p className="AgriEra-footer-credit">
+          Crafted and Maintained by <a href="https://ikasleinnovations.com/" target="_blank" rel="noopener noreferrer">Ikasle Business Group</a>
+        </p>
       </div>
     </footer>
   );

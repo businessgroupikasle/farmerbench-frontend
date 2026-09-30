@@ -9,7 +9,7 @@ import chemicalImage from '../../assets/categories/chemical.png';
 import trapsImage from '../../assets/categories/traps.png';
 import SeedlingsImage from '../../assets/categories/seedlings.png';
 import seedsImage from '../../assets/categories/seeds.png';
-import farmEquipmentImage from '../../assets/categories/farm-equipment.png';
+import farmEquipmentImage from '../../assets/categories/farm-equipment.png?url';
 
 const FALLBACK_IMAGE = organicFarmingImage;
 
