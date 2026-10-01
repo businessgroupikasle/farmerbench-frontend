@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useCart } from '../hooks/useCart';
+import { useStoreShippingSettings } from '../hooks/useStoreShippingSettings';
 import { useAuth } from '../hooks/useAuth';
 import { useUIStore } from '../store/uiStore';
 import { orderService } from '../services/order.service';
 import { paymentService } from '../services/payment.service';
-import { AppliedCoupon } from '../services/coupon.service';
+import { AppliedCoupon, couponService } from '../services/coupon.service';
 import { postalCodeService } from '../services/postalCode.service';
 import { ShippingAddress, PaymentMethod } from '@formerbench/shared';
 import { useQueryClient } from '@tanstack/react-query';
@@ -20,6 +21,8 @@ import {
   MapPin,
   ChevronLeft,
   AlertCircle,
+  Sparkles,
+  X,
 } from 'lucide-react';
 import './CartPage.css';
 import './CheckoutPage.css';
@@ -73,43 +76,97 @@ const normalizeIndianMobile = (value?: string | null) => {
   return digits.slice(0, 10);
 };
 
+const CHECKOUT_DRAFT_KEY = 'farmerbench_checkout_draft';
+
+type CheckoutDraft = {
+  fullName: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  district: string;
+  state: string;
+  pincode: string;
+  orderNotes: string;
+};
+
+const getCheckoutDraft = (): Partial<CheckoutDraft> => {
+  try {
+    return JSON.parse(sessionStorage.getItem(CHECKOUT_DRAFT_KEY) || '{}');
+  } catch {
+    return {};
+  }
+};
+
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { items, subtotal, clearCart } = useCart();
+  const { standardShippingFee, freeShippingThreshold } = useStoreShippingSettings();
   const { isAuthenticated, user } = useAuth();
   const { addToast } = useUIStore();
 
   const [step, setStep] = useState<1 | 2>(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [coupon] = useState<AppliedCoupon | null>(() => {
+  const [coupon, setCoupon] = useState<AppliedCoupon | null>(() => {
     try { return JSON.parse(sessionStorage.getItem('farmerbench_applied_coupon') || 'null'); } catch { return null; }
   });
+  const [couponCode, setCouponCode] = useState(() => coupon?.code || '');
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
 
-  // Address State
-  const [fullName, setFullName] = useState(user?.name || '');
-  const [phone, setPhone] = useState(() => normalizeIndianMobile(user?.phone));
+  // Address State - keep a session draft when navigating between cart and checkout.
+  const [checkoutDraft] = useState<Partial<CheckoutDraft>>(getCheckoutDraft);
+  const [fullName, setFullName] = useState(checkoutDraft.fullName || user?.name || '');
+  const [phone, setPhone] = useState(() => normalizeIndianMobile(checkoutDraft.phone || user?.phone));
   const [phoneError, setPhoneError] = useState('');
-  const [addressLine1, setAddressLine1] = useState('');
-  const [addressLine2, setAddressLine2] = useState('');
-  const [city, setCity] = useState(user?.location || '');
-  const [district, setDistrict] = useState('');
-  const [state, setState] = useState('');
-  const [pincode, setPincode] = useState('');
+  const [addressLine1, setAddressLine1] = useState(checkoutDraft.addressLine1 || '');
+  const [addressLine2, setAddressLine2] = useState(checkoutDraft.addressLine2 || '');
+  const [city, setCity] = useState(checkoutDraft.city || user?.location || '');
+  const [district, setDistrict] = useState(checkoutDraft.district || '');
+  const [state, setState] = useState(checkoutDraft.state || '');
+  const [pincode, setPincode] = useState(checkoutDraft.pincode || '');
   const [postalStatus, setPostalStatus] = useState('');
-  const [orderNotes, setOrderNotes] = useState('');
+  const [orderNotes, setOrderNotes] = useState(checkoutDraft.orderNotes || '');
 
   // Payment Method
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('RAZORPAY');
 
   // Calculations
-  const freeDeliveryThreshold = 5000;
-  const isFreeDelivery = subtotal >= freeDeliveryThreshold;
-  const deliveryFee = isFreeDelivery || items.length === 0 ? 0 : 80;
+  const isFreeDelivery = subtotal >= freeShippingThreshold;
+  const deliveryFee = isFreeDelivery || items.length === 0 ? 0 : standardShippingFee;
   const discountAmount = coupon ? Math.min(subtotal, coupon.discountAmount) : 0;
   const grandTotal = Math.max(0, subtotal - discountAmount + deliveryFee);
 
+  const handleApplyCoupon = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const code = couponCode.trim().toUpperCase();
+    if (!code) {
+      addToast({ type: 'error', message: 'Enter a coupon code' });
+      return;
+    }
+
+    setIsApplyingCoupon(true);
+    try {
+      const response = await couponService.validate(code, subtotal);
+      if (!response.success || !response.data) throw new Error(response.message || 'Invalid coupon code');
+      setCoupon(response.data);
+      setCouponCode(response.data.code);
+      sessionStorage.setItem('farmerbench_applied_coupon', JSON.stringify(response.data));
+      addToast({ type: 'success', message: `Coupon ${response.data.code} applied! You saved ₹${response.data.discountAmount.toFixed(2)}` });
+    } catch (error: any) {
+      addToast({ type: 'error', message: error.message || 'Invalid coupon code' });
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCoupon(null);
+    setCouponCode('');
+    sessionStorage.removeItem('farmerbench_applied_coupon');
+    addToast({ type: 'info', message: 'Coupon removed' });
+  };
   // Preload Razorpay only when user enters the payment step with Razorpay selected
   useEffect(() => {
     if (step === 2 && paymentMethod === 'RAZORPAY') {
@@ -120,6 +177,21 @@ export const CheckoutPage: React.FC = () => {
   useEffect(() => {
     if (user?.phone && !phone) setPhone(normalizeIndianMobile(user.phone));
   }, [user?.phone, phone]);
+
+  useEffect(() => {
+    const draft: CheckoutDraft = {
+      fullName,
+      phone,
+      addressLine1,
+      addressLine2,
+      city,
+      district,
+      state,
+      pincode,
+      orderNotes,
+    };
+    sessionStorage.setItem(CHECKOUT_DRAFT_KEY, JSON.stringify(draft));
+  }, [fullName, phone, addressLine1, addressLine2, city, district, state, pincode, orderNotes]);
 
   const [availableCities, setAvailableCities] = useState<string[]>([]);
 
@@ -343,6 +415,7 @@ export const CheckoutPage: React.FC = () => {
 
               clearCart();
               sessionStorage.removeItem('farmerbench_applied_coupon');
+              sessionStorage.removeItem(CHECKOUT_DRAFT_KEY);
               queryClient.invalidateQueries({ queryKey: ['orders'] });
               queryClient.invalidateQueries({ queryKey: ['cart'] });
               queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
@@ -395,6 +468,7 @@ export const CheckoutPage: React.FC = () => {
         // Cash on Delivery
         clearCart();
         sessionStorage.removeItem('farmerbench_applied_coupon');
+        sessionStorage.removeItem(CHECKOUT_DRAFT_KEY);
         queryClient.invalidateQueries({ queryKey: ['orders'] });
         queryClient.invalidateQueries({ queryKey: ['cart'] });
         queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
@@ -862,7 +936,12 @@ export const CheckoutPage: React.FC = () => {
 
               {coupon && discountAmount > 0 && (
                 <div className="cart-summary-row discount">
-                  <span className="cart-summary-label">Coupon ({coupon.code})</span>
+                  <span className="cart-summary-label">
+                    Coupon ({coupon.code})
+                    <button type="button" onClick={handleRemoveCoupon} className="cart-remove-coupon-btn" aria-label={`Remove coupon ${coupon.code}`}>
+                      <X size={12} />
+                    </button>
+                  </span>
                   <span className="cart-summary-val discount">- ₹{discountAmount.toFixed(2)}</span>
                 </div>
               )}
@@ -872,6 +951,27 @@ export const CheckoutPage: React.FC = () => {
                 <span className="cart-summary-total-val">₹{grandTotal.toFixed(2)}</span>
               </div>
               <span className="cart-tax-notice">Includes GST and all farm tax exemptions</span>
+            </div>
+
+            <div className="cart-coupon-box checkout-coupon-box">
+              <form onSubmit={handleApplyCoupon} className="cart-coupon-form">
+                <input
+                  type="text"
+                  placeholder="Promo code (e.g. AgriEra120)"
+                  value={couponCode}
+                  onChange={(event) => setCouponCode(event.target.value)}
+                  className="cart-coupon-input"
+                  autoComplete="off"
+                  aria-label="Coupon code"
+                />
+                <button type="submit" className="cart-coupon-btn" disabled={isApplyingCoupon}>
+                  {isApplyingCoupon ? 'Applying...' : coupon ? 'Update' : 'Apply'}
+                </button>
+              </form>
+              <p className="cart-coupon-hint">
+                <Sparkles size={13} />
+                <span>Enter an active coupon code created by the store admin</span>
+              </p>
             </div>
 
             {/* Safe & Secure Guarantee Badges */}

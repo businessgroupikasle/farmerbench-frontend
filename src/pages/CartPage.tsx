@@ -20,6 +20,7 @@ import {
   X,
 } from 'lucide-react';
 import { useCart } from '../hooks/useCart';
+import { useStoreShippingSettings } from '../hooks/useStoreShippingSettings';
 import { useProducts } from '../hooks/useProducts';
 import { useWishlistStore } from '../store/wishlistStore';
 import { useUIStore } from '../store/uiStore';
@@ -41,6 +42,7 @@ export const CartPage: React.FC = () => {
   const navigate = useNavigate();
   const { addToast } = useUIStore();
   const { items, subtotal, totalItems, updateQuantity, removeItem, clearCart, addToCart } = useCart();
+  const { standardShippingFee, freeShippingThreshold } = useStoreShippingSettings();
   const { toggleWishlist, isInWishlist } = useWishlistStore();
 
   // Clear Cart Modal State
@@ -93,12 +95,11 @@ export const CartPage: React.FC = () => {
   };
 
   // Calculations
-  const freeDeliveryThreshold = 5000;
-  const isFreeDelivery = subtotal >= freeDeliveryThreshold;
-  const deliveryFee = isFreeDelivery || items.length === 0 ? 0 : 80;
+  const isFreeDelivery = subtotal >= freeShippingThreshold;
+  const deliveryFee = isFreeDelivery || items.length === 0 ? 0 : standardShippingFee;
   const effectiveDiscount = subtotal > 0 && appliedCoupon ? Math.min(discountAmount, subtotal) : 0;
   const grandTotal = Math.max(0, subtotal - effectiveDiscount + deliveryFee);
-  const freeDeliveryProgress = Math.min(100, Math.round((subtotal / freeDeliveryThreshold) * 100));
+  const freeDeliveryProgress = Math.min(100, Math.round((subtotal / freeShippingThreshold) * 100));
 
   const handleSaveForLater = (productId: string, title: string, price: number, image: string) => {
     removeItem(productId, productId);
@@ -435,7 +436,7 @@ export const CartPage: React.FC = () => {
                     </p>
                   ) : (
                     <p className="cart-shipping-msg">
-                      Add <strong>₹{(freeDeliveryThreshold - subtotal).toFixed(2)}</strong> more of farm inputs for <strong>FREE Delivery</strong>!
+                      Add <strong>₹{(freeShippingThreshold - subtotal).toFixed(2)}</strong> more of farm inputs for <strong>FREE Delivery</strong>!
                     </p>
                   )}
                 </div>

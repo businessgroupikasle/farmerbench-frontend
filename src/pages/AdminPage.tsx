@@ -1506,8 +1506,8 @@ export const AdminPage: React.FC = () => {
     // 2. Shipping & Logistics
     currency: 'INR (₹)',
     minOrderValue: '299',
-    freeShippingThreshold: '1499',
-    standardShippingFee: '79',
+    freeShippingThreshold: '5000',
+    standardShippingFee: '80',
     expressShippingFee: '199',
     enableExpressShipping: true,
     enableCod: true,
@@ -1555,19 +1555,48 @@ export const AdminPage: React.FC = () => {
   const [storeSettings, setStoreSettings] = useState(() => {
     try {
       const saved = localStorage.getItem('formerbench_store_settings');
-      return saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : DEFAULT_SETTINGS;
+      const merged = saved ? { ...DEFAULT_SETTINGS, ...JSON.parse(saved) } : DEFAULT_SETTINGS;
+      return {
+        ...merged,
+        freeShippingThreshold: String(merged.freeShippingThreshold ?? '').trim() || DEFAULT_SETTINGS.freeShippingThreshold,
+        standardShippingFee: String(merged.standardShippingFee ?? '').trim() || DEFAULT_SETTINGS.standardShippingFee,
+      };
     } catch {
       return DEFAULT_SETTINGS;
     }
   });
 
+  useEffect(() => {
+    setStoreSettings((current: typeof DEFAULT_SETTINGS) => ({
+      ...current,
+      freeShippingThreshold: String(current.freeShippingThreshold ?? '').trim() || DEFAULT_SETTINGS.freeShippingThreshold,
+      standardShippingFee: String(current.standardShippingFee ?? '').trim() || DEFAULT_SETTINGS.standardShippingFee,
+    }));
+  }, []);
   const handleSaveSettings = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     try {
-      localStorage.setItem('formerbench_store_settings', JSON.stringify(storeSettings));
-      window.dispatchEvent(new CustomEvent('store-settings:updated', { detail: storeSettings }));
+      const shippingFee = Number(storeSettings.standardShippingFee);
+      const freeThreshold = Number(storeSettings.freeShippingThreshold);
+      if (String(storeSettings.standardShippingFee).trim() === '' || !Number.isFinite(shippingFee) || shippingFee < 0) {
+        showToast('Enter a valid Standard Shipping Fee');
+        return;
+      }
+      if (String(storeSettings.freeShippingThreshold).trim() === '' || !Number.isFinite(freeThreshold) || freeThreshold < 0) {
+        showToast('Enter a valid Free Shipping Threshold');
+        return;
+      }
+
+      const normalizedSettings = {
+        ...storeSettings,
+        standardShippingFee: String(shippingFee),
+        freeShippingThreshold: String(freeThreshold),
+      };
+      setStoreSettings(normalizedSettings);
+      localStorage.setItem('formerbench_store_settings', JSON.stringify(normalizedSettings));
+      window.dispatchEvent(new CustomEvent('store-settings:updated', { detail: normalizedSettings }));
       setSettingsLastSaved(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-      showToast('Settings saved successfully and synced!');
+      showToast(`Settings saved. Standard delivery charge is now ₹${shippingFee.toFixed(2)}.`);
     } catch (err: any) {
       showToast('Failed to save settings: ' + err.message);
     }
