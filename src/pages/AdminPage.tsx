@@ -76,6 +76,7 @@ import { useAdminOrders, useOrderMutations } from '../hooks/useOrders';
 import { useBlogs, useBlogMutations } from '../hooks/useBlogs';
 import { BlogPost } from '../types/blog';
 import { adminService, CouponRecord } from '../services/admin.service';
+import { storeSettingsService } from '../services/storeSettings.service';
 import { HeroBannerManager } from '../components/admin/HeroBannerManager';
 import { BulkProductImport } from '../components/admin/BulkProductImport';
 import { useServiceBookings, useServiceBookingStats, useServiceBookingMutations } from '../hooks/useServiceBookings';
@@ -1567,13 +1568,21 @@ export const AdminPage: React.FC = () => {
   });
 
   useEffect(() => {
-    setStoreSettings((current: typeof DEFAULT_SETTINGS) => ({
-      ...current,
-      freeShippingThreshold: String(current.freeShippingThreshold ?? '').trim() || DEFAULT_SETTINGS.freeShippingThreshold,
-      standardShippingFee: String(current.standardShippingFee ?? '').trim() || DEFAULT_SETTINGS.standardShippingFee,
-    }));
+    let active = true;
+    storeSettingsService.get().then((response) => {
+      if (!active || !response.success || !response.data) return;
+      setStoreSettings((current: typeof DEFAULT_SETTINGS) => ({
+        ...current,
+        standardShippingFee: String(response.data!.standardShippingFee),
+        freeShippingThreshold: String(response.data!.freeShippingThreshold),
+      }));
+    }).catch((error: Error) => {
+      showToast(`Could not load delivery settings: ${error.message}`);
+    });
+    return () => { active = false; };
   }, []);
-  const handleSaveSettings = (e?: React.FormEvent) => {
+
+  const handleSaveSettings = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     try {
       const shippingFee = Number(storeSettings.standardShippingFee);
@@ -1587,16 +1596,24 @@ export const AdminPage: React.FC = () => {
         return;
       }
 
+      const response = await storeSettingsService.update({
+        standardShippingFee: shippingFee,
+        freeShippingThreshold: freeThreshold,
+      });
+      if (!response.success || !response.data) {
+        throw new Error(response.message || 'The server did not save the delivery settings');
+      }
+
       const normalizedSettings = {
         ...storeSettings,
-        standardShippingFee: String(shippingFee),
-        freeShippingThreshold: String(freeThreshold),
+        standardShippingFee: String(response.data.standardShippingFee),
+        freeShippingThreshold: String(response.data.freeShippingThreshold),
       };
       setStoreSettings(normalizedSettings);
       localStorage.setItem('formerbench_store_settings', JSON.stringify(normalizedSettings));
       window.dispatchEvent(new CustomEvent('store-settings:updated', { detail: normalizedSettings }));
       setSettingsLastSaved(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-      showToast(`Settings saved. Standard delivery charge is now ₹${shippingFee.toFixed(2)}.`);
+      showToast(`Settings saved. Standard delivery charge is now ₹${response.data.standardShippingFee.toFixed(2)}.`);
     } catch (err: any) {
       showToast('Failed to save settings: ' + err.message);
     }
@@ -1608,11 +1625,22 @@ export const AdminPage: React.FC = () => {
       message: 'Are you sure you want to reset all platform and store settings back to default values?',
       confirmText: 'Reset Defaults',
       type: 'warning',
-      onConfirm: () => {
-        setStoreSettings(DEFAULT_SETTINGS);
-        localStorage.removeItem('formerbench_store_settings');
-        window.dispatchEvent(new CustomEvent('store-settings:updated', { detail: DEFAULT_SETTINGS }));
-        showToast('Settings restored to defaults!');
+      onConfirm: async () => {
+        try {
+          const response = await storeSettingsService.update({
+            standardShippingFee: Number(DEFAULT_SETTINGS.standardShippingFee),
+            freeShippingThreshold: Number(DEFAULT_SETTINGS.freeShippingThreshold),
+          });
+          if (!response.success || !response.data) {
+            throw new Error(response.message || 'The server did not reset the delivery settings');
+          }
+          setStoreSettings(DEFAULT_SETTINGS);
+          localStorage.removeItem('formerbench_store_settings');
+          window.dispatchEvent(new CustomEvent('store-settings:updated', { detail: DEFAULT_SETTINGS }));
+          showToast('Settings restored to defaults!');
+        } catch (error: any) {
+          showToast(`Failed to reset settings: ${error.message}`);
+        }
       },
     });
   };
