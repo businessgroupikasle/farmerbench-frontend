@@ -5,6 +5,7 @@ import { useAuth } from './useAuth';
 import { useCartStore } from '../store/cartStore';
 import { useUIStore } from '../store/uiStore';
 import { AddToCartInput, Product } from '@formerbench/shared';
+import { getCanonicalVariantSelection } from '../utils/productVariant';
 
 // Helper to resolve variant selling price and MRP for any pack size
 const resolveVariantPricing = (product: any, packSize: string, selectedAttributes?: Record<string, any>) => {
@@ -205,15 +206,16 @@ export const useCart = () => {
       return false;
     }
 
-    const packSize = selectedAttributes?.packSize || '500 g';
-    const pricing = resolveVariantPricing(product, packSize, selectedAttributes);
+    const canonicalSelection = getCanonicalVariantSelection(product, selectedAttributes);
+    const packSize = canonicalSelection.packSize || selectedAttributes?.packSize;
+    const pricing = resolveVariantPricing(product, packSize || '', canonicalSelection);
 
     addToCartMutation.mutate({
       productId: product.id,
       quantity,
       selectedAttributes: {
-        ...selectedAttributes,
-        packSize,
+        ...canonicalSelection,
+        ...(packSize ? { packSize } : {}),
         price: pricing.sellingPrice.toString(),
         mrp: pricing.mrp.toString(),
       },

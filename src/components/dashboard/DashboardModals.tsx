@@ -656,13 +656,15 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
     : '#GL-INV01';
 
   const total = Number(order?.totalPrice || order?.amount?.toString().replace(/[^0-9.]/g, '') || order?.itemsPrice || 0);
-  const deliveryCharges = total >= 500 ? 0 : 80;
-  const netSubtotal = total - deliveryCharges > 0 ? total - deliveryCharges : total;
-  // 5% GST calculation
-  const gst = Number(((netSubtotal * 5) / 105).toFixed(2));
-  const net = Number((netSubtotal - gst).toFixed(2));
+  const itemsSubtotal = Number(order?.itemsPrice || 0);
+  const discountAmount = Number(order?.discountPrice || 0);
+  const deliveryCharges = Number(order?.shippingPrice || 0);
+  const discountedItemsTotal = Math.max(0, itemsSubtotal - discountAmount);
+  // Product prices are GST-inclusive. Derive the invoice split without adding tax again.
+  const gst = Number(((discountedItemsTotal * 5) / 105).toFixed(2));
+  const net = Number((discountedItemsTotal - gst).toFixed(2));
   const cgst = Number((gst / 2).toFixed(2));
-  const sgst = Number((gst / 2).toFixed(2));
+  const sgst = Number((gst - cgst).toFixed(2));
 
   const orderDate = order?.createdAt
     ? new Date(order.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -798,8 +800,18 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
           <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '1rem' }}>
             <div style={{ width: '260px', fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
+                <span>Items Subtotal:</span>
+                <span>&#8377;{itemsSubtotal.toFixed(2)}</span>
+              </div>
+              {discountAmount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', color: '#15803D' }}>
+                  <span>Coupon Discount{order?.couponCode ? ` (${order.couponCode})` : ''}:</span>
+                  <span>- &#8377;{discountAmount.toFixed(2)}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
                 <span>Subtotal (Taxable):</span>
-                <span>₹{net.toFixed(2)}</span>
+                <span>&#8377;{net.toFixed(2)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569' }}>
                 <span>CGST (2.5%):</span>

@@ -8,6 +8,7 @@ import { orderService } from '../services/order.service';
 import { paymentService } from '../services/payment.service';
 import { AppliedCoupon, couponService } from '../services/coupon.service';
 import { postalCodeService } from '../services/postalCode.service';
+import { getCanonicalVariantSelection } from '../utils/productVariant';
 import { ShippingAddress, PaymentMethod } from '@formerbench/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -352,17 +353,19 @@ export const CheckoutPage: React.FC = () => {
         shippingAddress,
         paymentMethod,
         couponCode: coupon?.code,
-        items: items.map((it) => ({
-          productId: it.productId,
-          quantity: it.quantity,
-          // Only submit a real database variant id. `sku` can be a display-only
-          // value generated for legacy pack-size products and must not be validated
-          // by the API as a persisted variant.
-          variantId: it.selectedAttributes?.variantId,
-          selectedAttributes: it.selectedAttributes
-            ? { packSize: it.selectedAttributes.packSize }
-            : undefined,
-        })),
+        items: items.map((it) => {
+          // Re-resolve against current product data so old cart rows cannot
+          // submit a deleted ID or the former hard-coded "500 g" default.
+          const selection = getCanonicalVariantSelection(it.product, it.selectedAttributes);
+          return {
+            productId: it.productId,
+            quantity: it.quantity,
+            variantId: selection.variantId,
+            selectedAttributes: selection.packSize
+              ? { packSize: selection.packSize }
+              : undefined,
+          };
+        }),
       });
 
       if (!orderRes.success || !orderRes.data) {
