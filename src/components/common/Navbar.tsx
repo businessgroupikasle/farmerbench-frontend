@@ -210,18 +210,20 @@ export const Navbar: React.FC = () => {
                   className="agriflow-account-btn"
                   title="My Account"
                 >
-                  <div className="agriflow-icon-box">
-                    {isAuthenticated && user?.avatarUrl && !avatarFailed ? (
-                      <img
-                        src={getUploadUrl(user.avatarUrl)}
-                        alt={user.name}
-                        onError={() => setAvatarFailed(true)}
-                        style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }}
-                      />
-                    ) : (
-                      <UserIcon size={18} strokeWidth={2.2} />
-                    )}
-                  </div>
+                  {!(isAuthenticated && isAdmin) && (
+                    <div className="agriflow-icon-box">
+                      {isAuthenticated && user?.avatarUrl && !avatarFailed ? (
+                        <img
+                          src={getUploadUrl(user.avatarUrl)}
+                          alt={user.name}
+                          onError={() => setAvatarFailed(true)}
+                          style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <UserIcon size={18} strokeWidth={2.2} />
+                      )}
+                    </div>
+                  )}
                   <div className="agriflow-account-text">
                     <span className="agriflow-account-title">
                       {isAuthenticated && user ? (isAdmin ? ' Admin' : `Hi, ${(user.name || user.email?.split('@')[0] || 'Farmer').split(' ')[0]}`) : 'Login / Register'}
