@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin } from 'lucide-react';
-import farmerLogo from '../../assets/AgriEra-logo-optimized.png';
+import farmerLogo from '../../assets/AgriEra-logo-optimized1.png';
 import { useCategories } from '../../hooks/useCategories';
 import './Footer.css';
 
@@ -40,7 +40,7 @@ export const Footer: React.FC = () => {
               <img
                 src={farmerLogo}
                 alt="AgriEra Logo"
-                style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'contain', backgroundColor: '#FFFFFF', padding: '2px' }}
+                style={{ width: '50px', height: '50px', borderRadius: '50%', objectFit: 'contain', backgroundColor: '#FFFFFF', padding: '2px' }}
               />
               <div className="AgriEra-brand-name-group">
                 <span className="AgriEra-brand-title" style={{ fontSize: '1.4rem', fontWeight: 800, color: '#FFFFFF' }}>AgriEra</span>

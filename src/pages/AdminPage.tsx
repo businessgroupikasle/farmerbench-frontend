@@ -69,7 +69,7 @@ import { uploadService } from '../services/upload.service';
 import './AdminPage.css';
 
 // Assets
-import farmerLogo from '../assets/AgriEra-logo.png';
+import farmerLogo from '../assets/AgriEra-logo-optimized1.png';
 import cropDoctorHeroImg from '../assets/crop-doctor-hero.jpg';
 import { useCustomers, useCustomerMutations } from '../hooks/useCustomers';
 import { useAdminOrders, useOrderMutations } from '../hooks/useOrders';
@@ -2227,7 +2227,7 @@ export const AdminPage: React.FC = () => {
           <img
             src={farmerLogo}
             alt="AgriEra Logo"
-            style={{ width: '38px', height: '38px', borderRadius: '50%', objectFit: 'contain', backgroundColor: '#FFFFFF', padding: '2px' }}
+            style={{ width: '46px', height: '46px', borderRadius: '50%', objectFit: 'contain', backgroundColor: '#FFFFFF', padding: '2px' }}
           />
           <div className="admin-logo-text-wrap">
             <span className="admin-logo-title">AgriEra</span>

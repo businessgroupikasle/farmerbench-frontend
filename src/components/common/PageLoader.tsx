@@ -1,5 +1,5 @@
 import React from 'react';
-import farmerLogo from '../../assets/AgriEra-logo-optimized.png';
+import farmerLogo from '../../assets/AgriEra-logo-optimized1.png';
 import './PageLoader.css';
 
 export const PageLoader: React.FC = () => (
