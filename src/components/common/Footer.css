@@ -529,3 +529,9 @@
     padding: .1rem .22rem;
   }
 }
+/* Mobile/tablet: keep copyright, payment icons and contact details above the fixed bottom nav */
+@media (max-width: 980px) {
+  .AgriEra-footer {
+    padding-bottom: calc(84px + env(safe-area-inset-bottom)) !important;
+  }
+}

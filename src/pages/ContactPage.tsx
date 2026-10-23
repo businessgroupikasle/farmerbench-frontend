@@ -176,7 +176,7 @@ export const ContactPage: React.FC = () => {
                 </div>
 
                 <button type="submit" className="contact-btn-submit" disabled={isSubmitting}>
-                  {isSubmitting ? <><span className="contact-submit-spinner" /> Sending�</> : <><Send size={16} /> Send Message</>}
+                  {isSubmitting ? <><span className="contact-submit-spinner" /> Sending…</> : <><Send size={16} /> Send Message</>}
                 </button>
 
                 <div className="contact-security-text">
@@ -261,7 +261,7 @@ export const ContactPage: React.FC = () => {
                     <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
                   </svg>
                 </a>
-                <a href="https://youtube.com" target="_blank" rel="noreferrer" className="contact-social-btn youtube" aria-label="YouTube">
+                <a href={import.meta.env.VITE_YOUTUBE_URL || 'https://youtube.com'} target="_blank" rel="noreferrer" className="contact-social-btn youtube" aria-label="YouTube">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/>
                   </svg>
@@ -298,7 +298,7 @@ export const ContactPage: React.FC = () => {
                 <span>AgriEra HQ • Coimbatore</span>
               </div>
               <a
-                href="https://maps.google.com/?q=Coimbatore,+Tamil+Nadu,+India"
+                href="https://www.google.com/maps/search/?api=1&query=123%2C+Green+Fields%2C+Coimbatore+641001%2C+Tamil+Nadu%2C+India"
                 target="_blank"
                 rel="noreferrer"
                 className="contact-map-directions-btn"
@@ -332,7 +332,7 @@ export const ContactPage: React.FC = () => {
 
             <div className="contact-visit-actions">
               <a
-                href="https://maps.google.com/?q=Coimbatore,+Tamil+Nadu,+India"
+                href="https://www.google.com/maps/search/?api=1&query=123%2C+Green+Fields%2C+Coimbatore+641001%2C+Tamil+Nadu%2C+India"
                 target="_blank"
                 rel="noreferrer"
                 className="contact-directions-link"

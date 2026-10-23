@@ -1634,3 +1634,8 @@
   justify-content: center;
   margin: 0 auto 1.25rem;
 }
+
+/* Mobile/tablet: leave room for the fixed header search bar so the hero is not covered */
+@media (max-width: 980px) {
+  .consult-dev-hero { margin-top: 62px; }
+}

@@ -2,6 +2,7 @@ import React from 'react';
 import { Leaf, Mail, MapPin, PackageCheck, Truck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import './TermsPage.css';
+import { usePolicyEffectiveDate } from '../hooks/usePolicyEffectiveDate';
 
 const sections = [
   { id: 'coverage', title: '1. Shipping Coverage', content: <>AgriEra ships eligible agricultural products to serviceable addresses across India. Availability may depend on your postcode, carrier coverage, product type, quantity, and regulatory or handling requirements. A product that can be viewed online may not be deliverable to every location.</> },
@@ -18,7 +19,9 @@ const sections = [
   { id: 'support', title: '12. Shipping Support', content: <>For delivery assistance, share your order number and registered contact details with our support team. Never share payment passwords or one-time verification codes with a courier or anyone claiming to provide shipment support.</> },
 ];
 
-export const ShippingPolicyPage: React.FC = () => (
+export const ShippingPolicyPage: React.FC = () => {
+  const effectiveDate = usePolicyEffectiveDate('shipping');
+  return (
   <div className="terms-page shipping-policy-page">
     <section className="terms-hero">
       <div className="terms-hero-inner">
@@ -27,7 +30,7 @@ export const ShippingPolicyPage: React.FC = () => (
           <span className="terms-eyebrow"><Leaf size={14} /> Orders &amp; Delivery</span>
           <h1>Shipping Policy</h1>
           <p>Clear information about order processing, delivery estimates, tracking, shipping charges, and delivery support.</p>
-          <span className="terms-updated">Effective date: September 4, 2026</span>
+          <span className="terms-updated">Effective date: {effectiveDate}</span>
         </div>
       </div>
     </section>
@@ -60,6 +63,7 @@ export const ShippingPolicyPage: React.FC = () => (
       </main>
     </div>
   </div>
-);
+  );
+};
 
 export default ShippingPolicyPage;

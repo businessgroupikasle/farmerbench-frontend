@@ -1393,3 +1393,8 @@
     font-size: .68rem;
   }
 }
+
+/* Mobile/tablet: leave room for the fixed header search bar so the hero is not covered */
+@media (max-width: 980px) {
+  .cart-page-layout { padding-top: 62px; }
+}

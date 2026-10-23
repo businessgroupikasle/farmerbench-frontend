@@ -47,6 +47,7 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({ className = 
   return (
     <div
       ref={dropdownRef}
+      translate="no"
       className={`agri-lang-selector-wrapper ${isMobile ? 'mobile-mode' : ''} ${className}`}
     >
       {/* Trigger Button */}

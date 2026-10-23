@@ -135,7 +135,7 @@ export const HomeMarketPrices: React.FC = () => {
         </a>
       </div>
 
-      {isLoading && <p className="home-market-status">Loading today&apos;s live market pricesâ€¦</p>}
+      {isLoading && <p className="home-market-status">Loading today&apos;s live market prices…</p>}
       {isError && <p className="home-market-status home-market-status--error">Live prices are temporarily unavailable.</p>}
       {!isLoading && !isError && (
         <div className="home-market-list">
@@ -145,7 +145,7 @@ export const HomeMarketPrices: React.FC = () => {
               <article
                 className="home-market-item"
                 key={`${item.commodity}-${item.market}`}
-                title={`${item.market}, ${item.district}, ${item.state} â€¢ ${item.arrivalDate}`}
+                title={`${item.market}, ${item.district}, ${item.state} • ${item.arrivalDate}`}
               >
                 <span className="home-market-icon">
                   <img

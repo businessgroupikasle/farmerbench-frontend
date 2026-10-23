@@ -34,6 +34,9 @@ import farmerLogo from '../assets/AgriEra-logo.png';
 
 import './LoginPage.css';
 
+// Same base URL the shared axios client uses (VITE_API_BASE_URL), never a hard-coded localhost
+const AUTH_API_BASE = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/+$/, '');
+
 interface SlideData {
   image: string;
 }
@@ -158,7 +161,7 @@ export const LoginPage: React.FC = () => {
     setIsSignupOtpSending(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/register-otp', {
+      const res = await fetch(`${AUTH_API_BASE}/auth/register-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -234,7 +237,7 @@ export const LoginPage: React.FC = () => {
     setIsSignupVerifying(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/verify-register-otp', {
+      const res = await fetch(`${AUTH_API_BASE}/auth/verify-register-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -298,7 +301,7 @@ export const LoginPage: React.FC = () => {
     setIsSubmittingSignup(true);
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/complete-registration', {
+      const res = await fetch(`${AUTH_API_BASE}/auth/complete-registration`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

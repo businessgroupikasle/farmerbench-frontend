@@ -1,5 +1,4 @@
-import React, { useMemo, useRef } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useCategories } from '../../hooks/useCategories';
 import { useProducts } from '../../hooks/useProducts';
@@ -23,7 +22,6 @@ const CATEGORY_IMAGES: Record<string, string> = {
 };
 
 export const HomeCategories: React.FC = () => {
-  const railRef = useRef<HTMLDivElement>(null);
   const { data: categories = [], isLoading: categoriesLoading } = useCategories();
   const { data: productResponse, isLoading: productsLoading } = useProducts({ limit: 100 });
   const products = productResponse?.data || [];
@@ -41,10 +39,6 @@ export const HomeCategories: React.FC = () => {
       };
     }), [categories, products]);
 
-  const scroll = (direction: -1 | 1) => {
-    railRef.current?.scrollBy({ left: direction * 580, behavior: 'smooth' });
-  };
-
   if (categoriesLoading || productsLoading || hotCategories.length === 0) return null;
 
   return (
@@ -55,11 +49,7 @@ export const HomeCategories: React.FC = () => {
       </div>
 
       <div className="home-hot-categories-carousel">
-        <button type="button" className="home-hot-category-arrow home-hot-category-arrow--left" onClick={() => scroll(-1)} aria-label="Previous categories">
-          <ChevronLeft size={23} />
-        </button>
-
-        <div className="home-hot-categories-rail" ref={railRef}>
+        <div className="home-hot-categories-rail">
           {hotCategories.map((category) => (
             <Link key={category.id} to={`/products?category=${category.slug}`} className="home-hot-category-card">
               <div className="home-hot-category-image">
@@ -74,10 +64,6 @@ export const HomeCategories: React.FC = () => {
             </Link>
           ))}
         </div>
-
-        <button type="button" className="home-hot-category-arrow home-hot-category-arrow--right" onClick={() => scroll(1)} aria-label="Next categories">
-          <ChevronRight size={23} />
-        </button>
       </div>
     </section>
   );

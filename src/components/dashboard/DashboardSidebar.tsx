@@ -9,7 +9,6 @@ import {
   LogOut,
   CheckCircle2,
   Stethoscope,
-  Menu,
   X,
   ChevronRight,
 } from 'lucide-react';
@@ -54,7 +53,7 @@ export const DashboardMobileBar: React.FC<DashboardMobileBarProps> = ({
       onClick={onOpenMenu}
       role="button"
       tabIndex={0}
-      aria-label="Open navigation menu"
+      aria-label="Open account sections"
     >
       <div className="fb-mobile-trigger-user">
         <div className="fb-mobile-trigger-avatar">
@@ -70,21 +69,13 @@ export const DashboardMobileBar: React.FC<DashboardMobileBarProps> = ({
         </div>
       </div>
 
-      <button
-        type="button"
-        className="fb-mobile-trigger-btn"
-        onClick={(e) => {
-          e.stopPropagation();
-          onOpenMenu();
-        }}
-        aria-label="Toggle navigation menu"
-      >
-        <Menu size={17} />
-        <span>Menu</span>
+      {/* The whole bar opens the section list; the header already has the single "Menu" button */}
+      <span className="fb-mobile-trigger-btn" aria-hidden="true">
+        <ChevronRight size={17} />
         {totalBadges > 0 && (
           <span className="fb-mobile-trigger-badge">{totalBadges}</span>
         )}
-      </button>
+      </span>
     </div>
   );
 };

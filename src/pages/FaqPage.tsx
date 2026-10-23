@@ -31,7 +31,7 @@ export const FaqPage: React.FC = () => {
     const term = query.trim().toLowerCase();
     return faqs.filter((faq) =>
       (activeCategory === 'All' || faq.category === activeCategory) &&
-      (!term || faq.question.toLowerCase().includes(term) || faq.answer.toLowerCase().includes(term))
+      (!term || faq.category.toLowerCase().includes(term) || faq.question.toLowerCase().includes(term) || faq.answer.toLowerCase().includes(term))
     );
   }, [activeCategory, query]);
 

@@ -1,5 +1,6 @@
 ﻿import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { showValidation } from '../components/common/ValidationModal';
 import {
   Sprout,
   Search,
@@ -63,6 +64,7 @@ export const FarmDevelopmentPage: React.FC = () => {
   const [callbackReference, setCallbackReference] = useState('');
   const [isSubmittingCallback, setIsSubmittingCallback] = useState(false);
   const [postalStatus, setPostalStatus] = useState('');
+  const [localityOptions, setLocalityOptions] = useState<string[]>([]);
   const [isExpertModalOpen, setIsExpertModalOpen] = useState(false);
   const [expertCallbackSuccess, setExpertCallbackSuccess] = useState(false);
   const [expertPhone, setExpertPhone] = useState('');
@@ -240,7 +242,7 @@ export const FarmDevelopmentPage: React.FC = () => {
 
   // Form Submit Handler
   useEffect(() => {
-    if (formData.pincode.length !== 6) { setPostalStatus(''); return; }
+    if (formData.pincode.length !== 6) { setPostalStatus(''); setLocalityOptions([]); return; }
     let active = true;
     setPostalStatus('Finding location...');
     postalCodeService.lookup(formData.pincode).then((place) => {
@@ -249,9 +251,18 @@ export const FarmDevelopmentPage: React.FC = () => {
       const town = (place.city && place.city.toLowerCase() !== (place.district || '').toLowerCase())
         ? place.city
         : (cleanPostOffice || place.city || place.district || '');
-      const fullLoc = [town, place.district, place.state].filter(Boolean).join(', ');
-      setFormData((current) => ({ ...current, location: fullLoc }));
-      setPostalStatus(`âœ“ ${fullLoc}`);
+      const dedupe = (parts: string[]) => parts.filter((part, i) => part && parts.findIndex((p) => p.toLowerCase() === part.toLowerCase()) === i);
+      const fullLoc = dedupe([town, place.district, place.state]).join(', ');
+      // A pincode can cover several localities: let the user pick the right one
+      const cleanNames = (place.postOffices || [])
+        .map((name) => name.replace(/\s+(B\.O|S\.O|H\.O)$/i, '').trim())
+        .filter(Boolean);
+      const options = Array.from(new Set(cleanNames)).map((name) =>
+        dedupe([name, place.district, place.state]).join(', ')
+      );
+      setLocalityOptions(options.length > 1 ? options : []);
+      setFormData((current) => ({ ...current, location: options.length > 1 ? options[0] : fullLoc }));
+      setPostalStatus(options.length > 1 ? `${options.length} localities found for this pincode` : `✓ ${fullLoc}`);
     }).catch((error) => active && setPostalStatus(error.message || 'Pincode not found'));
     return () => { active = false; };
   }, [formData.pincode]);
@@ -281,7 +292,7 @@ export const FarmDevelopmentPage: React.FC = () => {
       return;
     }
     if (!formData.termsAgreed) {
-      alert('Please agree to the terms and privacy policy to continue.');
+      showValidation('Please agree to the terms and privacy policy to continue.');
       return;
     }
 
@@ -702,16 +713,31 @@ export const FarmDevelopmentPage: React.FC = () => {
 
                     <div className="farm-dev-field">
                       <label className="farm-dev-label">Location *</label>
-                      <input
-                        required
-                        type="text"
-                        placeholder="Village / Town / District"
-                        value={formData.location}
-                        onChange={(e) =>
-                          setFormData({ ...formData, location: e.target.value })
-                        }
-                        className="farm-dev-input"
-                      />
+                      {localityOptions.length > 1 ? (
+                        <select
+                          required
+                          value={formData.location}
+                          onChange={(e) =>
+                            setFormData({ ...formData, location: e.target.value })
+                          }
+                          className="farm-dev-input"
+                        >
+                          {localityOptions.map((option) => (
+                            <option key={option} value={option}>{option}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <input
+                          required
+                          type="text"
+                          placeholder="Village / Town / District"
+                          value={formData.location}
+                          onChange={(e) =>
+                            setFormData({ ...formData, location: e.target.value })
+                          }
+                          className="farm-dev-input"
+                        />
+                      )}
                     </div>
 
                     <div className="farm-dev-field">
@@ -803,7 +829,7 @@ export const FarmDevelopmentPage: React.FC = () => {
                       <label className="farm-dev-label">Development Budget</label>
                       <input
                         type="text"
-                        placeholder="e.g. â‚¹5,00,000"
+                        placeholder="e.g. ₹5,00,000"
                         value={formData.budget}
                         onChange={(e) =>
                           setFormData({ ...formData, budget: e.target.value })
@@ -1091,7 +1117,7 @@ export const FarmDevelopmentPage: React.FC = () => {
                     disabled={isSubmittingCallback}
                   >
                     <PhoneCall size={16} />
-                    <span>{isSubmittingCallback ? 'Scheduling Call...' : 'Request Immediate Call'}</span>
+                    <span>{isSubmittingCallback ? 'Scheduling Call...' : 'Request a Callback'}</span>
                   </button>
 
                   <div className="farm-dev-modal-footer-note">

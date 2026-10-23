@@ -709,10 +709,106 @@ button.agriflow-dropdown-trigger {
   }
 }
 
+/* Keep the right-hand header actions (Login / Logout, Language) visible when
+   translated labels (e.g. Tamil) are wider than English */
+@media (min-width: 981px) {
+  .agriflow-nav-wrapper {
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: flex-end;
+  }
+  .agriflow-nav-links {
+    min-width: 0;
+    flex-shrink: 1;
+  }
+  .agriflow-header-actions,
+  .agriflow-btn-contact,
+  .agri-lang-selector-wrapper {
+    flex-shrink: 0;
+  }
+  .agriflow-account-text {
+    min-width: 0;
+    max-width: 160px;
+    overflow: hidden;
+  }
+  .agriflow-logout-btn {
+    width: 36px;
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border: 1px solid #f3d0d0;
+    border-radius: 8px;
+    background: #fff5f5;
+    color: #dc2626;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  .agriflow-logout-btn:hover {
+    background: #fee2e2;
+  }
+}
+
+@media (min-width: 981px) and (max-width: 1340px) {
+  html:not([lang="en"]) .agriflow-nav-links { gap: 0.55rem; }
+  html:not([lang="en"]) .agriflow-nav-link { font-size: 0.78rem; }
+  html:not([lang="en"]) .agriflow-nav-wrapper { gap: 0.6rem; }
+  html:not([lang="en"]) .agriflow-cart-widget-title { display: none; }
+  html:not([lang="en"]) .agriflow-actions-divider { display: none; }
+  html:not([lang="en"]) .agriflow-btn-contact { padding: 0 0.7rem; font-size: 0.78rem; }
+  html:not([lang="en"]) .agriflow-account-text { max-width: 110px; }
+}
+
 @media (max-width: 380px) {
   .has-site-navigation .main-content { padding-top: 58px !important; }
   .agriflow-brand-text {
     font-size: 1.2rem;
   }
   .agriflow-nav-container { height: 58px; }
+}
+/* Desktop: every active menu item uses the same highlighted-box style as Home */
+@media (min-width: 981px) {
+  .agriflow-nav-link.active-text,
+  .agriflow-nav-link.active-pill {
+    background-color: #eaf4ec;
+    color: #145f30;
+    padding: 0.4rem 0.7rem;
+    border-radius: 6px;
+    font-weight: 600;
+    border: 1px solid #d5e5d8;
+  }
+  html:not([lang="en"]) .agriflow-nav-link.active-text,
+  html:not([lang="en"]) .agriflow-nav-link.active-pill {
+    padding: 0.4rem 0.6rem;
+  }
+}
+
+@media (min-width: 981px) and (max-width: 1500px) {
+  .agriflow-nav-links { gap: 1rem; }
+  .agriflow-nav-wrapper { gap: 1rem; }
+}
+
+/* Narrow desktop / landscape tablet: compact header so every item stays visible */
+@media (min-width: 981px) and (max-width: 1180px) {
+  .agriflow-nav-links { gap: 0.55rem; }
+  .agriflow-nav-link { font-size: 0.8rem; }
+  .agriflow-nav-wrapper { gap: 0.6rem; }
+  .agriflow-nav-container { gap: 0.6rem; }
+  .agriflow-brand-text { font-size: 1.25rem !important; }
+  .agriflow-cart-widget-title,
+  .agriflow-actions-divider { display: none; }
+  .agriflow-btn-contact { padding: 0 0.7rem; font-size: 0.78rem; }
+  .agriflow-account-text { max-width: 110px; }
+  .agriflow-nav-link.active-text,
+  .agriflow-nav-link.active-pill { padding: 0.35rem 0.5rem; }
+}
+
+@media (min-width: 981px) and (max-width: 1040px) {
+  .agriflow-nav-links { gap: 0.35rem; }
+  .agriflow-nav-link { font-size: 0.74rem; }
+  .agriflow-nav-wrapper { gap: 0.4rem; }
+  .agriflow-header-actions { gap: 0.4rem; }
+  .agriflow-nav-container { padding: 0 0.6rem; }
+  .agriflow-brand-text { display: none; }
 }

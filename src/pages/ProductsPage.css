@@ -1222,9 +1222,10 @@
 .fb-compare-floating-bar {
   position: fixed;
   bottom: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 92%;
+  /* Leave the right edge free for the floating AgriEra AI button */
+  left: 1rem;
+  right: 11rem;
+  margin-inline: auto;
   max-width: 860px;
   background-color: #ffffff;
   border: 1.5px solid #166534;
@@ -1562,8 +1563,10 @@
     gap: 1rem;
   }
 
+  /* Sit above the fixed mobile bottom navigation (~64px) */
   .fb-compare-floating-bar {
-    width: 95%;
+    right: 1rem;
+    bottom: calc(76px + env(safe-area-inset-bottom));
     padding: 0.75rem 1rem;
   }
 
@@ -1818,3 +1821,16 @@
   }
 }
 
+
+@media (max-width: 640px) {
+  /* Also clear the AgriEra AI pill, which floats just above the bottom nav */
+  .fb-compare-floating-bar {
+    bottom: calc(126px + env(safe-area-inset-bottom));
+  }
+}
+
+/* Hide the browser's built-in clear (X) so only the custom clear button shows (Edge/Chrome) */
+.fb-catalog-search-input::-ms-clear,
+.fb-catalog-search-input::-ms-reveal { display: none; width: 0; height: 0; }
+.fb-catalog-search-input::-webkit-search-cancel-button,
+.fb-catalog-search-input::-webkit-search-decoration { display: none; -webkit-appearance: none; appearance: none; }

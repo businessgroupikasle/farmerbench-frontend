@@ -41,7 +41,7 @@ export const HomeHero: React.FC<{ onReady?: () => void }> = ({ onReady }) => {
         <div className="container agriflow-hero-content animate-fade-in" style={{ textAlign: banner?.textAlignment || 'left' }}>
           {banner?.eyebrow && <span>{banner.eyebrow}</span>}
           <h1 className="agriflow-hero-title"><span>{banner?.title || 'Better Farming'}</span><span>{banner?.highlightedText || 'Starts Here'}</span></h1>
-          <p className="agriflow-hero-description">{banner?.description || 'Quality agricultural products and trusted farming solutions ??? all in one place.'}</p>
+          <p className="agriflow-hero-description">{banner?.description || 'Quality agricultural products and trusted farming solutions — all in one place.'}</p>
           <div className="agriflow-hero-actions">
             <Link to={banner?.primaryButtonLink || '/products'} className="agriflow-hero-btn agriflow-hero-btn-primary">{banner?.primaryButtonText || 'Shop Products'}</Link>
             {(banner?.secondaryButtonText !== null) && <Link to={banner?.secondaryButtonLink || '/services'} className="agriflow-hero-btn agriflow-hero-btn-secondary">{banner?.secondaryButtonText || 'Explore Services'}</Link>}

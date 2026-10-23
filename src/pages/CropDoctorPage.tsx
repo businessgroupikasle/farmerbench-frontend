@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ShieldCheck,
-  Clock,
   Leaf,
   Upload,
   Camera,
@@ -23,6 +22,7 @@ import {
   Sparkles,
   MapPin,
   FileText,
+  X,
   PhoneCall,
   Check,
   TrendingDown,
@@ -348,6 +348,8 @@ export const CropDoctorPage: React.FC = () => {
     if (e.target.files && e.target.files.length > 0) {
       handleFilesSelected(Array.from(e.target.files));
     }
+    // allow choosing the same file again after removing it
+    e.target.value = '';
   };
 
   const handleFilesSelected = (files: File[]) => {
@@ -358,6 +360,14 @@ export const CropDoctorPage: React.FC = () => {
       src: URL.createObjectURL(file),
     }));
     setPreviewPhotos((prev) => [...prev, ...newItems].slice(0, 5));
+  };
+
+  const removePhoto = (id: string) => {
+    setPreviewPhotos((prev) => {
+      const target = prev.find((photo) => photo.id === id);
+      if (target) URL.revokeObjectURL(target.src);
+      return prev.filter((photo) => photo.id !== id);
+    });
   };
 
   const handleSubmitDiagnosis = async (e: React.FormEvent) => {
@@ -1028,6 +1038,25 @@ export const CropDoctorPage: React.FC = () => {
                     <span className="crop-doctor-dropzone-limit">JPG, PNG or WEBP • Maximum 10 MB each</span>
                   </div>
 
+                  {previewPhotos.length > 0 && (
+                    <ul className="crop-doctor-photo-previews" aria-label="Uploaded photos">
+                      {previewPhotos.map((photo) => (
+                        <li key={photo.id} className="crop-doctor-photo-preview">
+                          <img src={photo.src} alt={photo.name} />
+                          <button
+                            type="button"
+                            onClick={() => removePhoto(photo.id)}
+                            className="crop-doctor-photo-remove"
+                            aria-label={`Remove ${photo.name}`}
+                          >
+                            <X size={12} />
+                          </button>
+                          <span title={photo.name}>{photo.name}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+
                   {/* Helper Tip Box */}
                   <div className="crop-doctor-tip-banner">
                     <Sparkles size={18} className="crop-doctor-tip-icon" />
@@ -1253,28 +1282,6 @@ export const CropDoctorPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Card 2: What Happens Next? */}
-            <div className="crop-doctor-sidebar-card">
-              <div className="crop-doctor-sidebar-header">
-                <Clock size={18} style={{ color: '#16A34A' }} />
-                <h4 className="crop-doctor-sidebar-title">What Happens Next?</h4>
-              </div>
-              <div className="crop-doctor-sidebar-list">
-                <div className="crop-doctor-sidebar-list-item">
-                  <span className="crop-doctor-sidebar-step-circle">1</span>
-                  <span>Expert reviews within 24 hours</span>
-                </div>
-                <div className="crop-doctor-sidebar-list-item">
-                  <span className="crop-doctor-sidebar-step-circle">2</span>
-                  <span>You receive diagnosis and action steps</span>
-                </div>
-                <div className="crop-doctor-sidebar-list-item">
-                  <span className="crop-doctor-sidebar-step-circle">3</span>
-                  <span>Ask follow-up questions if needed</span>
-                </div>
-              </div>
-            </div>
-
             {/* Card 3: Need Immediate Help? */}
             <div className="crop-doctor-sidebar-card">
               <div className="crop-doctor-sidebar-header">
@@ -1296,17 +1303,6 @@ export const CropDoctorPage: React.FC = () => {
               </a>
               <p className="crop-doctor-sidebar-footer-note">
                 For severe or rapidly spreading crop damage.
-              </p>
-            </div>
-
-            {/* Card 4: Your Privacy Matters */}
-            <div className="crop-doctor-sidebar-card">
-              <div className="crop-doctor-sidebar-header">
-                <ShieldCheck size={18} style={{ color: '#16A34A' }} />
-                <h4 className="crop-doctor-sidebar-title">Your Privacy Matters</h4>
-              </div>
-              <p style={{ fontSize: '0.825rem', color: '#475569', lineHeight: '1.5', margin: 0 }}>
-                Your crop data and photos remain private and are never shared without your permission.
               </p>
             </div>
           </aside>

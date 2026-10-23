@@ -1,0 +1,6 @@
+.agri-validation-overlay { position: fixed; inset: 0; z-index: 10001; display: flex; align-items: center; justify-content: center; padding: 1rem; background: rgba(15, 41, 27, 0.55); backdrop-filter: blur(3px); }
+.agri-validation-card { width: 100%; max-width: 380px; padding: 1.5rem; border-radius: 16px; background: #fff; text-align: center; box-shadow: 0 20px 50px rgba(15, 41, 27, 0.3); }
+.agri-validation-icon { display: grid; width: 52px; height: 52px; margin: 0 auto .75rem; place-items: center; border-radius: 50%; background: #eaf4ec; color: #165b33; }
+.agri-validation-card p { margin: 0 0 1.1rem; color: #26372d; font-size: .95rem; font-weight: 600; line-height: 1.45; }
+.agri-validation-btn { min-width: 110px; padding: .6rem 1.4rem; border: 0; border-radius: 8px; background: #165b33; color: #fff; font-weight: 700; cursor: pointer; }
+.agri-validation-btn:hover { background: #14532d; }

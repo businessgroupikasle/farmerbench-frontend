@@ -69,7 +69,7 @@ export const Footer: React.FC = () => {
                 </svg>
               </a>
               {/* YouTube */}
-              <a href="https://youtube.com" target="_blank" rel="noreferrer" className="AgriEra-social-icon" aria-label="YouTube">
+              <a href={import.meta.env.VITE_YOUTUBE_URL || 'https://youtube.com'} target="_blank" rel="noreferrer" className="AgriEra-social-icon" aria-label="YouTube">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/>
                   <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="#123C22"/>
@@ -154,7 +154,7 @@ export const Footer: React.FC = () => {
             <ul className="AgriEra-contact-list">
               <li className="AgriEra-contact-item">
                 <Phone size={15} className="AgriEra-contact-icon" />
-                <a href="tel:+9193607 63060">+91 93607 63060</a>
+                <a href="tel:+919360763060">+91 93607 63060</a>
               </li>
               <li className="AgriEra-contact-item">
                 <Mail size={15} className="AgriEra-contact-icon" />
@@ -162,7 +162,7 @@ export const Footer: React.FC = () => {
               </li>
               <li className="AgriEra-contact-item">
                 <MapPin size={16} className="AgriEra-contact-icon" />
-                <span>123, Green Fields, Coimbatore - 641001, Tamil Nadu, India</span>
+                <a href="https://www.google.com/maps/search/?api=1&query=123%2C+Green+Fields%2C+Coimbatore+641001%2C+Tamil+Nadu%2C+India" target="_blank" rel="noreferrer">123, Green Fields, Coimbatore - 641001, Tamil Nadu, India</a>
               </li>
             </ul>
           </div>
@@ -171,7 +171,7 @@ export const Footer: React.FC = () => {
         {/* Bottom Copyright & Payment Badges */}
         <div className="AgriEra-footer-bottom-bar">
           <p className="AgriEra-copyright">
-            Â© {new Date().getFullYear()} AgriEra. All Rights Reserved.
+            © {new Date().getFullYear()} AgriEra. All Rights Reserved.
           </p>
 
           <div className="AgriEra-payment-badges">
@@ -203,7 +203,7 @@ export const Footer: React.FC = () => {
 
             {/* UPI */}
             <div className="AgriEra-payment-badge" title="UPI">
-              <span style={{ fontSize: '0.7rem', fontWeight: 900, color: '#097938', letterSpacing: '0.04em' }}>UPI<span style={{ color: '#F37021' }}>â–¶</span></span>
+              <span style={{ fontSize: '0.7rem', fontWeight: 900, color: '#097938', letterSpacing: '0.04em' }}>UPI<span style={{ color: '#F37021' }}>▶</span></span>
             </div>
           </div>
         </div>

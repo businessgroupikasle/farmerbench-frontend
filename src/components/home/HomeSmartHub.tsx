@@ -31,10 +31,10 @@ const WeatherSnapshot: React.FC = () => {
   });
 
   return <>
-    <p className="smart-hub-weather-copy">{data ? `${weatherLabel(data.weather_code)} Â· Humidity ${data.relative_humidity_2m}% Â· Wind ${Math.round(data.wind_speed_10m)} km/h` : 'Current Coimbatore weather and farm conditions.'}</p>
+    <p className="smart-hub-weather-copy">{data ? `${weatherLabel(data.weather_code)} · Humidity ${data.relative_humidity_2m}% · Wind ${Math.round(data.wind_speed_10m)} km/h` : 'Current Coimbatore weather and farm conditions.'}</p>
     <div className="smart-hub-weather-art" aria-label={data ? `${Math.round(data.temperature_2m)} degrees Celsius` : 'Loading weather'}>
       <CloudSun size={61} fill="white" />
-      <span>{isLoading ? '--' : `${Math.round(data?.temperature_2m ?? 28)}Â°C`}<small>Coimbatore</small></span>
+      <span>{isLoading ? '--' : `${Math.round(data?.temperature_2m ?? 28)}°C`}<small>Coimbatore</small></span>
     </div>
   </>;
 };
@@ -75,9 +75,9 @@ const tools = [
     icon: <CloudSun size={19} />,
     title: 'Weather Update',
     heading: 'Live Farm Weather',
-    description: 'Live weather loadingâ€¦',
+    description: 'Live weather loading…',
     action: 'Check Weather',
-    to: '/services',
+    to: '/weather',
     art: null,
   },
   {

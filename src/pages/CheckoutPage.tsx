@@ -949,32 +949,33 @@ export const CheckoutPage: React.FC = () => {
                 </div>
               )}
 
+              {/* Coupon / Promo Code - placed above the total */}
+              <div className="cart-coupon-box checkout-coupon-box">
+                <form onSubmit={handleApplyCoupon} className="cart-coupon-form">
+                  <input
+                    type="text"
+                    placeholder="Promo code (e.g. AgriEra120)"
+                    value={couponCode}
+                    onChange={(event) => setCouponCode(event.target.value)}
+                    className="cart-coupon-input"
+                    autoComplete="off"
+                    aria-label="Coupon code"
+                  />
+                  <button type="submit" className="cart-coupon-btn" disabled={isApplyingCoupon}>
+                    {isApplyingCoupon ? 'Applying...' : coupon ? 'Update' : 'Apply'}
+                  </button>
+                </form>
+                <p className="cart-coupon-hint">
+                  <Sparkles size={13} />
+                  <span>Enter an active coupon code created by the store admin</span>
+                </p>
+              </div>
+
               <div className="cart-summary-row total">
                 <span className="cart-summary-total-label">Total Payable</span>
                 <span className="cart-summary-total-val">₹{grandTotal.toFixed(2)}</span>
               </div>
               <span className="cart-tax-notice">Includes GST and all farm tax exemptions</span>
-            </div>
-
-            <div className="cart-coupon-box checkout-coupon-box">
-              <form onSubmit={handleApplyCoupon} className="cart-coupon-form">
-                <input
-                  type="text"
-                  placeholder="Promo code (e.g. AgriEra120)"
-                  value={couponCode}
-                  onChange={(event) => setCouponCode(event.target.value)}
-                  className="cart-coupon-input"
-                  autoComplete="off"
-                  aria-label="Coupon code"
-                />
-                <button type="submit" className="cart-coupon-btn" disabled={isApplyingCoupon}>
-                  {isApplyingCoupon ? 'Applying...' : coupon ? 'Update' : 'Apply'}
-                </button>
-              </form>
-              <p className="cart-coupon-hint">
-                <Sparkles size={13} />
-                <span>Enter an active coupon code created by the store admin</span>
-              </p>
             </div>
 
             {/* Safe & Secure Guarantee Badges */}

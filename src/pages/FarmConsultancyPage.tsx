@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { showValidation } from '../components/common/ValidationModal';
 import { Link } from 'react-router-dom';
 import {
   Sprout,
@@ -323,7 +324,7 @@ export const FarmConsultancyPage: React.FC = () => {
       return;
     }
     if (!formData.termsAgreed) {
-      alert('Please agree to share information with AgriEra experts to continue.');
+      showValidation('Please agree to share information with AgriEra experts to continue.');
       return;
     }
 
@@ -412,6 +413,13 @@ export const FarmConsultancyPage: React.FC = () => {
   const toggleFaq = (id: number) => {
     setActiveFaq((prev) => (prev === id ? null : id));
   };
+
+  // Follow-up is scheduled a week after the consultation request, never in the past
+  const followUpDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
 
   return (
     <div className="consult-dev-page">
@@ -776,7 +784,7 @@ export const FarmConsultancyPage: React.FC = () => {
                     <strong>Follow-Up Date</strong>
                   </div>
                   <p className="consult-dev-footer-text">
-                    Next Review: <strong>20 May 2025</strong>
+                    Next Review: <strong>{followUpDate}</strong>
                   </p>
                   <span className="consult-dev-mode-tag">Mode: Phone Consultation</span>
                 </div>
@@ -1321,7 +1329,7 @@ export const FarmConsultancyPage: React.FC = () => {
                     disabled={isSubmittingCallback}
                   >
                     <PhoneCall size={16} />
-                    <span>{isSubmittingCallback ? 'Scheduling Call...' : 'Request Immediate Call'}</span>
+                    <span>{isSubmittingCallback ? 'Scheduling Call...' : 'Request a Callback'}</span>
                   </button>
 
                   <div className="consult-dev-modal-footer-note">

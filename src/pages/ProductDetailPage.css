@@ -1,5 +1,5 @@
 ﻿/* ==========================================================================
-   AgriEra â€” PRODUCT DETAILS PAGE STYLES
+   AgriEra — PRODUCT DETAILS PAGE STYLES
    Pixel-Perfect Match to UI Design with Responsive Adaptability
    ========================================================================== */
 
@@ -2627,7 +2627,7 @@
   }
 
   .pdp-mobile-info-accordion details[open] > summary::after {
-    content: 'âˆ’';
+    content: '−';
     background: #15803d;
     border-color: #15803d;
     color: #ffffff;

@@ -328,3 +328,7 @@
   transform: translateX(3px);
   color: #78B833;
 }
+/* Mobile/tablet: leave room for the fixed header search bar so the hero is not covered */
+@media (max-width: 980px) {
+  .blog-hero-section { margin-top: 62px; }
+}

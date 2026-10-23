@@ -2958,7 +2958,7 @@
   line-height: 1;
 }
 
-.hero-banner-guide[open] summary::after { content: 'âˆ’'; }
+.hero-banner-guide[open] summary::after { content: '−'; }
 
 .hero-banner-guide-grid {
   display: grid;

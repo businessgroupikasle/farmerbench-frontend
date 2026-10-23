@@ -103,10 +103,13 @@ export const useCart = () => {
   });
 
   const removeCartItemMutation = useMutation({
-    mutationFn: (itemId: string) => cartService.removeCartItem(itemId),
-    onSuccess: () => {
+    mutationFn: ({ itemId }: { itemId: string; silent?: boolean }) =>
+      cartService.removeCartItem(itemId),
+    onSuccess: (_data, { silent }) => {
       queryClient.invalidateQueries({ queryKey: ['cart'] });
-      addToast({ type: 'info', message: 'Item removed from cart' });
+      if (!silent) {
+        addToast({ type: 'info', message: 'Item removed from cart' });
+      }
     },
     onError: (error: Error) => {
       addToast({ type: 'error', message: error.message });
@@ -232,12 +235,15 @@ export const useCart = () => {
     }
   };
 
-  const removeItem = (itemId: string, productId: string) => {
+  // `silent` skips the "removed" toast when the caller shows its own message (e.g. Save for Later)
+  const removeItem = (itemId: string, productId: string, silent = false) => {
     if (isAuthenticated) {
-      removeCartItemMutation.mutate(itemId);
+      removeCartItemMutation.mutate({ itemId, silent });
     } else {
       removeGuestItem(itemId || productId);
-      addToast({ type: 'info', message: 'Item removed from bag' });
+      if (!silent) {
+        addToast({ type: 'info', message: 'Item removed from bag' });
+      }
     }
   };
 

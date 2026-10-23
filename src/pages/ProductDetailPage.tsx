@@ -405,7 +405,7 @@ export const ProductDetailPage: React.FC = () => {
   const descriptionPoints: string[] = product?.description
     ? product.description
         .split(/\r?\n|(?<=[.!?])\s+/)
-        .map((s: string) => s.trim().replace(/^[-â€¢*]\s*/, ''))
+        .map((s: string) => s.trim().replace(/^[-•*]\s*/, ''))
         .filter((s: string) => s.length > 2)
     : [];
   const displayDescriptionPoints: string[] = descriptionPoints.length > 0
@@ -551,7 +551,7 @@ export const ProductDetailPage: React.FC = () => {
             <span>
               <strong>SKU:</strong> {skuCode}
             </span>
-            <span>â€¢</span>
+            <span>•</span>
             <span
               className={`pdp-stock-status ${
                 isOutOfStock ? 'out-of-stock' : currentStock <= 10 ? 'low-stock' : 'in-stock'
@@ -721,7 +721,7 @@ export const ProductDetailPage: React.FC = () => {
             )}
             <div className="pdp-delivery-estimate">
               <Truck size={14} style={{ color: '#16a34a' }} />
-              <span>Usually delivered in 3â€“5 business days directly to your farm address</span>
+              <span>Usually delivered in 3–5 business days directly to your farm address</span>
             </div>
           </div>
 
@@ -750,7 +750,7 @@ export const ProductDetailPage: React.FC = () => {
       {/* 3. Crop Expert Assistance Banner */}
       <div className="pdp-expert-banner">
         <div className="pdp-expert-left">
-          <div className="pdp-expert-icon-wrap">ðŸŒ±</div>
+          <div className="pdp-expert-icon-wrap">🌱</div>
           <div>
             <h3 className="pdp-expert-title">Need help using this product?</h3>
             <p className="pdp-expert-sub">
@@ -1068,11 +1068,11 @@ export const ProductDetailPage: React.FC = () => {
                 <tbody>
                   {dosageTable.map((row, idx) => (
                     <tr key={idx}>
-                      <td data-label="Crop">{row.crop || 'â€”'}</td>
-                      <td data-label="Target">{row.target || 'â€”'}</td>
-                      <td data-label="Dosage (ml/acre)">{row.dosage || row.foliarSpray || 'â€”'}</td>
-                      <td data-label="Water Volume (L/acre)">{row.waterVolume || row.dripIrrigation || 'â€”'}</td>
-                      <td data-label="Waiting Period (days)">{row.waitingPeriod || 'â€”'}</td>
+                      <td data-label="Crop">{row.crop || '—'}</td>
+                      <td data-label="Target">{row.target || '—'}</td>
+                      <td data-label="Dosage (ml/acre)">{row.dosage || row.foliarSpray || '—'}</td>
+                      <td data-label="Water Volume (L/acre)">{row.waterVolume || row.dripIrrigation || '—'}</td>
+                      <td data-label="Waiting Period (days)">{row.waitingPeriod || '—'}</td>
                     </tr>
                   ))}
                 </tbody>

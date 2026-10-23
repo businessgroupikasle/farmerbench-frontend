@@ -213,3 +213,6 @@
     top: 58px;
   }
 }
+
+.home-mobile-search-input-wrap input::-ms-clear,
+.home-mobile-search-input-wrap input::-ms-reveal { display: none; width: 0; height: 0; }

@@ -4,6 +4,8 @@ import { apiClient } from './api';
 export interface StoreShippingSettings {
   standardShippingFee: number;
   freeShippingThreshold: number;
+  shippingPolicyEffectiveDate?: string | null;
+  returnPolicyEffectiveDate?: string | null;
 }
 
 export const storeSettingsService = {

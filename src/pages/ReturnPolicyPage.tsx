@@ -2,6 +2,7 @@ import React from 'react';
 import { Leaf, Mail, MapPin, RefreshCcw, RotateCcw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import './TermsPage.css';
+import { usePolicyEffectiveDate } from '../hooks/usePolicyEffectiveDate';
 
 const sections = [
   { id: 'window', title: '1. Return Request Window', content: <>Contact AgriEra within 7 calendar days of delivery to request an eligible return. Damaged, leaking, missing, expired, or incorrect products should be reported within 48 hours of delivery so we can investigate promptly. A request submitted within the applicable period is still subject to verification and the conditions below.</> },
@@ -18,7 +19,9 @@ const sections = [
   { id: 'abuse', title: '12. Misuse of the Return Process', content: <>We may limit or reject requests involving altered evidence, repeated unreasonable claims, substituted products, missing components, unsafe handling, or other suspected misuse. This does not restrict any mandatory consumer right available under applicable law.</> },
 ];
 
-export const ReturnPolicyPage: React.FC = () => (
+export const ReturnPolicyPage: React.FC = () => {
+  const effectiveDate = usePolicyEffectiveDate('return');
+  return (
   <div className="terms-page return-policy-page">
     <section className="terms-hero">
       <div className="terms-hero-inner">
@@ -27,7 +30,7 @@ export const ReturnPolicyPage: React.FC = () => (
           <span className="terms-eyebrow"><Leaf size={14} /> Returns &amp; Refunds</span>
           <h1>Return Policy</h1>
           <p>Understand when a product can be returned, how to submit a request, and how replacements and refunds are handled.</p>
-          <span className="terms-updated">Effective date: September 4, 2026</span>
+          <span className="terms-updated">Effective date: {effectiveDate}</span>
         </div>
       </div>
     </section>
@@ -59,6 +62,7 @@ export const ReturnPolicyPage: React.FC = () => (
       </main>
     </div>
   </div>
-);
+  );
+};
 
 export default ReturnPolicyPage;

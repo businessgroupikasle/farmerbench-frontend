@@ -107,13 +107,10 @@ export const ProductsPage: React.FC = () => {
     const urlSort = searchParams.get('sort');
     const urlPage = searchParams.get('page');
 
-    if (urlCategory) {
-      setCategory(urlCategory);
-    }
+    // The URL is the source of truth: a bare /products must not keep a stale category/search
+    setCategory(urlCategory || undefined);
     setSubcategory(urlSubcategory || undefined);
-    if (urlSearch) {
-      setSearch(urlSearch);
-    }
+    setSearch(urlSearch || undefined);
     if (urlFeatured) {
       useFilterStore.setState((state) => ({
         filters: { ...state.filters, featured: true, page: 1 },

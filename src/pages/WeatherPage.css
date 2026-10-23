@@ -1,0 +1,13 @@
+.farm-weather-page { max-width: 960px; margin: 0 auto; padding: calc(1.5rem + 62px) 1rem 4rem; }
+@media (min-width: 981px) { .farm-weather-page { padding-top: 2rem; } }
+.farm-weather-header h1 { margin: 0 0 .4rem; color: #123d24; font-size: clamp(1.6rem, 5vw, 2.2rem); }
+.farm-weather-header p { margin: 0 0 1.5rem; color: #52645a; }
+.farm-weather-status { color: #52645a; }
+.farm-weather-current { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1.5rem; padding: 1.25rem; margin-bottom: 1.25rem; border: 1px solid #dce8dd; border-radius: 16px; background: #f4f8f5; color: #165b33; }
+.farm-weather-current strong { font-size: 2.4rem; }
+.farm-weather-current span { display: inline-flex; align-items: center; gap: .35rem; color: #26372d; font-weight: 600; }
+.farm-weather-forecast { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: .75rem; }
+.farm-weather-day { display: flex; flex-direction: column; gap: .25rem; padding: .85rem; border: 1px solid #e2e8e3; border-radius: 12px; background: #fff; }
+.farm-weather-day span { color: #52645a; font-size: .8rem; }
+.farm-weather-day strong { color: #123d24; }
+.farm-weather-day small { color: #64748b; }

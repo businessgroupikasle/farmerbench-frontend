@@ -101,8 +101,8 @@ export const CartPage: React.FC = () => {
   const grandTotal = Math.max(0, subtotal - effectiveDiscount + deliveryFee);
   const freeDeliveryProgress = Math.min(100, Math.round((subtotal / freeShippingThreshold) * 100));
 
-  const handleSaveForLater = (productId: string, title: string, price: number, image: string) => {
-    removeItem(productId, productId);
+  const handleSaveForLater = (itemId: string, productId: string, title: string, price: number, image: string) => {
+    removeItem(itemId, productId, true);
     setSavedItems((prev) => [
       ...prev.filter((i) => i.productId !== productId),
       {
@@ -113,7 +113,7 @@ export const CartPage: React.FC = () => {
         image,
       },
     ]);
-    addToast({ type: 'info', message: `${title} moved to Saved for Later` });
+    addToast({ type: 'success', message: 'Item saved for later' });
   };
 
   const handleMoveToCart = (item: SavedItemData) => {
@@ -348,7 +348,7 @@ export const CartPage: React.FC = () => {
                         {/* Actions: Save for later & Remove */}
                         <div className="cart-item-actions">
                           <button
-                            onClick={() => handleSaveForLater(item.productId, title, price, image)}
+                            onClick={() => handleSaveForLater(item.id, item.productId, title, price, image)}
                             className="cart-action-btn save"
                           >
                             <Heart size={14} />

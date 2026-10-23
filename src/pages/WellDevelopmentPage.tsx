@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { showValidation } from '../components/common/ValidationModal';
 import { Link } from 'react-router-dom';
 import {
   Droplets,
@@ -258,7 +259,7 @@ export const WellDevelopmentPage: React.FC = () => {
       return;
     }
     if (!formData.termsConfirmed) {
-      alert('Please confirm the declaration checkbox to continue.');
+      showValidation('Please confirm the declaration checkbox to continue.');
       return;
     }
 
@@ -1103,7 +1104,7 @@ export const WellDevelopmentPage: React.FC = () => {
                     disabled={isSubmittingCallback}
                   >
                     <PhoneCall size={16} />
-                    <span>{isSubmittingCallback ? 'Scheduling Call...' : 'Request Immediate Call'}</span>
+                    <span>{isSubmittingCallback ? 'Scheduling Call...' : 'Request a Callback'}</span>
                   </button>
 
                   <div className="well-dev-modal-footer-note">

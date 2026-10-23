@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { showValidation } from '../components/common/ValidationModal';
 import { Link } from 'react-router-dom';
 import {
   Droplets,
@@ -283,7 +284,7 @@ export const DripIrrigationPage: React.FC = () => {
       return;
     }
     if (!formData.termsAgreed) {
-      alert('Please agree to share information with AgriEra to continue.');
+      showValidation('Please agree to share information with AgriEra to continue.');
       return;
     }
 
@@ -1148,7 +1149,7 @@ export const DripIrrigationPage: React.FC = () => {
                     disabled={isSubmittingCallback}
                   >
                     <PhoneCall size={16} />
-                    <span>{isSubmittingCallback ? 'Scheduling Call...' : 'Request Immediate Call'}</span>
+                    <span>{isSubmittingCallback ? 'Scheduling Call...' : 'Request a Callback'}</span>
                   </button>
 
                   <div className="drip-dev-modal-footer-note">

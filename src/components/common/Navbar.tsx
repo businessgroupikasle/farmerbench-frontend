@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   ShieldCheck,
   PackageCheck,
+  Heart,
   Menu,
   X,
   Send,
@@ -250,6 +251,9 @@ export const Navbar: React.FC = () => {
                     <Link to="/dashboard?tab=orders" onClick={() => setIsUserMenuOpen(false)} className="agriflow-user-menu-item">
                       <PackageCheck size={15} /> My Orders
                     </Link>
+                    <Link to="/dashboard?tab=wishlist" onClick={() => setIsUserMenuOpen(false)} className="agriflow-user-menu-item">
+                      <Heart size={15} /> Wishlist
+                    </Link>
                     {isAdmin && (
                       <Link to="/admin" onClick={() => setIsUserMenuOpen(false)} className="agriflow-user-menu-item" style={{ color: '#D97706', fontWeight: 600 }}>
                         <ShieldCheck size={15} /> Admin Portal
@@ -268,6 +272,19 @@ export const Navbar: React.FC = () => {
                   </div>
                 )}
               </div>
+
+              {/* Always-visible Sign Out action for logged-in users */}
+              {isAuthenticated && user && (
+                <button
+                  type="button"
+                  onClick={() => setIsLogoutModalOpen(true)}
+                  className="agriflow-logout-btn"
+                  title="Sign Out"
+                  aria-label="Sign Out"
+                >
+                  <LogOut size={17} strokeWidth={2.2} />
+                </button>
+              )}
 
               {/* Language Selector (Directly next to Login / Account button) */}
               <LanguageSelector />
@@ -345,6 +362,9 @@ export const Navbar: React.FC = () => {
               <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
                 <Link to="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="btn btn-secondary" style={{ flex: 1, textAlign: 'center' }}>
                   Dashboard
+                </Link>
+                <Link to="/dashboard?tab=wishlist" onClick={() => setIsMobileMenuOpen(false)} className="btn btn-secondary" style={{ flex: 1, textAlign: 'center' }}>
+                  Wishlist
                 </Link>
                 <button onClick={() => { setIsMobileMenuOpen(false); setIsLogoutModalOpen(true); }} className="btn btn-danger" style={{ padding: '0.65rem 1rem' }}>
                   Sign Out

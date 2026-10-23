@@ -17,7 +17,7 @@ export const AboutBanner: React.FC = () => {
 
         {/* Right CTA Actions */}
         <div className="about-banner-actions">
-          <Link to="/products" className="about-banner-btn-primary">
+          <Link to="/services" className="about-banner-btn-primary">
             <span>Learn More</span>
             <ArrowRight size={18} strokeWidth={2.5} />
           </Link>

@@ -8,6 +8,7 @@ import { AuthModal } from './components/auth/AuthModal';
 import { ToastContainer } from './components/common/Toast';
 import { ChatWidget } from './components/chat/ChatWidget';
 import { ScrollToTop } from './components/common/ScrollToTop';
+import { ValidationModalHost } from './components/common/ValidationModal';
 import { PageLoader } from './components/common/PageLoader';
 import { useThemeStore } from './store/themeStore';
 import { LanguageProvider } from './context/LanguageContext';
@@ -16,6 +17,7 @@ import { AlertTriangle, Clock3, Sprout } from 'lucide-react';
 
 // Keep the landing page in the initial bundle; load secondary pages on demand.
 import { HomePage } from './pages/HomePage';
+const WeatherPage = lazy(() => import('./pages/WeatherPage'));
 const AboutPage = lazy(() => import('./pages/AboutPage'));
 const ProductsPage = lazy(() => import('./pages/ProductsPage'));
 const ProductDetailPage = lazy(() => import('./pages/ProductDetailPage'));
@@ -80,11 +82,11 @@ const MaintenanceScreen: React.FC<{ settings: MaintenanceSettings }> = ({ settin
     <section style={{ width: 'min(680px, 100%)', padding: 'clamp(2rem, 6vw, 4rem)', textAlign: 'center', borderRadius: '28px', background: 'rgba(255,255,255,.94)', border: '1px solid #d9e9d4', boxShadow: '0 24px 70px rgba(20,70,35,.12)' }}>
       <div style={{ width: 76, height: 76, margin: '0 auto 1.5rem', borderRadius: 22, display: 'grid', placeItems: 'center', color: '#176b37', background: '#eaf7e8' }}><Sprout size={40} /></div>
       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '.45rem', padding: '.45rem .8rem', borderRadius: 999, color: '#9a6700', background: '#fff8db', fontWeight: 800, fontSize: '.78rem', textTransform: 'uppercase', letterSpacing: '.06em' }}><AlertTriangle size={15} /> Scheduled maintenance</div>
-      <h1 style={{ margin: '1.25rem 0 .8rem', color: '#123d24', fontSize: 'clamp(2rem, 6vw, 3.4rem)', lineHeight: 1.05 }}>Weâ€™ll be back growing soon.</h1>
+      <h1 style={{ margin: '1.25rem 0 .8rem', color: '#123d24', fontSize: 'clamp(2rem, 6vw, 3.4rem)', lineHeight: 1.05 }}>We’ll be back growing soon.</h1>
       <p style={{ maxWidth: 530, margin: '0 auto', color: '#52675a', fontSize: '1.05rem', lineHeight: 1.75 }}>{settings.maintenanceMessage}</p>
       <div style={{ margin: '1.8rem auto', padding: '1rem', borderRadius: 14, background: '#f7faf6', color: '#486052', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '.5rem' }}><Clock3 size={18} /> {settings.businessHours}</div>
       <p style={{ color: '#758278', fontSize: '.9rem' }}>Need assistance? <a href={`mailto:${settings.supportEmail}`} style={{ color: '#176b37', fontWeight: 800 }}>{settings.supportEmail}</a></p>
-      <Link to="/admin" style={{ display: 'inline-block', marginTop: '1rem', color: '#176b37', fontWeight: 800, textDecoration: 'none' }}>Administrator access â†’</Link>
+      <Link to="/admin" style={{ display: 'inline-block', marginTop: '1rem', color: '#176b37', fontWeight: 800, textDecoration: 'none' }}>Administrator access →</Link>
     </section>
   </main>
 );
@@ -111,6 +113,7 @@ const AppContent: React.FC = () => {
   );
   const isAdminPage = location.pathname.startsWith('/admin');
   const isHomePage = location.pathname === '/' || location.pathname === '/home';
+  const isAboutPage = location.pathname === '/about';
   const isCheckoutFlow = location.pathname === '/cart' || location.pathname === '/checkout';
   const isProductsCatalog = location.pathname === '/products';
   const isProductDetailPage = location.pathname.startsWith('/product/');
@@ -131,11 +134,13 @@ const AppContent: React.FC = () => {
       style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}
     >
       <ScrollToTop />
+      <ValidationModalHost />
       {!hideNavAndFooter && <Navbar />}
-      {!hideNavAndFooter && !isHomePage && !isProductDetailPage && <HomeMobileSearchBar />}
+      {!hideNavAndFooter && !isHomePage && !isAboutPage && !isProductDetailPage && <HomeMobileSearchBar />}
 
       <main className="main-content" style={{ padding: 0, flex: 1 }}>
-        <Suspense fallback={<PageLoader />}>
+        {/* The loader is position:fixed, so reserve in-flow height too; otherwise the footer sits at the top and jumps down when the page loads (CLS) */}
+        <Suspense fallback={<><PageLoader /><div style={{ minHeight: '100vh' }} aria-hidden="true" /></>}>
           <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/home" element={<HomePage />} />
@@ -155,6 +160,7 @@ const AppContent: React.FC = () => {
           <Route path="/services/crop-doctor" element={<CropDoctorPage />} />
           <Route path="/crop-doctor" element={<CropDoctorPage />} />
           <Route path="/crop-calendar" element={<CropCalendarPage />} />
+          <Route path="/weather" element={<WeatherPage />} />
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/blog" element={<BlogPage />} />
           <Route path="/blog/:idOrSlug" element={<BlogDetailPage />} />
