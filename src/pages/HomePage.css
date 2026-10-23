@@ -2284,3 +2284,15 @@
 
 /* Keep below-fold space stable while priority hero media loads. */
 .home-deferred-content.is-pending { min-height: 120vh; }
+
+/* Hero artwork is 3:1 with the farmer and products on the right; on narrower
+   screens "cover" crops the sides, so anchor the crop to the right to keep them in view */
+@media (max-width: 1279px) {
+  .agriflow-hero-media img { object-position: 82% center; }
+}
+@media (max-width: 900px) {
+  .agriflow-hero-media img { object-position: 92% center; }
+}
+@media (max-width: 650px) {
+  .agriflow-hero-media img { object-position: 100% center; }
+}

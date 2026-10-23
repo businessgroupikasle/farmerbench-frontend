@@ -26,3 +26,8 @@
 .terms-legal-note { margin: 18px 0 0; color: #7b8980; font-size: .72rem; font-style: italic; }
 @media (max-width: 800px) { .terms-layout { grid-template-columns: 1fr; gap: 30px; } .terms-nav { position: static; display: none; } }
 @media (max-width: 520px) { .terms-hero-inner { width: min(100% - 2rem, 1120px); min-height: 300px; align-items: flex-start; padding-top: 50px; } .terms-hero-icon { width: 46px; height: 46px; } .terms-layout { width: min(100% - 2rem, 1050px); padding-top: 40px; } .terms-contact { padding: 22px; } }
+
+/* Mobile/tablet: leave room for the fixed header search bar so the hero is not covered */
+@media (max-width: 980px) {
+  .terms-hero { margin-top: 62px; }
+}

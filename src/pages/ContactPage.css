@@ -521,3 +521,7 @@
 .contact-btn-submit:disabled { opacity: .7; cursor: not-allowed; }
 .contact-submit-spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; border-radius: 50%; animation: contact-spin .7s linear infinite; }
 @keyframes contact-spin { to { transform: rotate(360deg); } }
+/* Mobile/tablet: leave room for the fixed header search bar so the hero is not covered */
+@media (max-width: 980px) {
+  .contact-hero-banner { margin-top: 62px; }
+}

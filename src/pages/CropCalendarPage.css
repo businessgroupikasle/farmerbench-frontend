@@ -26,3 +26,8 @@
 
 
 .crop-calendar-readonly{background:#f3f8f3!important;color:#245b33!important;font-weight:700}.crop-calendar-postal-status{display:block;margin-top:6px;color:#52705b;font-size:.78rem}.crop-calendar-postal-status.error{color:#b42318}
+
+/* Mobile/tablet: leave room for the fixed header search bar so the hero is not covered */
+@media (max-width: 980px) {
+  .crop-calendar-hero { margin-top: 62px; }
+}

@@ -24,7 +24,7 @@ import {
   House,
   LayoutGrid,
 } from 'lucide-react';
-import farmerLogo from '../../assets/AgriEra-logo-optimized1.png';
+import farmerLogo from '../../assets/AgriEra-logo-mark.png';
 import { LogoutModal } from './LogoutModal';
 import { LanguageSelector } from './LanguageSelector';
 import './Navbar.css';
@@ -72,7 +72,7 @@ export const Navbar: React.FC = () => {
             <img
               src={farmerLogo}
               alt="AgriEra Logo"
-              style={{ width: '46px', height: '46px', borderRadius: '50%', objectFit: 'contain', flexShrink: 0 }}
+              className="agriflow-brand-logo"
             />
             <span className="agriflow-brand-text" style={{ fontSize: '1.45rem', fontWeight: 800, letterSpacing: '-0.02em', color: '#165B33', whiteSpace: 'nowrap', flexShrink: 0 }}>
               AgriEra

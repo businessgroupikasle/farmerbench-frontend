@@ -812,3 +812,18 @@ button.agriflow-dropdown-trigger {
   .agriflow-nav-container { padding: 0 0.6rem; }
   .agriflow-brand-text { display: none; }
 }
+
+/* Larger header logo: tight-cropped icon mark (the full logo artwork has heavy built-in padding) */
+.agriflow-brand-logo {
+  width: auto;
+  height: 54px;
+  border-radius: 0;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+@media (max-width: 980px) {
+  .agriflow-brand-logo {
+    height: 44px;
+  }
+}
