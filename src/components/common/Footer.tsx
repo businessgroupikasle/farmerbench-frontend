@@ -174,43 +174,19 @@ export const Footer: React.FC = () => {
             © {new Date().getFullYear()} AgriEra. All Rights Reserved.
           </p>
 
-          <div className="AgriEra-payment-badges">
-            {/* VISA */}
-            <div className="AgriEra-payment-badge" title="Visa">
-              <svg width="34" height="14" viewBox="0 0 36 12" fill="none">
-                <path d="M14.8 11.5L16.8 0.5H19.5L17.5 11.5H14.8ZM27.7 0.8C27.1 0.6 26.2 0.4 25.1 0.4C22.2 0.4 20.2 1.9 20.2 4.1C20.2 5.7 21.7 6.6 22.8 7.1C23.9 7.6 24.3 8 24.3 8.5C24.3 9.3 23.3 9.6 22.4 9.6C21.4 9.6 20.8 9.5 20.0 9.1L19.6 8.9L19.2 11.3C19.9 11.6 21.1 11.8 22.3 11.8C25.4 11.8 27.4 10.3 27.4 8.0C27.4 6.2 25.8 5.2 24.4 4.5C23.6 4.1 23.1 3.8 23.1 3.2C23.1 2.6 23.8 2.0 25.1 2.0C26.0 2.0 26.7 2.2 27.2 2.4L27.5 2.5L27.7 0.8ZM35.8 0.5H33.7C33.0 0.5 32.5 0.7 32.2 1.4L27.5 11.5H30.4L31.0 9.9H34.5L34.8 11.5H37.3L35.8 0.5ZM31.8 7.6L33.2 3.6L34.1 7.6H31.8ZM12.1 0.5L9.6 7.9L9.3 6.4C8.8 4.7 7.3 2.8 5.6 1.9L8.1 11.5H11.0L15.3 0.5H12.1ZM6.0 0.5H0.6L0.5 0.8C4.5 1.8 7.2 4.3 8.3 7.2L7.1 1.2C6.9 0.7 6.5 0.5 6.0 0.5Z" fill="#1A1F71"/>
+          <p className="AgriEra-footer-credit">
+            Crafted and Maintained by <a href="https://ikasleinnovations.com/" target="_blank" rel="noopener noreferrer">Ikasle Business Group</a>
+          </p>
+          <div className="AgriEra-payment-badges" aria-label="Accepted payment gateway">
+            <div className="AgriEra-payment-badge AgriEra-razorpay-badge" title="Razorpay">
+              <svg width="18" height="20" viewBox="0 0 18 20" fill="none" aria-hidden="true">
+                <path d="M10.3 1L3 12.1H8.2L5.4 19L15 7H9.5L12.7 1H10.3Z" fill="#3395FF" />
               </svg>
-            </div>
-
-            {/* Mastercard */}
-            <div className="AgriEra-payment-badge" title="Mastercard">
-              <svg width="28" height="18" viewBox="0 0 32 20" fill="none">
-                <circle cx="11" cy="10" r="9" fill="#EB001B"/>
-                <circle cx="21" cy="10" r="9" fill="#F79E1B"/>
-                <path d="M16 3.5C18 5.2 19.3 7.5 19.3 10C19.3 12.5 18 14.8 16 16.5C14 14.8 12.7 12.5 12.7 10C12.7 7.5 14 5.2 16 3.5Z" fill="#FF5F00"/>
-              </svg>
-            </div>
-
-            {/* BHIM / Pay */}
-            <div className="AgriEra-payment-badge" title="BHIM">
-              <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#5B2C6F', fontStyle: 'italic' }}>BHIM</span>
-            </div>
-
-            {/* RuPay */}
-            <div className="AgriEra-payment-badge" title="RuPay">
-              <span style={{ fontSize: '0.65rem', fontWeight: 800, color: '#097938', letterSpacing: '-0.02em' }}>Ru<span style={{ color: '#F37021' }}>Pay</span></span>
-            </div>
-
-            {/* UPI */}
-            <div className="AgriEra-payment-badge" title="UPI">
-              <span style={{ fontSize: '0.7rem', fontWeight: 900, color: '#097938', letterSpacing: '0.04em' }}>UPI<span style={{ color: '#F37021' }}>▶</span></span>
+              <span>Razorpay</span>
             </div>
           </div>
         </div>
 
-        <p className="AgriEra-footer-credit">
-          Crafted and Maintained by <a href="https://ikasleinnovations.com/" target="_blank" rel="noopener noreferrer">Ikasle Business Group</a>
-        </p>
       </div>
     </footer>
   );

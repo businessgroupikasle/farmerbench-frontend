@@ -15,10 +15,47 @@ import {
   CheckCircle2,
   Navigation,
   ExternalLink,
+  AlertCircle,
 } from 'lucide-react';
 import { contactService } from '../services/contact.service';
 import { useUIStore } from '../store/uiStore';
+import { getEmailValidationError, getMobileNumberValidationError } from '../utils/validation';
 import './ContactPage.css';
+
+type ContactFormData = {
+  name: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
+};
+
+type ContactField = keyof ContactFormData;
+type ContactFormErrors = Partial<Record<ContactField, string>>;
+
+const validateContactField = (field: ContactField, value: string): string | null => {
+  const cleanValue = value.trim();
+
+  switch (field) {
+    case 'name':
+      if (cleanValue.length < 2) return 'Please enter at least 2 characters for your name';
+      if (!/\p{L}/u.test(cleanValue)) return 'Name must include letters and cannot contain only numbers';
+      if (cleanValue.length > 100) return 'Name cannot exceed 100 characters';
+      return null;
+    case 'email':
+      return getEmailValidationError(cleanValue);
+    case 'phone':
+      return getMobileNumberValidationError(cleanValue);
+    case 'subject':
+      if (cleanValue.length < 2) return 'Subject must be at least 2 characters';
+      if (cleanValue.length > 200) return 'Subject cannot exceed 200 characters';
+      return null;
+    case 'message':
+      if (cleanValue.length < 5) return 'Message must be at least 5 characters';
+      if (cleanValue.length > 5000) return 'Message cannot exceed 5000 characters';
+      return null;
+  }
+};
 
 export const ContactPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -29,13 +66,37 @@ export const ContactPage: React.FC = () => {
     message: '',
   });
 
+  const [errors, setErrors] = useState<ContactFormErrors>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const submitLock = useRef(false);
   const { addToast } = useUIStore();
 
+  const updateField = (field: ContactField, value: string) => {
+    setFormData((current) => ({ ...current, [field]: value }));
+    setErrors((current) => ({ ...current, [field]: undefined }));
+  };
+
+  const validateField = (field: ContactField) => {
+    const warning = validateContactField(field, formData[field]);
+    setErrors((current) => ({ ...current, [field]: warning || undefined }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const validationErrors: ContactFormErrors = {};
+    (Object.keys(formData) as ContactField[]).forEach((field) => {
+      const warning = validateContactField(field, formData[field]);
+      if (warning) validationErrors[field] = warning;
+    });
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      addToast({ type: 'error', message: 'Please correct the highlighted fields before sending.' });
+      return;
+    }
+
     if (submitLock.current) return;
     submitLock.current = true;
     setIsSubmitting(true);
@@ -43,6 +104,7 @@ export const ContactPage: React.FC = () => {
       await contactService.submitContact(formData);
       setIsSubmitted(true);
       setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
+      setErrors({});
       addToast({ type: 'success', message: 'Your message has been sent successfully' });
     } catch (error: any) {
       addToast({ type: 'error', message: error?.message || 'Unable to send your message. Please try again.' });
@@ -118,63 +180,91 @@ export const ContactPage: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="contact-form">
+              <form onSubmit={handleSubmit} className="contact-form" noValidate>
+                {Object.values(errors).some(Boolean) && (
+                  <div className="contact-form-warning" role="alert">
+                    <AlertCircle size={17} />
+                    <span>Please correct the highlighted fields before sending.</span>
+                  </div>
+                )}
                 <div className="contact-form-row">
-                  <div>
+                  <div className="contact-field">
                     <input
-                      required
+                      id="contact-name"
                       type="text"
                       placeholder="Your Name *"
                       value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="contact-input"
+                      onChange={(e) => updateField('name', e.target.value)}
+                      onBlur={() => validateField('name')}
+                      className={`contact-input ${errors.name ? 'contact-input-error' : ''}`}
+                      aria-invalid={Boolean(errors.name)}
+                      aria-describedby={errors.name ? 'contact-name-error' : undefined}
                     />
+                    {errors.name && <p id="contact-name-error" className="contact-field-warning"><AlertCircle size={13} />{errors.name}</p>}
                   </div>
-                  <div>
+                  <div className="contact-field">
                     <input
-                      required
+                      id="contact-email"
                       type="email"
                       placeholder="Your Email *"
                       value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="contact-input"
+                      onChange={(e) => updateField('email', e.target.value)}
+                      onBlur={() => validateField('email')}
+                      className={`contact-input ${errors.email ? 'contact-input-error' : ''}`}
+                      aria-invalid={Boolean(errors.email)}
+                      aria-describedby={errors.email ? 'contact-email-error' : undefined}
                     />
+                    {errors.email && <p id="contact-email-error" className="contact-field-warning"><AlertCircle size={13} />{errors.email}</p>}
                   </div>
                 </div>
 
-                <div>
+                <div className="contact-field">
                   <input
-                    required
+                    id="contact-phone"
                     type="tel"
+                    inputMode="tel"
                     placeholder="Phone Number *"
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="contact-input"
+                    onChange={(e) => updateField('phone', e.target.value)}
+                    onBlur={() => validateField('phone')}
+                    className={`contact-input ${errors.phone ? 'contact-input-error' : ''}`}
+                    aria-invalid={Boolean(errors.phone)}
+                    aria-describedby={errors.phone ? 'contact-phone-error' : undefined}
                   />
+                  {errors.phone && <p id="contact-phone-error" className="contact-field-warning"><AlertCircle size={13} />{errors.phone}</p>}
                 </div>
 
-                <div>
+                <div className="contact-field">
                   <input
-                    required
+                    id="contact-subject"
                     type="text"
+                    maxLength={200}
                     placeholder="Subject *"
                     value={formData.subject}
-                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    className="contact-input"
+                    onChange={(e) => updateField('subject', e.target.value)}
+                    onBlur={() => validateField('subject')}
+                    className={`contact-input ${errors.subject ? 'contact-input-error' : ''}`}
+                    aria-invalid={Boolean(errors.subject)}
+                    aria-describedby={errors.subject ? 'contact-subject-error' : undefined}
                   />
+                  {errors.subject && <p id="contact-subject-error" className="contact-field-warning"><AlertCircle size={13} />{errors.subject}</p>}
                 </div>
 
-                <div>
+                <div className="contact-field">
                   <textarea
-                    required
+                    id="contact-message"
                     rows={4}
+                    maxLength={5000}
                     placeholder="Your Message *"
                     value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="contact-input contact-textarea"
+                    onChange={(e) => updateField('message', e.target.value)}
+                    onBlur={() => validateField('message')}
+                    className={`contact-input contact-textarea ${errors.message ? 'contact-input-error' : ''}`}
+                    aria-invalid={Boolean(errors.message)}
+                    aria-describedby={errors.message ? 'contact-message-error' : undefined}
                   />
+                  {errors.message && <p id="contact-message-error" className="contact-field-warning"><AlertCircle size={13} />{errors.message}</p>}
                 </div>
-
                 <button type="submit" className="contact-btn-submit" disabled={isSubmitting}>
                   {isSubmitting ? <><span className="contact-submit-spinner" /> Sending…</> : <><Send size={16} /> Send Message</>}
                 </button>

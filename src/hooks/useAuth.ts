@@ -4,6 +4,7 @@ import { authService } from '../services/auth.service';
 import { cartService } from '../services/cart.service';
 import { useCartStore } from '../store/cartStore';
 import { useUIStore } from '../store/uiStore';
+import { refreshSocketAuth } from '../socket';
 import { RegisterInput, LoginInput, UpdateProfileInput, ChangePasswordInput, User } from '@formerbench/shared';
 
 export const AUTH_QUERY_KEY = ['auth', 'user'];
@@ -67,6 +68,7 @@ export const useAuth = () => {
     localStorage.setItem('formerbench_auth_user', JSON.stringify(authUser));
     setToken(authToken);
     queryClient.setQueryData(AUTH_QUERY_KEY, authUser);
+    refreshSocketAuth();
   };
 
   const syncGuestCartIfAny = async () => {
@@ -147,7 +149,11 @@ export const useAuth = () => {
       const res = await authService.changePassword(data);
       return res.data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Keep this device signed in with the new session token (older sessions are revoked).
+      if (data?.token) {
+        setAuthSession(data.user ?? activeUser, data.token);
+      }
       addToast({ type: 'success', message: 'Password changed successfully' });
     },
     onError: (error: Error) => {

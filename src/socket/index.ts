@@ -12,9 +12,19 @@ export const getSocket = (): Socket => {
     socket = io(SOCKET_URL, {
       transports: ['websocket', 'polling'],
       withCredentials: true,
+      // Evaluated on every (re)connect so the server can place admins in the
+      // private room that receives customer/booking/contact events.
+      auth: (cb) => cb({ token: localStorage.getItem('formerbench_auth_token') || '' }),
     });
   }
   return socket;
+};
+
+/** Reconnect so the server re-authenticates the socket after login/logout. */
+export const refreshSocketAuth = () => {
+  if (!socket) return;
+  socket.disconnect();
+  socket.connect();
 };
 
 export const useSocketSync = () => {

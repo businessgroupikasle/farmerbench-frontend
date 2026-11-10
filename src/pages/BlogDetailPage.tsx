@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useBlog, useRelatedBlogs, useBlogCategories, useBlogs } from '../hooks/useBlogs';
 import { getUploadUrl } from '../utils/image';
+import { sanitizeHtml } from '../utils/sanitizeHtml';
 import wheatImg from '../assets/wheat-sunburst.jpg';
 import './BlogDetailPage.css';
 
@@ -228,7 +229,7 @@ export const BlogDetailPage: React.FC = () => {
             {/* Dynamic Article Content Body */}
             <div
               className="blog-article-body"
-              dangerouslySetInnerHTML={{ __html: blog.content }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(blog.content) }}
             />
 
             {/* Tags Row if present */}

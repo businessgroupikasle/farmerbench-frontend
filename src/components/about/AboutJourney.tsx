@@ -25,7 +25,7 @@ export const AboutJourney: React.FC = () => {
       description: 'Strengthened reach and expert support across the state.',
     },
     {
-      year: '2024',
+      year: '2026',
       title: 'Growing Across India',
       description: 'Bringing trusted products and solutions to more farmers across India.',
     },

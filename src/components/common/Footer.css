@@ -256,7 +256,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 1.25rem;
 }
 
@@ -264,13 +264,17 @@
   font-size: 0.85rem;
   color: #CBD5E1;
   margin: 0;
+  flex: 1 1 0;
+  white-space: nowrap;
 }
 
 .AgriEra-payment-badges {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  flex-wrap: wrap;
+  flex: 1 1 0;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
 }
 
 .AgriEra-payment-badge {
@@ -284,18 +288,27 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 
+
+.AgriEra-razorpay-badge {
+  gap: 0.35rem;
+  padding-inline: 0.7rem;
+  color: #0B3768;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
 .AgriEra-payment-badge img,
 .AgriEra-payment-badge svg {
   height: 16px;
   width: auto;
 }
 .AgriEra-footer-credit {
-  margin: 1rem 0 0;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin: 0;
   color: #f8fafc;
   font-size: 0.9rem;
   text-align: center;
+  flex: 1 1 0;
+  white-space: nowrap;
 }
 
 .AgriEra-footer-credit a {
@@ -416,6 +429,7 @@
   .AgriEra-footer-bottom-bar {
     flex-direction: row;
     justify-content: space-between;
+    flex-wrap: wrap;
     gap: .45rem;
     padding-top: .7rem;
     text-align: left;
@@ -428,6 +442,13 @@
   .AgriEra-payment-badges {
     justify-content: flex-end;
     gap: .22rem;
+  }
+
+  .AgriEra-footer-credit {
+    order: 3;
+    flex-basis: 100%;
+    font-size: .62rem;
+    white-space: normal;
   }
 
   .AgriEra-payment-badge {

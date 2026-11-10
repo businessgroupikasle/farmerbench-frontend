@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -83,6 +83,7 @@ import { useServiceBookings, useServiceBookingStats, useServiceBookingMutations 
 import { ServiceBooking, ServiceBookingStatus } from '../types/serviceBooking';
 import { useContacts, useContactStats, useContactMutations, Contact } from '../hooks/useContacts';
 import { useExperts, useExpertMutations } from '../hooks/useExperts';
+import { sanitizeHtml } from '../utils/sanitizeHtml';
 
 const parseCropDoctorDetails = (message?: string | null): Record<string, any> => {
   if (!message) return {};
@@ -1845,18 +1846,6 @@ export const AdminPage: React.FC = () => {
     }
   };
 
-  const handleOpenInviteStaffModal = () => {
-    setEditingStaffId(null);
-    setStaffForm({
-      name: '',
-      email: '',
-      role: 'Store Manager',
-      roleTag: 'MANAGER',
-      permissions: 'Products, Inventory, Orders & Storefront Settings',
-    });
-    setIsStaffModalOpen(true);
-  };
-
   const handleOpenEditStaffModal = (member: StaffMember) => {
     setEditingStaffId(member.id);
     setStaffForm({
@@ -1880,35 +1869,22 @@ export const AdminPage: React.FC = () => {
       return;
     }
 
-    if (editingStaffId) {
-      const updated = staffMembers.map((m) =>
-        m.id === editingStaffId
-          ? {
-              ...m,
-              name: staffForm.name.trim(),
-              email: staffForm.email.trim(),
-              role: staffForm.role,
-              roleTag: staffForm.roleTag,
-              permissions: staffForm.permissions.trim(),
-            }
-          : m
-      );
-      saveStaffMembers(updated);
-      showToast(`Staff member "${staffForm.name}" updated successfully.`);
-    } else {
-      const newMember: StaffMember = {
-        id: `staff_${Date.now()}`,
-        name: staffForm.name.trim(),
-        email: staffForm.email.trim(),
-        role: staffForm.role,
-        roleTag: staffForm.roleTag,
-        permissions: staffForm.permissions.trim(),
-        lastLogin: 'Invited (Pending login)',
-        avatarUrl: `https://ui-avatars.com/api/?background=E0F2FE&color=0369A1&name=${encodeURIComponent(staffForm.name.trim())}`,
-      };
-      saveStaffMembers([...staffMembers, newMember]);
-      showToast(`Staff invitation sent to ${staffForm.email}.`);
-    }
+    if (!editingStaffId) return;
+
+    const updated = staffMembers.map((m) =>
+      m.id === editingStaffId
+        ? {
+            ...m,
+            name: staffForm.name.trim(),
+            email: staffForm.email.trim(),
+            role: staffForm.role,
+            roleTag: staffForm.roleTag,
+            permissions: staffForm.permissions.trim(),
+          }
+        : m
+    );
+    saveStaffMembers(updated);
+    showToast(`Staff member "${staffForm.name}" updated successfully.`);
     setIsStaffModalOpen(false);
   };
 
@@ -4999,9 +4975,6 @@ export const AdminPage: React.FC = () => {
                   <h2 className="admin-welcome-title" style={{ fontSize: '1.4rem' }}>Team & Staff Access Roles</h2>
                   <p className="admin-welcome-sub">Manage platform administrators, store managers, and agronomist privileges.</p>
                 </div>
-                <button onClick={handleOpenInviteStaffModal} className="admin-primary-btn">
-                  <UserPlus size={16} /> Invite Staff Member
-                </button>
               </div>
 
               <div className="admin-table-wrap">
@@ -5097,15 +5070,7 @@ export const AdminPage: React.FC = () => {
                         <td colSpan={6} style={{ textAlign: 'center', padding: '1.5rem', color: '#64748B', backgroundColor: '#F8FAFC' }}>
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
                             <Users size={24} color="#94A3B8" />
-                            <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No additional staff members invited yet.</span>
-                            <button
-                              type="button"
-                              onClick={handleOpenInviteStaffModal}
-                              className="admin-quick-btn"
-                              style={{ fontSize: '0.78rem', color: '#0F4726', borderColor: '#86EFAC' }}
-                            >
-                              <UserPlus size={14} /> Invite Staff Member
-                            </button>
+                            <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>No additional staff members.</span>
                           </div>
                         </td>
                       </tr>
@@ -7933,7 +7898,7 @@ export const AdminPage: React.FC = () => {
 
                   <div
                     className="blog-article-body"
-                    dangerouslySetInnerHTML={{ __html: blogForm.content || '<p><em>No content written yet...</em></p>' }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeHtml(blogForm.content || '<p><em>No content written yet...</em></p>') }}
                   />
                 </div>
               )}
@@ -8391,13 +8356,13 @@ export const AdminPage: React.FC = () => {
           </div>
         </div>
       )}
-      {/* Modal: Invite / Edit Staff Member */}
+      {/* Modal: Edit Staff Member */}
       {isStaffModalOpen && (
         <div className="admin-modal-overlay">
           <div className="admin-modal-card" style={{ maxWidth: '520px' }}>
             <div className="admin-modal-header">
               <h3 className="admin-modal-title">
-                {editingStaffId ? 'Edit Staff Member Permissions' : 'Invite New Staff Member'}
+                Edit Staff Member Permissions
               </h3>
               <button
                 type="button"
@@ -8501,7 +8466,7 @@ export const AdminPage: React.FC = () => {
                   style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}
                 >
                   <Save size={15} />
-                  {editingStaffId ? 'Update Permissions' : 'Send Invitation'}
+                  Update Permissions
                 </button>
               </div>
             </form>

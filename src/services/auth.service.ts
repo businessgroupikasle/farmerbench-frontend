@@ -36,7 +36,8 @@ export const authService = {
     return apiClient.put('/auth/profile', data);
   },
 
-  async changePassword(data: ChangePasswordInput): Promise<ApiResponse<{ message: string }>> {
+  // The server returns a fresh session token: other sessions end when the password changes.
+  async changePassword(data: ChangePasswordInput): Promise<ApiResponse<{ message: string; token?: string; user?: User }>> {
     return apiClient.put('/auth/change-password', data);
   },
 

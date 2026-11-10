@@ -44,3 +44,9 @@ apps/api/prisma/*.db-journal
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Playwright MCP browser logs/snapshots (may contain session data)
+.playwright-mcp/
+
+# Security audit working notes (do not publish)
+security-audit/

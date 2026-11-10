@@ -23,7 +23,7 @@ export const AboutPage: React.FC = () => {
       {/* 4. Our Core Values: Farmer First, Quality & Trust, Expert Guidance, Sustainable Growth */}
       <AboutValues />
 
-      {/* 5. Our Journey: 2020 to 2024 Milestones */}
+      {/* 5. Our Journey: 2020 to 2026 Milestones */}
       <AboutJourney />
 
       {/* 6. Our Farming Techniques: Ascending 4-Step Process Roadmap */}

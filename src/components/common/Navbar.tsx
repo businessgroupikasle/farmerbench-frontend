@@ -273,18 +273,6 @@ export const Navbar: React.FC = () => {
                 )}
               </div>
 
-              {/* Always-visible Sign Out action for logged-in users */}
-              {isAuthenticated && user && (
-                <button
-                  type="button"
-                  onClick={() => setIsLogoutModalOpen(true)}
-                  className="agriflow-logout-btn"
-                  title="Sign Out"
-                  aria-label="Sign Out"
-                >
-                  <LogOut size={17} strokeWidth={2.2} />
-                </button>
-              )}
 
               {/* Language Selector (Directly next to Login / Account button) */}
               <LanguageSelector />

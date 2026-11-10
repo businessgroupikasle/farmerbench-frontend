@@ -6,11 +6,12 @@ import { Button } from '../common/Button';
 import { useUIStore } from '../../store/uiStore';
 import { useAuth } from '../../hooks/useAuth';
 import { Mail, Lock, User as UserIcon } from 'lucide-react';
+import { getEmailValidationError, getFullNameValidationError } from '../../utils/validation';
 
 export const AuthModal: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthModalOpen, authModalTab, closeAuthModal, openAuthModal } = useUIStore();
-  const { login, register, isLoggingIn, isRegistering } = useAuth();
+  const { login, isLoggingIn, isRegistering } = useAuth();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -28,11 +29,19 @@ export const AuthModal: React.FC = () => {
           navigate('/admin');
         }
       } else {
-        if (!name.trim()) {
-          setError('Name is required');
+        const nameValidationError = getFullNameValidationError(name);
+        if (nameValidationError) {
+          setError(nameValidationError);
           return;
         }
-        await register({ name, email, password });
+        const emailValidationError = getEmailValidationError(email);
+        if (emailValidationError) {
+          setError(emailValidationError);
+          return;
+        }
+        // Sign-up requires email verification (OTP), which lives on the signup page.
+        closeAuthModal();
+        navigate('/signup');
       }
     } catch (err: any) {
       setError(err.message || 'Authentication failed');

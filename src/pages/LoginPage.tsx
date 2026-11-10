@@ -17,6 +17,7 @@ import {
   CheckCircle2,
   Send,
   Phone,
+  MapPin,
   Check,
   KeyRound,
   RotateCcw,
@@ -25,6 +26,11 @@ import {
 import { useAuth } from '../hooks/useAuth';
 import { useUIStore } from '../store/uiStore';
 import { authService } from '../services/auth.service';
+import {
+  getEmailValidationError,
+  getFullNameValidationError,
+  getMobileNumberValidationError,
+} from '../utils/validation';
 
 // Slideshow background images
 import slideImg1 from '../assets/services-hero-banner.jpg';
@@ -61,6 +67,7 @@ export const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [locationValue, setLocationValue] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [signupConfirmPassword, setSignupConfirmPassword] = useState('');
   const [showSignupConfirmPassword, setShowSignupConfirmPassword] = useState(false);
@@ -153,8 +160,14 @@ export const LoginPage: React.FC = () => {
   // =========================================================================
   const handleSendSignupInlineOtp = async () => {
     setError(null);
-    if (!emailOrPhone.trim() || !emailOrPhone.includes('@')) {
-      setError('Please enter a valid email address first to receive OTP');
+    const nameValidationError = getFullNameValidationError(name);
+    if (nameValidationError) {
+      setError(nameValidationError);
+      return;
+    }
+    const emailValidationError = getEmailValidationError(emailOrPhone);
+    if (emailValidationError) {
+      setError(emailValidationError);
       return;
     }
 
@@ -277,20 +290,26 @@ export const LoginPage: React.FC = () => {
       return;
     }
 
-    if (!name.trim()) {
-      setError('Please enter your full name');
+    const nameValidationError = getFullNameValidationError(name);
+    if (nameValidationError) {
+      setError(nameValidationError);
       return;
     }
     if (!registrationToken) {
       setError('Your email verification session is missing. Please verify the OTP again.');
       return;
     }
-    if (!phoneNumber.trim()) {
-      setError('Please enter your mobile number');
+    const mobileNumberValidationError = getMobileNumberValidationError(phoneNumber);
+    if (mobileNumberValidationError) {
+      setError(mobileNumberValidationError);
       return;
     }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
+    if (locationValue.trim().length < 2) {
+      setError('Please enter your location');
+      return;
+    }
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters');
       return;
     }
     if (password !== signupConfirmPassword) {
@@ -308,6 +327,7 @@ export const LoginPage: React.FC = () => {
           registrationToken,
           name: name.trim(),
           phone: phoneNumber.trim(),
+          location: locationValue.trim(),
           password,
         }),
       });
@@ -530,8 +550,8 @@ export const LoginPage: React.FC = () => {
       return;
     }
 
-    if (!newPassword || newPassword.length < 6) {
-      setError('Password must be at least 6 characters long.');
+    if (!newPassword || newPassword.length < 8) {
+      setError('Password must be at least 8 characters long.');
       return;
     }
 
@@ -952,7 +972,7 @@ export const LoginPage: React.FC = () => {
                         </div>
                         <input
                           type={showNewPassword ? 'text' : 'password'}
-                          placeholder="New Password (min. 6 characters)"
+                          placeholder="New Password (min. 8 characters)"
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
                           className="auth-input"
@@ -994,9 +1014,9 @@ export const LoginPage: React.FC = () => {
 
                       {/* Password Requirements Check */}
                       <div style={{ fontSize: '0.78rem', color: '#64748B', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: newPassword.length >= 6 ? '#16A34A' : '#64748B' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: newPassword.length >= 8 ? '#16A34A' : '#64748B' }}>
                           <Check size={13} />
-                          <span>At least 6 characters</span>
+                          <span>At least 8 characters</span>
                         </div>
                         {confirmPassword && (
                           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: newPassword === confirmPassword ? '#16A34A' : '#DC2626' }}>
@@ -1008,7 +1028,7 @@ export const LoginPage: React.FC = () => {
 
                       <button
                         type="submit"
-                        disabled={isResettingPassword || newPassword.length < 6 || newPassword !== confirmPassword}
+                        disabled={isResettingPassword || newPassword.length < 8 || newPassword !== confirmPassword}
                         className="auth-submit-btn"
                       >
                         {isResettingPassword ? (
@@ -1182,9 +1202,19 @@ export const LoginPage: React.FC = () => {
                           type="text"
                           placeholder="Farmer / Business Name"
                           value={name}
-                          onChange={(e) => setName(e.target.value)}
+                          onChange={(e) => {
+                            setName(e.target.value);
+                            setError(null);
+                          }}
+                          onBlur={() => {
+                            const nameValidationError = getFullNameValidationError(name);
+                            if (nameValidationError) {
+                              setError(nameValidationError);
+                            }
+                          }}
                           className="auth-input"
                           required={mode === 'signup'}
+                          aria-invalid={Boolean(error && getFullNameValidationError(name))}
                         />
                       </div>
 
@@ -1202,10 +1232,18 @@ export const LoginPage: React.FC = () => {
                             setEmailOrPhone(e.target.value);
                             setIsEmailVerified(false);
                             setSignupOtpSent(false);
+                            setError(null);
+                          }}
+                          onBlur={() => {
+                            const emailValidationError = getEmailValidationError(emailOrPhone);
+                            if (emailOrPhone.trim() && emailValidationError) {
+                              setError(emailValidationError);
+                            }
                           }}
                           className="auth-input"
                           style={{ paddingRight: isEmailVerified ? '110px' : '105px' }}
                           required={mode === 'signup'}
+                          aria-invalid={Boolean(error && getEmailValidationError(emailOrPhone))}
                         />
                         <div className="auth-input-action-wrap">
                           {isEmailVerified ? (
@@ -1217,7 +1255,7 @@ export const LoginPage: React.FC = () => {
                             <button
                               type="button"
                               onClick={handleSendSignupInlineOtp}
-                              disabled={isSignupOtpSending || signupCountdown > 0 || !emailOrPhone.includes('@')}
+                              disabled={isSignupOtpSending || signupCountdown > 0}
                               className="auth-input-inline-btn"
                             >
                               {isSignupOtpSending ? (
@@ -1284,8 +1322,43 @@ export const LoginPage: React.FC = () => {
                           type="tel"
                           placeholder="Phone Number (e.g. +91 98421 88321)"
                           value={phoneNumber}
-                          onChange={(e) => setPhoneNumber(e.target.value)}
+                          onChange={(e) => {
+                            setPhoneNumber(e.target.value);
+                            setError(null);
+                          }}
+                          onBlur={() => {
+                            const mobileNumberValidationError = getMobileNumberValidationError(phoneNumber);
+                            if (mobileNumberValidationError) {
+                              setError(mobileNumberValidationError);
+                            }
+                          }}
                           className="auth-input"
+                          required={mode === 'signup'}
+                          aria-invalid={Boolean(error && getMobileNumberValidationError(phoneNumber))}
+                        />
+                      </div>
+
+                      {/* Location */}
+                      <div className="auth-input-group">
+                        <div className="auth-input-icon">
+                          <MapPin size={18} />
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Location (e.g. Coimbatore, Tamil Nadu)"
+                          value={locationValue}
+                          onChange={(e) => {
+                            setLocationValue(e.target.value);
+                            setError(null);
+                          }}
+                          onBlur={() => {
+                            if (locationValue.trim().length < 2) {
+                              setError('Please enter your location');
+                            }
+                          }}
+                          className="auth-input"
+                          required={mode === 'signup'}
+                          aria-invalid={Boolean(error && locationValue.trim().length < 2)}
                         />
                       </div>
 
@@ -1296,7 +1369,7 @@ export const LoginPage: React.FC = () => {
                         </div>
                         <input
                           type={showPassword ? 'text' : 'password'}
-                          placeholder="Create Password (min. 6 chars)"
+                          placeholder="Create Password (min. 8 chars)"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
                           className="auth-input"
