@@ -68,7 +68,7 @@ export const Navbar: React.FC = () => {
   return (
     <>
       <header className="agriflow-header">
-        <div className="container agriflow-nav-container">
+        <div className="agriflow-nav-container">
           {/* Brand Logo - AgriEra */}
           <Link to="/" className="agriflow-brand" style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', textDecoration: 'none', flexShrink: 0, whiteSpace: 'nowrap' }}>
             <img
