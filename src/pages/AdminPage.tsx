@@ -1,3 +1,4 @@
+import { BookingDetailsModal } from '../components/admin/BookingDetailsModal';
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -399,6 +400,8 @@ export const AdminPage: React.FC = () => {
   const [productCategoryFilter, setProductCategoryFilter] = useState('All');
   const [bookingTab, setBookingTab] = useState<'ALL' | 'NEW' | 'CONTACTED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'>('ALL');
   const [bookingSearchQuery, setBookingSearchQuery] = useState('');
+  const [detailsBooking, setDetailsBooking] = useState<ServiceBooking | null>(null);
+  const [isSavingMaintenance, setIsSavingMaintenance] = useState(false);
   const [selectedBookingForUpdate, setSelectedBookingForUpdate] = useState<ServiceBooking | null>(null);
   const [statusModalStatus, setStatusModalStatus] = useState<ServiceBookingStatus>('NEW');
   const [statusModalNotes, setStatusModalNotes] = useState('');
@@ -918,16 +921,6 @@ export const AdminPage: React.FC = () => {
   const { updateOrderStatus } = useOrderMutations();
 
   const orders = (adminOrdersData?.orders || [])
-    .filter((o: any) => {
-      // Exclude incomplete or cancelled Razorpay attempts
-      if (o.paymentMethod === 'RAZORPAY' && o.paymentStatus !== 'PAID') {
-        return false;
-      }
-      if (o.orderStatus === 'CANCELLED') {
-        return false;
-      }
-      return true;
-    })
     .map((o: any) => ({
       id: o.id.length > 8 ? '#GL-' + o.id.slice(0, 5).toUpperCase() : o.id,
       realId: o.id,
@@ -1598,6 +1591,8 @@ export const AdminPage: React.FC = () => {
       if (!active || !response.success || !response.data) return;
       setStoreSettings((current: typeof DEFAULT_SETTINGS) => ({
         ...current,
+        maintenanceMode: response.data!.maintenanceMode ?? false,
+        maintenanceMessage: response.data!.maintenanceMessage || DEFAULT_SETTINGS.maintenanceMessage,
         standardShippingFee: String(response.data!.standardShippingFee),
         freeShippingThreshold: String(response.data!.freeShippingThreshold),
         shippingPolicyEffectiveDate: (response.data!.shippingPolicyEffectiveDate || '').slice(0, 10),
@@ -1624,6 +1619,8 @@ export const AdminPage: React.FC = () => {
       }
 
       const response = await storeSettingsService.update({
+        maintenanceMode: storeSettings.maintenanceMode,
+        maintenanceMessage: storeSettings.maintenanceMessage,
         standardShippingFee: shippingFee,
         freeShippingThreshold: freeThreshold,
         shippingPolicyEffectiveDate: storeSettings.shippingPolicyEffectiveDate || null,
@@ -1657,6 +1654,8 @@ export const AdminPage: React.FC = () => {
       onConfirm: async () => {
         try {
           const response = await storeSettingsService.update({
+            maintenanceMode: false,
+            maintenanceMessage: DEFAULT_SETTINGS.maintenanceMessage,
             standardShippingFee: Number(DEFAULT_SETTINGS.standardShippingFee),
             freeShippingThreshold: Number(DEFAULT_SETTINGS.freeShippingThreshold),
           });
@@ -3301,7 +3300,7 @@ export const AdminPage: React.FC = () => {
                       <th>Products Details</th>
                       <th>Total</th>
                       <th>Payment</th>
-                      <th>Status & Change</th>
+                      <th>Order Status</th>
                       <th>Order Date</th>
                       <th style={{ textAlign: 'center' }}>Invoice</th>
                     </tr>
@@ -3712,11 +3711,12 @@ export const AdminPage: React.FC = () => {
               </div>
 
               <div className="admin-table-wrap">
-                <table className="admin-data-table">
+                <table className="admin-data-table admin-customers-table">
                   <thead>
                     <tr>
                       <th>Farmer Profile</th>
-                      <th>Contact Details</th>
+                      <th>Email Address</th>
+                      <th>Phone Number</th>
                       <th>Location / Region</th>
                       <th>Crops & Acreage</th>
                       <th>Orders</th>
@@ -3729,7 +3729,7 @@ export const AdminPage: React.FC = () => {
                   <tbody>
                     {filteredCustomers.length === 0 ? (
                       <tr>
-                        <td colSpan={9} style={{ textAlign: 'center', padding: '2.5rem', color: '#64748B' }}>
+                        <td colSpan={10} style={{ textAlign: 'center', padding: '2.5rem', color: '#64748B' }}>
                           No farmers found matching the filter criteria.
                         </td>
                       </tr>
@@ -3755,8 +3755,10 @@ export const AdminPage: React.FC = () => {
                             </div>
                           </td>
                           <td>
-                            <div style={{ fontSize: '0.8rem', color: '#1E293B', fontWeight: 600 }}>{c.phone}</div>
-                            <div style={{ fontSize: '0.72rem', color: '#64748B' }}>{c.email}</div>
+                            <div className="admin-customer-email">{c.email || 'Not provided'}</div>
+                          </td>
+                          <td className="admin-customer-phone">
+                            {c.phone && c.phone !== 'N/A' ? <a href={`tel:${c.phone}`}>{c.phone}</a> : 'Not provided'}
                           </td>
                           <td style={{ color: '#475569' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
@@ -4261,6 +4263,7 @@ export const AdminPage: React.FC = () => {
                                 >
                                   Update Status
                                 </button>
+                                <button className="admin-quick-btn" onClick={() => setDetailsBooking(b)}>View Details</button>
                                 <button
                                    className="admin-mini-btn btn-danger"
                                    title="Delete Booking"
@@ -4339,6 +4342,7 @@ export const AdminPage: React.FC = () => {
                       <div style={{ fontSize: '0.75rem', color: '#64748B' }}>
                         Reported by: <strong>{cd.author}</strong> ({cd.location})
                       </div>
+                      <button className="admin-quick-btn" onClick={() => setDetailsBooking(cd.booking)}>View Details</button>
                       <button
                         className="admin-primary-btn"
                         style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}
@@ -5246,11 +5250,24 @@ export const AdminPage: React.FC = () => {
                           <input
                             type="checkbox"
                             checked={storeSettings.maintenanceMode}
-                            onChange={(e) => {
-                              const nextSettings = { ...storeSettings, maintenanceMode: e.target.checked };
-                              setStoreSettings(nextSettings);
-                              localStorage.setItem('formerbench_store_settings', JSON.stringify(nextSettings));
-                              window.dispatchEvent(new CustomEvent('store-settings:updated', { detail: nextSettings }));
+                            disabled={isSavingMaintenance}
+                            onChange={async (e) => {
+                              const enabled = e.target.checked;
+                              setIsSavingMaintenance(true);
+                              try {
+                                const response = await storeSettingsService.update({
+                                  standardShippingFee: Number(storeSettings.standardShippingFee),
+                                  freeShippingThreshold: Number(storeSettings.freeShippingThreshold),
+                                  maintenanceMode: enabled,
+                                  maintenanceMessage: storeSettings.maintenanceMessage,
+                                });
+                                if (!response.success || !response.data) throw new Error('Unable to save maintenance mode');
+                                const nextSettings = { ...storeSettings, maintenanceMode: response.data.maintenanceMode ?? false };
+                                setStoreSettings(nextSettings);
+                                window.dispatchEvent(new CustomEvent('store-settings:updated', { detail: nextSettings }));
+                                showToast(enabled ? 'Maintenance mode enabled for customers.' : 'Maintenance mode disabled.');
+                              } catch (error: any) { showToast(error.message); }
+                              finally { setIsSavingMaintenance(false); }
                             }}
                           />
                           <span className="admin-switch-slider" />
@@ -7245,6 +7262,8 @@ export const AdminPage: React.FC = () => {
         </div>
       )}
 
+      <BookingDetailsModal booking={detailsBooking} onClose={() => setDetailsBooking(null)} />
+
       {/* Modal: Add Expert */}
       {isExpertModalOpen && (
         <div className="admin-modal-overlay" onClick={() => setIsExpertModalOpen(false)}>
@@ -7259,12 +7278,15 @@ export const AdminPage: React.FC = () => {
               onSubmit={async (e: any) => {
                 e.preventDefault();
                 const name = e.target.expName.value.trim();
+                const phone = e.target.expPhone.value.trim();
+                if (name.length < 2 || !/\p{L}/u.test(name)) { showToast('Enter a valid name containing letters. Degree abbreviations and punctuation are allowed.'); return; }
+                if (!/^[6-9]\d{9}$/.test(phone)) { showToast('Enter a valid 10-digit mobile number'); return; }
                 try {
                   await createExpert({
                     name,
                     specialization: e.target.expSpec.value.trim(),
                     territory: e.target.expTerritory.value.trim(),
-                    phone: e.target.expPhone.value.replace(/\D/g, '').slice(-10) || undefined,
+                    phone,
                   });
                   setIsExpertModalOpen(false);
                   showToast(`Agronomist ${name} registered successfully!`);
@@ -7275,7 +7297,7 @@ export const AdminPage: React.FC = () => {
               <div className="admin-modal-body">
                 <div className="admin-form-group">
                   <label className="admin-form-label">Full Name & Degree</label>
-                  <input name="expName" required placeholder="Dr. R. Senthil M.Sc. Agri" className="admin-form-input" />
+                  <input name="expName" minLength={2} maxLength={100} onInput={(e) => e.currentTarget.setCustomValidity(/\p{L}/u.test(e.currentTarget.value) ? '' : 'Enter a valid name containing letters')} required placeholder="Dr. R. Senthil M.Sc. Agri" className="admin-form-input" />
                 </div>
                 <div className="admin-form-group">
                   <label className="admin-form-label">Specialization</label>
@@ -7287,7 +7309,7 @@ export const AdminPage: React.FC = () => {
                 </div>
                 <div className="admin-form-group">
                   <label className="admin-form-label">Mobile / Contact Number</label>
-                  <input name="expPhone" required type="tel" inputMode="numeric" pattern="[0-9+\s-]{10,15}" placeholder="98765 43210" className="admin-form-input" />
+                  <input name="expPhone" required type="tel" inputMode="numeric" pattern="[6-9][0-9]{9}" maxLength={10} title="Enter a valid 10-digit mobile number" placeholder="9876543210" className="admin-form-input" />
                 </div>
               </div>
               <div className="admin-modal-footer">
@@ -7311,7 +7333,7 @@ export const AdminPage: React.FC = () => {
               <div>
                 <h3 className="admin-modal-title">Update Booking & Assign Agronomist</h3>
                 <p style={{ fontSize: '0.8rem', color: '#64748B', margin: '0.25rem 0 0' }}>
-                  Persists directly to PostgreSQL database via live API.
+                  Choose a booking, update its status, and add notes for your team.
                 </p>
               </div>
               <button onClick={() => setIsAssignModalOpen(false)} className="admin-modal-close-btn">
@@ -7378,7 +7400,7 @@ export const AdminPage: React.FC = () => {
                   <div className="admin-form-group">
                     <label className="admin-form-label">Selected Booking Reference</label>
                     <select
-                      className="admin-form-select"
+                      className="admin-form-select admin-booking-select"
                       value={selectedBookingForUpdate?.id || assignBookingId || serviceBookings[0]?.id}
                       onChange={(e) => {
                         const b = serviceBookings.find((item) => item.id === e.target.value);
@@ -7391,7 +7413,7 @@ export const AdminPage: React.FC = () => {
                     >
                       {serviceBookings.map((b) => (
                         <option key={b.id} value={b.id}>
-                          {b.bookingReference} — {b.name} ({b.serviceName} - {cleanLocation(b.location)})
+                          {b.bookingReference} — {b.name.length > 24 ? `${b.name.slice(0, 24)}…` : b.name}
                         </option>
                       ))}
                     </select>
@@ -7435,7 +7457,7 @@ export const AdminPage: React.FC = () => {
                     ))}
                   </select>
                   <span style={{ fontSize: '0.725rem', color: '#64748B', display: 'block', marginTop: '0.25rem' }}>
-                    Note: Assigned agronomist is persisted into Database Admin Notes.
+                    The assigned agronomist will be included in the booking notes.
                   </span>
                 </div>
 
@@ -7467,7 +7489,7 @@ export const AdminPage: React.FC = () => {
                   className="admin-primary-btn"
                   disabled={isUpdatingStatus}
                 >
-                  {isUpdatingStatus ? 'Saving to Database...' : 'Save & Update Status'}
+                  {isUpdatingStatus ? 'Saving...' : 'Save & Update Status'}
                 </button>
               </div>
             </form>
@@ -8017,6 +8039,7 @@ export const AdminPage: React.FC = () => {
                 const name = e.target.custName.value.trim();
                 const email = e.target.custEmail.value.trim().toLowerCase();
                 const phone = e.target.custPhone.value.trim();
+                if (!/^[6-9]\d{9}$/.test(phone)) { showToast('Enter a valid 10-digit mobile number'); return; }
                 const location = e.target.custLocation.value.trim();
                 const crops = e.target.custCrops.value.trim();
                 const status = e.target.custStatus.value;
@@ -8049,7 +8072,7 @@ export const AdminPage: React.FC = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="admin-form-group">
                     <label className="admin-form-label">Mobile Number *</label>
-                    <input name="custPhone" required placeholder="+91 98421 99210" className="admin-form-input" />
+                    <input name="custPhone" type="tel" inputMode="numeric" pattern="[6-9][0-9]{9}" maxLength={10} title="Enter a valid 10-digit mobile number" required placeholder="9842199210" className="admin-form-input" />
                   </div>
                   <div className="admin-form-group">
                     <label className="admin-form-label">Location / Region *</label>
@@ -8129,7 +8152,7 @@ export const AdminPage: React.FC = () => {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                   <div className="admin-form-group">
                     <label className="admin-form-label">Phone</label>
-                    <input name="editCustPhone" defaultValue={selectedCustomer.phone} required className="admin-form-input" />
+                    <input name="editCustPhone" type="tel" inputMode="numeric" pattern="[6-9][0-9]{9}" maxLength={10} title="Enter a valid 10-digit mobile number" defaultValue={(selectedCustomer.phone || '').replace(/^\+91/, '')} required className="admin-form-input" />
                   </div>
                   <div className="admin-form-group">
                     <label className="admin-form-label">Location / Region</label>

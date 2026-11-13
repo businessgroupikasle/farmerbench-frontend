@@ -27,6 +27,8 @@ import {
   Calendar,
 } from 'lucide-react';
 import './WellDevelopmentPage.css';
+import { BookingInput } from '../components/common/BookingInput';
+import { getFarmerNameError, getBookingDateError } from '../utils/bookingValidation';
 import { serviceBookingService } from '../services/serviceBooking.service';
 
 // Assets
@@ -241,8 +243,10 @@ export const WellDevelopmentPage: React.FC = () => {
   // Form Submit Handler
   const handleSubmitAssessment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.farmerName.trim()) {
-      alert('Please enter your full name.');
+    const dateError = getBookingDateError(formData.inspectionDate, false);
+    if (dateError) { showValidation(dateError); return; }
+    if (getFarmerNameError(formData.farmerName)) {
+      showValidation(getFarmerNameError(formData.farmerName));
       return;
     }
     const cleanPhone = formData.mobileNumber.replace(/\D/g, '');
@@ -266,6 +270,7 @@ export const WellDevelopmentPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       const response = await serviceBookingService.createBooking({
+        details: { ...formData },
         serviceSlug: 'well-development',
         serviceName: 'Well Development',
         name: formData.farmerName.trim(),
@@ -281,7 +286,7 @@ export const WellDevelopmentPage: React.FC = () => {
           requiredQuantity: formData.requiredQuantity,
           uploadedFilesCount: uploadedFiles.length,
         }),
-      });
+      }, uploadedFiles);
 
       if (response.data?.bookingReference) {
         setBookingReference(response.data.bookingReference);
@@ -667,7 +672,7 @@ export const WellDevelopmentPage: React.FC = () => {
                   <div className="well-dev-row-2">
                     <div className="well-dev-field">
                       <label className="well-dev-label">Farmer Name *</label>
-                      <input
+                      <BookingInput validation="name"
                         required
                         type="text"
                         placeholder="Enter your full name"
@@ -859,7 +864,7 @@ export const WellDevelopmentPage: React.FC = () => {
 
                     <div className="well-dev-field">
                       <label className="well-dev-label">Preferred Inspection Date</label>
-                      <input
+                      <BookingInput validation="date"
                         type="date"
                         value={formData.inspectionDate}
                         onChange={(e) =>

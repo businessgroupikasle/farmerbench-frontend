@@ -1,4 +1,6 @@
-﻿import React, { lazy, Suspense, useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { storeSettingsService } from './services/storeSettings.service';
+import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import { Navbar } from './components/common/Navbar';
 import { HomeMobileSearchBar } from './components/home/HomeMobileSearchBar';
@@ -69,12 +71,7 @@ const getMaintenanceSettings = (): MaintenanceSettings => {
     businessHours: 'Mon - Sat: 8:00 AM - 8:00 PM IST',
     supportEmail: 'support@AgriEra.agri',
   };
-  try {
-    const saved = localStorage.getItem('formerbench_store_settings');
-    return saved ? { ...defaults, ...JSON.parse(saved) } : defaults;
-  } catch {
-    return defaults;
-  }
+  return defaults;
 };
 
 const MaintenanceScreen: React.FC<{ settings: MaintenanceSettings }> = ({ settings }) => (
@@ -96,17 +93,20 @@ const AppContent: React.FC = () => {
   const location = useLocation();
   const [maintenanceSettings, setMaintenanceSettings] = useState(getMaintenanceSettings);
 
+  const { data: publicSettings, isPending: checkingMaintenance } = useQuery({
+    queryKey: ['store-settings', 'maintenance'],
+    queryFn: async () => (await storeSettingsService.get()).data,
+    refetchInterval: 15000,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
+  });
   useEffect(() => {
-    const refreshMaintenanceSettings = (event?: Event) => {
-      const customSettings = (event as CustomEvent)?.detail;
-      setMaintenanceSettings(customSettings ? { ...getMaintenanceSettings(), ...customSettings } : getMaintenanceSettings());
-    };
-    window.addEventListener('storage', refreshMaintenanceSettings);
-    window.addEventListener('store-settings:updated', refreshMaintenanceSettings);
-    return () => {
-      window.removeEventListener('storage', refreshMaintenanceSettings);
-      window.removeEventListener('store-settings:updated', refreshMaintenanceSettings);
-    };
+    if (publicSettings) setMaintenanceSettings(current => ({ ...current, maintenanceMode: publicSettings.maintenanceMode ?? false, maintenanceMessage: publicSettings.maintenanceMessage || getMaintenanceSettings().maintenanceMessage }));
+  }, [publicSettings]);
+  useEffect(() => {
+    const refresh = (event: Event) => setMaintenanceSettings(current => ({ ...current, ...(event as CustomEvent).detail }));
+    window.addEventListener('store-settings:updated', refresh);
+    return () => window.removeEventListener('store-settings:updated', refresh);
   }, []);
   const isAuthPage = ['/login', '/signin', '/signup', '/register'].some((path) =>
     location.pathname.startsWith(path)
@@ -120,6 +120,7 @@ const AppContent: React.FC = () => {
   const isProductPage = isProductsCatalog || isProductDetailPage;
   const hideNavAndFooter = isAuthPage || isAdminPage;
   const hideFooter = hideNavAndFooter || isProductPage;
+  if (checkingMaintenance && !isAdminPage && !isAuthPage) return <PageLoader />;
   if (maintenanceSettings.maintenanceMode && !isAdminPage && !isAuthPage) {
     return <MaintenanceScreen settings={maintenanceSettings} />;
   }

@@ -7,7 +7,6 @@ import {
   ChevronDown,
   User as UserIcon,
   LogOut,
-  LayoutDashboard,
   ShieldCheck,
   PackageCheck,
   Heart,
@@ -246,7 +245,7 @@ export const Navbar: React.FC = () => {
                     </div>
 
                     <Link to="/dashboard" onClick={() => setIsUserMenuOpen(false)} className="agriflow-user-menu-item">
-                      <LayoutDashboard size={15} /> Dashboard
+                      <UserIcon size={15} /> My Profile
                     </Link>
                     <Link to="/dashboard?tab=orders" onClick={() => setIsUserMenuOpen(false)} className="agriflow-user-menu-item">
                       <PackageCheck size={15} /> My Orders

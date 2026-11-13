@@ -33,6 +33,9 @@ apiClient.interceptors.request.use(
 // Response Interceptor: Extract response data and handle common errors (e.g. 401 unauthorized)
 apiClient.interceptors.response.use(
   (response) => {
+    if (response.data?.success === false) {
+      return Promise.reject(new Error(response.data.message || 'The request could not be completed.'));
+    }
     return response.data;
   },
   (error: AxiosError<ApiResponse>) => {

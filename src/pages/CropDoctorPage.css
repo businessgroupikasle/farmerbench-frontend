@@ -2435,3 +2435,60 @@
 .crop-doctor-photo-preview span { overflow: hidden; color: #52645a; font-size: 0.68rem; text-overflow: ellipsis; white-space: nowrap; }
 .crop-doctor-photo-remove { position: absolute; top: 4px; right: 4px; display: grid; width: 22px; height: 22px; place-items: center; padding: 0; border: 0; border-radius: 50%; background: rgba(15, 41, 27, 0.78); color: #fff; cursor: pointer; }
 .crop-doctor-photo-remove:hover { background: #dc2626; }
+
+/* Fix #14: Ensure all 4 consultation steps & headings are completely visible without ellipsis cropping */
+.crop-doctor-step-heading {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: break-word;
+}
+
+@media (max-width: 768px) {
+  .crop-doctor-workflow-container {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .crop-doctor-workflow-step {
+    display: grid !important;
+    grid-template-columns: auto 1fr !important;
+    align-items: center !important;
+    gap: 6px 8px !important;
+    padding: 10px !important;
+  }
+
+  .crop-doctor-step-badge {
+    justify-self: end !important;
+  }
+
+  .crop-doctor-step-body {
+    grid-column: 1 / -1 !important;
+    min-width: 0 !important;
+  }
+
+  .crop-doctor-step-heading {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    font-size: 0.8rem !important;
+    line-height: 1.25 !important;
+    margin-bottom: 2px !important;
+  }
+
+  .crop-doctor-step-caption {
+    white-space: normal !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+    font-size: 0.7rem !important;
+    line-height: 1.3 !important;
+  }
+}
+
+.crop-doctor-postal-error {
+  display: block;
+  margin-top: 0.35rem;
+  color: #dc2626;
+  font-size: 0.78rem;
+  font-weight: 600;
+}

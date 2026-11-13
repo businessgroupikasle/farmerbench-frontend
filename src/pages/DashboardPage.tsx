@@ -122,19 +122,21 @@ export const DashboardPage: React.FC = () => {
   // Handle Actions
   const handleAddToCartFromWishlist = (product: Product | any) => {
     const prodPayload: any = {
+      ...product,
       id: product.id,
       title: product.title,
       price: product.price,
+      discountPrice: product.discountPrice,
       images: product.images || [product.imageUrl || ''],
       slug: product.slug || product.id,
       description: product.description || '',
-      stock: product.stock || 50,
+      stock: product.stock ?? 50,
       rating: product.rating || 5,
       numReviews: product.numReviews || 1,
       featured: false,
       categoryId: product.categoryId || '',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      createdAt: product.createdAt || new Date().toISOString(),
+      updatedAt: product.updatedAt || new Date().toISOString(),
     };
     addToCart(prodPayload, 1);
   };
@@ -301,7 +303,7 @@ export const DashboardPage: React.FC = () => {
 
                   <NeedHelpCard
                     onContactSupport={() => {
-                      window.open('https://wa.me/9193607 63060', '_blank');
+                      window.open('https://wa.me/919360763060', '_blank');
                     }}
                   />
                 </div>
@@ -535,7 +537,6 @@ export const DashboardPage: React.FC = () => {
 
               <WishlistCarousel
                 wishlistItems={wishlistItems}
-                onViewAllWishlist={() => {}}
                 onAddToCart={handleAddToCartFromWishlist}
                 onRemoveFromWishlist={removeFromWishlist}
               />

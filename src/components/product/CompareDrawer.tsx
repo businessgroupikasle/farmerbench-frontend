@@ -105,19 +105,6 @@ export const CompareDrawer: React.FC = () => {
                     {items.map((prod) => (
                       <th key={prod.id} className="fb-compare-th-product">
                         <div className="fb-compare-card-head">
-                          <button
-                            type="button"
-                            onClick={() => removeFromCompare(prod.id)}
-                            className="fb-compare-table-remove"
-                            title="Remove from comparison"
-                          >
-                            <X size={14} /> Remove
-                          </button>
-                          <img
-                            src={getUploadUrl(prod.images?.[0], FALLBACK_IMAGE)}
-                            alt={prod.title}
-                            className="fb-compare-table-img"
-                          />
                           <Link
                             to={`/product/${prod.slug || prod.id}`}
                             className="fb-compare-table-title"
@@ -125,12 +112,41 @@ export const CompareDrawer: React.FC = () => {
                           >
                             {prod.title}
                           </Link>
+                          <button
+                            type="button"
+                            onClick={() => removeFromCompare(prod.id)}
+                            className="fb-compare-table-remove"
+                            title="Remove from comparison"
+                            aria-label={`Remove ${prod.title} from comparison`}
+                          >
+                            <X size={14} />
+                          </button>
                         </div>
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
+                  {/* Product Image Row */}
+                  <tr>
+                    <td className="fb-compare-feature-name">Product</td>
+                    {items.map((prod) => (
+                      <td key={prod.id} className="fb-compare-td-val fb-compare-td-image">
+                        <Link
+                          to={`/product/${prod.slug || prod.id}`}
+                          onClick={() => setIsModalOpen(false)}
+                          className="fb-compare-img-link"
+                        >
+                          <img
+                            src={getUploadUrl(prod.images?.[0], FALLBACK_IMAGE)}
+                            alt={prod.title}
+                            className="fb-compare-table-img"
+                          />
+                        </Link>
+                      </td>
+                    ))}
+                  </tr>
+
                   {/* Price */}
                   <tr>
                     <td className="fb-compare-feature-name">Price</td>

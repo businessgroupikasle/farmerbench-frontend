@@ -26,10 +26,12 @@ import {
 } from 'lucide-react';
 import './FarmDevelopmentPage.css';
 import { postalCodeService } from '../services/postalCode.service';
+import { BookingInput } from '../components/common/BookingInput';
+import { getFarmerNameError, getBookingDateError } from '../utils/bookingValidation';
 import { serviceBookingService } from '../services/serviceBooking.service';
 
 // Imported Assets
-import heroAgronomistImg from '../assets/farm-dev-hero.jpg';
+import heroAgronomistImg from '../assets/farm-dev-hero.webp';
 import aboutAerialImg from '../assets/farm-dev-about.jpg';
 import masterPlanImg from '../assets/farm-dev-plan.jpg';
 
@@ -269,8 +271,10 @@ export const FarmDevelopmentPage: React.FC = () => {
 
   const handleSubmitAssessment = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.farmerName.trim()) {
-      alert('Please enter your full name.');
+    const dateError = getBookingDateError(formData.startDate, false);
+    if (dateError) { showValidation(dateError); return; }
+    if (getFarmerNameError(formData.farmerName)) {
+      showValidation(getFarmerNameError(formData.farmerName));
       return;
     }
     const cleanPhone = formData.mobileNumber.replace(/\D/g, '');
@@ -299,6 +303,7 @@ export const FarmDevelopmentPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       const response = await serviceBookingService.createBooking({
+        details: { ...formData },
         serviceSlug: 'farm-development',
         serviceName: 'Farm Development',
         name: formData.farmerName.trim(),
@@ -314,7 +319,7 @@ export const FarmDevelopmentPage: React.FC = () => {
           budget: formData.budget,
           notes: formData.additionalNotes,
         }),
-      });
+      }, uploadedFiles);
 
       if (response.data?.bookingReference) {
         setBookingReference(response.data.bookingReference);
@@ -423,6 +428,11 @@ export const FarmDevelopmentPage: React.FC = () => {
             <div className="farm-dev-hero-img-card">
               <img
                 src={heroAgronomistImg}
+                width={1200}
+                height={670}
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
                 alt="Agricultural Agronomist Planning Farm Development on Tablet"
                 className="farm-dev-hero-img"
               />
@@ -684,7 +694,7 @@ export const FarmDevelopmentPage: React.FC = () => {
                   <div className="farm-dev-row-4">
                     <div className="farm-dev-field">
                       <label className="farm-dev-label">Farmer Name *</label>
-                      <input
+                      <BookingInput validation="name"
                         required
                         type="text"
                         placeholder="Enter your full name"
@@ -841,7 +851,7 @@ export const FarmDevelopmentPage: React.FC = () => {
                     <div className="farm-dev-field">
                       <label className="farm-dev-label">Expected Starting Date</label>
                       <div className="farm-dev-input-icon-wrap">
-                        <input
+                        <BookingInput validation="date"
                           type="date"
                           value={formData.startDate}
                           onChange={(e) =>

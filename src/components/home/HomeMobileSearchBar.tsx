@@ -47,7 +47,10 @@ export const HomeMobileSearchBar: React.FC = () => {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
-      navigate(`/products?search=${encodeURIComponent(query.trim())}`);
+      setIsFocused(false);
+      navigate(`/products?search=${encodeURIComponent(query.trim())}#products-catalog-section`, {
+        state: { scrollToSearchResults: true },
+      });
     }
   };
 

@@ -33,9 +33,11 @@ export const useAuth = () => {
     };
     window.addEventListener('storage', syncSession);
     window.addEventListener('auth:unauthorized', syncSession);
+    window.addEventListener('auth:session', syncSession);
     return () => {
       window.removeEventListener('storage', syncSession);
       window.removeEventListener('auth:unauthorized', syncSession);
+      window.removeEventListener('auth:session', syncSession);
     };
   }, [queryClient]);
 
@@ -49,11 +51,11 @@ export const useAuth = () => {
         if (!res.data) throw new Error('Invalid authentication session');
         localStorage.setItem('formerbench_auth_user', JSON.stringify(res.data));
         return res.data;
-      } catch {
-        localStorage.removeItem('formerbench_auth_token');
-        localStorage.removeItem('formerbench_auth_user');
-        setToken(null);
-        return null;
+      } catch (error) {
+        // The API interceptor clears expired sessions on 401. A network or
+        // server failure must allow the existing session to be retried.
+        if (!localStorage.getItem('formerbench_auth_token')) return null;
+        throw error;
       }
     },
     enabled: Boolean(token),
@@ -64,10 +66,12 @@ export const useAuth = () => {
   const activeUser = user ?? null;
 
   const setAuthSession = (authUser: any, authToken: string) => {
+    if (!authUser || !authToken) throw new Error('No valid login session was returned. Please try again.');
     localStorage.setItem('formerbench_auth_token', authToken);
     localStorage.setItem('formerbench_auth_user', JSON.stringify(authUser));
     setToken(authToken);
     queryClient.setQueryData(AUTH_QUERY_KEY, authUser);
+    window.dispatchEvent(new Event('auth:session'));
     refreshSocketAuth();
   };
 
@@ -92,6 +96,7 @@ export const useAuth = () => {
   const loginMutation = useMutation({
     mutationFn: async (data: LoginInput) => {
       const res = await authService.login(data);
+      if (!res.data?.user || !res.data?.token) throw new Error('No valid login session was returned. Please try again.');
       return res.data;
     },
     onSuccess: async (data) => {

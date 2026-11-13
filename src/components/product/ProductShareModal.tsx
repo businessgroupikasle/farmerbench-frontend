@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Modal } from '../common/Modal';
 import { Share2, Copy, Check, Mail, Smartphone } from 'lucide-react';
 import { useUIStore } from '../../store/uiStore';
@@ -29,6 +29,17 @@ export const ProductShareModal: React.FC<ProductShareModalProps> = ({
 }) => {
   const { addToast } = useUIStore();
   const [copied, setCopied] = useState(false);
+  const telegramFallbackTimerRef = useRef<number | null>(null);
+  const telegramCleanupRef = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (telegramFallbackTimerRef.current !== null) {
+        window.clearTimeout(telegramFallbackTimerRef.current);
+      }
+      telegramCleanupRef.current?.();
+    };
+  }, []);
 
   if (!product) return null;
 
@@ -91,8 +102,61 @@ export const ProductShareModal: React.FC<ProductShareModalProps> = ({
   // Twitter / X share URL
   const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`;
 
-  // Telegram share URL
-  const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
+  // Telegram app deep link + web share fallback (avoids blocked t.me domains)
+  const telegramAppUrl = `tg://msg_url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
+  const telegramWebUrl = `https://telegram.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`;
+
+  const handleTelegramShare = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    if (telegramFallbackTimerRef.current !== null) {
+      window.clearTimeout(telegramFallbackTimerRef.current);
+      telegramFallbackTimerRef.current = null;
+    }
+    telegramCleanupRef.current?.();
+
+    let appOpened = false;
+    const cleanup = () => {
+      window.removeEventListener('blur', markOpened);
+      window.removeEventListener('pagehide', markOpened);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      telegramCleanupRef.current = null;
+    };
+    const markOpened = () => {
+      appOpened = true;
+      cleanup();
+      if (telegramFallbackTimerRef.current !== null) {
+        window.clearTimeout(telegramFallbackTimerRef.current);
+        telegramFallbackTimerRef.current = null;
+      }
+    };
+    const handleVisibility = () => {
+      if (document.hidden) markOpened();
+    };
+
+    telegramCleanupRef.current = cleanup;
+    window.addEventListener('blur', markOpened);
+    window.addEventListener('pagehide', markOpened);
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    // Invoke tg:// deep link synchronously from the user gesture
+    const protocolLink = document.createElement('a');
+    protocolLink.href = telegramAppUrl;
+    protocolLink.style.display = 'none';
+    document.body.appendChild(protocolLink);
+    protocolLink.click();
+    document.body.removeChild(protocolLink);
+
+    telegramFallbackTimerRef.current = window.setTimeout(() => {
+      cleanup();
+      telegramFallbackTimerRef.current = null;
+      if (!appOpened && !document.hidden) {
+        const popup = window.open(telegramWebUrl, '_blank', 'noopener,noreferrer');
+        if (!popup) {
+          handleCopyLink();
+        }
+      }
+    }, 800);
+  };
 
   // Email share URL
   const emailUrl = `mailto:?subject=${encodeURIComponent(`AgriEra Product: ${product.title}`)}&body=${encodeURIComponent(`Hi,\n\nI found this agricultural product on AgriEra and wanted to share it with you:\n\n${product.title}\nPrice: ${formatPrice(effectivePrice)}\n\nView here: ${shareUrl}\n\nAgriEra - Grow Better, Live Better`)}`;
@@ -181,9 +245,10 @@ export const ProductShareModal: React.FC<ProductShareModalProps> = ({
 
             {/* Telegram */}
             <a
-              href={telegramUrl}
+              href={telegramWebUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={handleTelegramShare}
               className="agri-share-btn telegram"
               title="Share on Telegram"
             >

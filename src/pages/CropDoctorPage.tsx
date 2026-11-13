@@ -30,6 +30,8 @@ import {
 } from 'lucide-react';
 import './CropDoctorPage.css';
 import { serviceBookingService } from '../services/serviceBooking.service';
+import { BookingInput } from '../components/common/BookingInput';
+import { getFarmerNameError } from '../utils/bookingValidation';
 import { postalCodeService } from '../services/postalCode.service';
 import { authService } from '../services/auth.service';
 
@@ -38,6 +40,7 @@ interface PreviewPhoto {
   name: string;
   size: string;
   src: string;
+  file: File;
 }
 
 interface PostalFeedback {
@@ -129,6 +132,7 @@ export const CropDoctorPage: React.FC = () => {
     pincode: '',
   });
 
+  const [pincodeError, setPincodeError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Prefill contact details from the signed-in account and refresh them from the API.
@@ -186,7 +190,7 @@ export const CropDoctorPage: React.FC = () => {
     const pin = pinMatch ? pinMatch[0] : digitsOnly.length === 6 ? digitsOnly : '';
 
     if (!pin) {
-      if (raw.trim().length === 0) {
+      if (raw.replace(/\D/g, '').length < 6) {
         setPostalFeedback({ status: 'idle', pincode: '' });
       }
       return;
@@ -265,13 +269,6 @@ export const CropDoctorPage: React.FC = () => {
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  const applyDetectedLocation = () => {
-    if (postalFeedback.district && postalFeedback.pincode) {
-      const formatted = `${postalFeedback.district} - ${postalFeedback.pincode}`;
-      setFormData((prev) => ({ ...prev, locationPincode: formatted }));
-      triggerToast(`📍 Applied verified location: ${formatted}`);
-    }
-  };
 
   const handleSaveDraft = () => {
     try {
@@ -292,7 +289,13 @@ export const CropDoctorPage: React.FC = () => {
       if (raw) {
         const parsed = JSON.parse(raw);
         if (parsed.formData) {
-          setFormData(parsed.formData);
+          setFormData({
+            ...parsed.formData,
+            locationPincode: String(parsed.formData.locationPincode || '')
+              .replace(/\D/g, '')
+              .slice(0, 6),
+          });
+          setPincodeError(null);
           triggerToast(`✨ Restored your draft from ${parsed.savedAt || 'previous session'}`);
           setHasDraft(false);
         }
@@ -353,11 +356,15 @@ export const CropDoctorPage: React.FC = () => {
   };
 
   const handleFilesSelected = (files: File[]) => {
+    if (previewPhotos.length + files.length > 5 || files.some(file => file.size > 10 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type))) {
+      setFormError('Upload up to 5 JPG, PNG or WebP images, each no larger than 10 MB.'); return;
+    }
     const newItems: PreviewPhoto[] = files.map((file, idx) => ({
       id: `upload-${Date.now()}-${idx}`,
       name: file.name,
       size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
       src: URL.createObjectURL(file),
+      file,
     }));
     setPreviewPhotos((prev) => [...prev, ...newItems].slice(0, 5));
   };
@@ -373,6 +380,15 @@ export const CropDoctorPage: React.FC = () => {
   const handleSubmitDiagnosis = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
+    setPincodeError(null);
+
+    const cleanPincode = formData.locationPincode.replace(/\D/g, '');
+    if (!/^\d{6}$/.test(cleanPincode)) {
+      const msg = 'Please enter a valid 6-digit numeric pincode (digits 0–9 only).';
+      setPincodeError(msg);
+      setFormError(msg);
+      return;
+    }
 
     const cleanPhone = formData.phone.replace(/\D/g, '');
     if (cleanPhone.length !== 10) {
@@ -380,8 +396,8 @@ export const CropDoctorPage: React.FC = () => {
       return;
     }
 
-    if (!formData.farmerName.trim()) {
-      setFormError('Farmer name is required.');
+    if (getFarmerNameError(formData.farmerName)) {
+      setFormError(getFarmerNameError(formData.farmerName));
       return;
     }
 
@@ -397,6 +413,11 @@ export const CropDoctorPage: React.FC = () => {
 
     setIsSubmitting(true);
     try {
+      const submittedLocation =
+        postalFeedback.status === 'found' && postalFeedback.district
+          ? `${postalFeedback.district} - ${cleanPincode}`
+          : cleanPincode;
+
       // Structure all crop diagnostic parameters into structured JSON for message field
       const diagnosticDetails = {
         cropName: formData.cropName,
@@ -423,16 +444,17 @@ export const CropDoctorPage: React.FC = () => {
       };
 
       const response = await serviceBookingService.createBooking({
+        details: { ...formData, locationPincode: cleanPincode },
         serviceSlug: 'crop-doctor',
         serviceName: 'Crop Doctor',
         name: formData.farmerName.trim(),
         phone: cleanPhone,
         email: formData.email.trim() || null,
-        location: formData.locationPincode.trim() || 'Tamil Nadu',
+        location: submittedLocation,
         farmSize: `${formData.farmSizeValue} ${formData.farmSizeUnit}`,
         cropType: formData.cropName,
         message: JSON.stringify(diagnosticDetails),
-      });
+      }, previewPhotos.map(photo => photo.file));
 
       const ref = response.data?.bookingReference;
       if (ref) {
@@ -763,7 +785,7 @@ export const CropDoctorPage: React.FC = () => {
 
                     <div className="crop-doctor-field-group">
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <label className="crop-doctor-field-label">Location / Pincode *</label>
+                        <label className="crop-doctor-field-label">Pincode *</label>
                         {postalFeedback.status === 'searching' && (
                           <span className="crop-doctor-postal-indicator searching">
                             <Loader2 size={12} className="crop-doctor-spin" />
@@ -774,10 +796,32 @@ export const CropDoctorPage: React.FC = () => {
                       <div style={{ position: 'relative' }}>
                         <input
                           type="text"
+                          inputMode="numeric"
+                          maxLength={6}
+                          pattern="\d{6}"
+                          autoComplete="postal-code"
                           required
-                          placeholder="Enter location or 6-digit pincode"
+                          placeholder="Enter 6-digit pincode"
                           value={formData.locationPincode}
-                          onChange={(e) => setFormData({ ...formData, locationPincode: e.target.value })}
+                          aria-invalid={Boolean(pincodeError)}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            const cleaned = raw.replace(/\D/g, '').slice(0, 6);
+                            setFormData({ ...formData, locationPincode: cleaned });
+                            if (/[^0-9]/.test(raw)) {
+                              setPincodeError('Only numeric digits (0–9) are allowed; letters, spaces, and symbols are not accepted.');
+                            } else if (raw.length > 6) {
+                              setPincodeError('Pincode cannot exceed 6 digits.');
+                            } else {
+                              setPincodeError(null);
+                            }
+                          }}
+                          onBlur={() => {
+                            const digits = formData.locationPincode.replace(/\D/g, '');
+                            if (digits.length > 0 && digits.length !== 6) {
+                              setPincodeError('Please enter an exact 6-digit numeric pincode.');
+                            }
+                          }}
                           className="crop-doctor-field-input"
                         />
                         <MapPin
@@ -793,6 +837,12 @@ export const CropDoctorPage: React.FC = () => {
                         />
                       </div>
 
+                      {pincodeError && (
+                        <span className="crop-doctor-postal-error" role="alert">
+                          {pincodeError}
+                        </span>
+                      )}
+
                       {/* Live Postal Feedback Badge */}
                       {postalFeedback.status === 'found' && (
                         <div className="crop-doctor-postal-badge animate-fade-in">
@@ -800,16 +850,6 @@ export const CropDoctorPage: React.FC = () => {
                           <span className="crop-doctor-postal-text">
                             <strong>Detected:</strong> {postalFeedback.displayString}
                           </span>
-                          {formData.locationPincode !== `${postalFeedback.district} - ${postalFeedback.pincode}` && (
-                            <button
-                              type="button"
-                              onClick={applyDetectedLocation}
-                              className="crop-doctor-postal-apply-btn"
-                              title="Format location as District - Pincode"
-                            >
-                              Apply
-                            </button>
-                          )}
                         </div>
                       )}
 
@@ -1077,7 +1117,7 @@ export const CropDoctorPage: React.FC = () => {
                   <div className="crop-doctor-row-2">
                     <div className="crop-doctor-field-group">
                       <label className="crop-doctor-field-label">Farmer Name *</label>
-                      <input
+                      <BookingInput validation="name"
                         type="text"
                         required
                         placeholder="Enter farmer name"
@@ -1288,12 +1328,12 @@ export const CropDoctorPage: React.FC = () => {
                 <PhoneCall size={18} style={{ color: '#16A34A' }} />
                 <h4 className="crop-doctor-sidebar-title">Need Immediate Help?</h4>
               </div>
-              <a href="tel:+9193607 63060" className="crop-doctor-contact-btn">
+              <a href="tel:+919360763060" className="crop-doctor-contact-btn">
                 <Phone size={17} style={{ color: '#0F4726' }} />
                 <span>+91 93607 63060</span>
               </a>
               <a
-                href="https://wa.me/9193607 63060?text=Hello%20AgriEra%20Crop%20Doctor,%20I%20need%20urgent%20help%20with%20my%20crop."
+                href="https://wa.me/919360763060?text=Hello%20AgriEra%20Crop%20Doctor%2C%20I%20need%20urgent%20help%20with%20my%20crop."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="crop-doctor-contact-btn whatsapp"

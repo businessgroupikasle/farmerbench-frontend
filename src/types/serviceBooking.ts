@@ -18,6 +18,8 @@ export interface ServiceBooking {
   cropType?: string | null;
   preferredDate?: string | null;
   message?: string | null;
+  details?: Record<string, unknown> | null;
+  attachments?: Array<{ filename: string; name: string; mimeType: string; size: number }>;
   adminNotes?: string | null;
   status: ServiceBookingStatus;
   userId?: string | null;
@@ -64,6 +66,8 @@ export interface CreateServiceBookingInput {
   cropType?: string | null;
   preferredDate?: string | null;
   message?: string | null;
+  details?: Record<string, unknown> | null;
+  attachments?: Array<{ filename: string; name: string; mimeType: string; size: number }>;
 }
 
 export interface UpdateServiceBookingInput {

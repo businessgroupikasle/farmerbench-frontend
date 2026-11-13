@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    AgriEra — PRODUCT DETAILS PAGE STYLES
    Pixel-Perfect Match to UI Design with Responsive Adaptability
    ========================================================================== */
@@ -3226,6 +3226,164 @@
     min-height: 28px;
     padding: 0 0 0.1rem;
   }
+}
+
+/* Fix #11: smooth zoom without cropping top edge on desktop or mobile */
+.pdp-stage-img-wrap {
+  box-sizing: border-box;
+  overflow: hidden;
+  cursor: zoom-in;
+}
+
+.pdp-stage-img-wrap img {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain !important;
+  filter: none;
+  will-change: transform;
+  transition: transform 0.2s ease-out;
+}
+
+@media (min-width: 641px) {
+  .pdp-stage-img-wrap {
+    inset: 1rem;
+    width: auto;
+    height: auto;
+    padding: 0.75rem;
+    border: 1px solid #d7e4da;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 6px 18px rgba(15, 71, 38, 0.08);
+  }
+
+  .pdp-stage-img-wrap img {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    box-shadow: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .pdp-stage-img-wrap {
+    padding: 0.5rem;
+    background: #ffffff;
+  }
+
+  .pdp-stage-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain !important;
+  }
+}
+
+.pdp-zoom-hint-pill {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  border-radius: 9999px;
+  background: rgba(15, 23, 42, 0.72);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.pdp-lightbox-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(4px);
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.pdp-lightbox-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  max-width: 1040px;
+  width: 100%;
+  margin: 0 auto 0.75rem;
+  color: #f8fafc;
+}
+
+.pdp-lightbox-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pdp-lightbox-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.pdp-lightbox-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pdp-lightbox-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.pdp-lightbox-viewport {
+  flex: 1;
+  max-width: 1040px;
+  width: 100%;
+  margin: 0 auto;
+  background: #ffffff;
+  border-radius: 14px;
+  overflow: auto;
+  display: flex;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.pdp-lightbox-img {
+  display: block;
+  margin: auto;
+  max-width: 100%;
+  max-height: calc(100vh - 130px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  cursor: zoom-in;
+}
+
+.pdp-lightbox-img.is-zoomed {
+  max-width: none;
+  max-height: none;
+  width: min(1400px, 165%);
+  height: auto;
+  cursor: zoom-out;
 }
 
 @media (min-width: 769px) and (max-width: 980px) {

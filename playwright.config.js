@@ -3,6 +3,8 @@ import { defineConfig, devices } from '@playwright/test';
 import { loadEnv } from 'vite';
 
 const env = loadEnv('', process.cwd(), '');
+const port = process.env.PLAYWRIGHT_PORT || '4173';
+const localUrl = `http://127.0.0.1:${port}`;
 
 export default defineConfig({
   testDir: './tests',
@@ -14,10 +16,11 @@ export default defineConfig({
     ? [['dot'], ['html', { open: 'never' }]]
     : [['list'], ['html', { open: 'never' }]],
   use: {
-    baseURL: process.env.PLAYWRIGHT_BASE_URL || env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:4173',
+    channel: process.env.PLAYWRIGHT_CHANNEL || undefined,
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || env.PLAYWRIGHT_BASE_URL || localUrl,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    video: process.env.PLAYWRIGHT_NO_VIDEO ? 'off' : 'retain-on-failure',
   },
   projects: [
     {
@@ -30,8 +33,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev -- --host 127.0.0.1 --port 4173',
-    url: 'http://127.0.0.1:4173',
+    command: `npm run dev -- --host 127.0.0.1 --port ${port} --strictPort`,
+    url: localUrl,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
   },

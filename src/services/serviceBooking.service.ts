@@ -12,6 +12,8 @@ export interface CreateServiceBookingPayload {
   cropType?: string | null;
   preferredDate?: string | null;
   message?: string | null;
+  details?: Record<string, unknown> | null;
+  attachments?: Array<{ filename: string; name: string; mimeType: string; size: number }>;
 }
 
 export type ServiceBookingStatus =
@@ -34,6 +36,8 @@ export interface ServiceBookingRecord {
   cropType?: string | null;
   preferredDate?: string | null;
   message?: string | null;
+  details?: Record<string, unknown> | null;
+  attachments?: Array<{ filename: string; name: string; mimeType: string; size: number }>;
   adminNotes?: string | null;
   status: ServiceBookingStatus;
   userId?: string | null;
@@ -82,9 +86,15 @@ export const serviceBookingService = {
    * Public or authenticated booking creation
    */
   async createBooking(
-    payload: CreateServiceBookingPayload
+    payload: CreateServiceBookingPayload,
+    files: File[] = []
   ): Promise<ApiResponse<ServiceBookingRecord>> {
-    return apiClient.post('/service-bookings', payload);
+    if (!files.length) return apiClient.post('/service-bookings', payload);
+    if (files.length > 5 || files.some(file => file.size > 20 * 1024 * 1024)) throw new Error('Upload up to 5 files, each no larger than 20 MB.');
+    const body = new FormData();
+    body.append('payload', JSON.stringify(payload));
+    files.forEach(file => body.append('files', file));
+    return apiClient.post('/service-bookings', body, { timeout: 120000, headers: { 'Content-Type': undefined } });
   },
 
   /**

@@ -13,9 +13,23 @@ import {
   ResendResetOtpInput,
   OtpResponse,
   VerifyResetOtpResponse,
+  RegisterOtpInput,
+  VerifyRegisterOtpInput,
+  CompleteRegistrationInput,
 } from '@formerbench/shared';
 
 export const authService = {
+  async sendRegistrationOtp(data: RegisterOtpInput): Promise<ApiResponse<OtpResponse>> {
+    return apiClient.post('/auth/register-otp', data);
+  },
+
+  async verifyRegistrationOtp(data: VerifyRegisterOtpInput): Promise<ApiResponse<{ registrationToken: string }>> {
+    return apiClient.post('/auth/verify-register-otp', data);
+  },
+
+  async completeRegistration(data: CompleteRegistrationInput): Promise<ApiResponse<AuthResponse>> {
+    return apiClient.post('/auth/complete-registration', data);
+  },
   async register(data: RegisterInput): Promise<ApiResponse<AuthResponse>> {
     return apiClient.post('/auth/register', data);
   },
@@ -24,7 +38,7 @@ export const authService = {
     return apiClient.post('/auth/login', data);
   },
 
-  async googleLogin(credential: string): Promise<ApiResponse<AuthResponse>> {
+  async googleLogin(credential: string): Promise<ApiResponse<AuthResponse | { requiresRegistration: true; registrationToken: string; email: string; name: string }>> {
     return apiClient.post('/auth/google', { credential });
   },
 

@@ -1834,3 +1834,91 @@
 .fb-catalog-search-input::-ms-reveal { display: none; width: 0; height: 0; }
 .fb-catalog-search-input::-webkit-search-cancel-button,
 .fb-catalog-search-input::-webkit-search-decoration { display: none; -webkit-appearance: none; appearance: none; }
+
+/* Smooth anchor/filter scroll offset under fixed navbar */
+#products-catalog-section,
+.fb-catalog-grid-section {
+  scroll-margin-top: 88px;
+}
+
+@media (max-width: 980px) {
+  #products-catalog-section,
+  .fb-catalog-grid-section {
+    scroll-margin-top: 128px;
+  }
+}
+
+.fb-price-range-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: #dc2626;
+}
+
+.fb-mobile-filters-done-btn {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  border: none;
+  border-radius: 10px;
+  background-color: #166534;
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Comparison modal: compact header & aligned product columns */
+.fb-compare-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  text-align: left;
+}
+
+.fb-compare-table th,
+.fb-compare-table td {
+  padding: 0.85rem 1rem;
+  vertical-align: middle;
+}
+
+.fb-compare-th-feature,
+.fb-compare-feature-name {
+  width: 170px;
+  min-width: 145px;
+  vertical-align: middle;
+}
+
+.fb-compare-th-product {
+  min-width: 185px;
+  background-color: #fbfcfb;
+  vertical-align: middle;
+}
+
+.fb-compare-card-head {
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.fb-compare-table-remove {
+  flex-shrink: 0;
+  padding: 0.25rem;
+  border-radius: 6px;
+}
+
+.fb-compare-table-remove:hover {
+  background-color: #fee2e2;
+}
+
+.fb-compare-td-image {
+  text-align: center;
+}
+
+.fb-compare-img-link {
+  display: block;
+}
+
+.fb-compare-table-img {
+  height: 112px;
+}

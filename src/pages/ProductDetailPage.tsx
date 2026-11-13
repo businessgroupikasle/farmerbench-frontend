@@ -1,9 +1,10 @@
-﻿import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useProduct, useProductMutations, useProducts } from '../hooks/useProducts';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
 import { useUIStore } from '../store/uiStore';
+import { useWishlistStore } from '../store/wishlistStore';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { ErrorState } from '../components/common/ErrorState';
 import {
@@ -24,6 +25,8 @@ import {
   Share2,
   ChevronLeft,
   ChevronRight,
+  ZoomIn,
+  ZoomOut,
 } from 'lucide-react';
 import { getUploadUrl } from '../utils/image';
 import { postalCodeService } from '../services/postalCode.service';
@@ -78,7 +81,8 @@ export const ProductDetailPage: React.FC = () => {
     faqs: 'FAQs',
     reviews: `Reviews (${product?.numReviews ?? 0})`,
   }[activeTab];
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const { isInWishlist, toggleWishlist } = useWishlistStore();
+  const isWishlisted = product ? isInWishlist(product.id) : false;
 
   // Delivery pincode state
   const [pincodeInput, setPincodeInput] = useState('');
@@ -92,6 +96,8 @@ export const ProductDetailPage: React.FC = () => {
   const [isZooming, setIsZooming] = useState(false);
   const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
   const imageRef = useRef<HTMLDivElement>(null);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [isLightboxZoomed, setIsLightboxZoomed] = useState(false);
   const mainGridRef = useRef<HTMLDivElement>(null);
   const recommendationsRef = useRef<HTMLDivElement>(null);
   const [isGalleryCompact, setIsGalleryCompact] = useState(false);
@@ -250,13 +256,41 @@ export const ProductDetailPage: React.FC = () => {
 
   const currentImage = galleryImages[selectedImageIndex] || galleryImages[0];
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+  const supportsHoverZoom = () =>
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  const updateZoomCoords = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!imageRef.current) return;
     const { left, top, width, height } = imageRef.current.getBoundingClientRect();
     const x = ((e.clientX - left) / width) * 100;
     const y = ((e.clientY - top) / height) * 100;
     setZoomPos({ x: Math.max(0, Math.min(100, x)), y: Math.max(0, Math.min(100, y)) });
   };
+
+  const handleMouseEnterZoom = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!supportsHoverZoom()) return;
+    updateZoomCoords(e);
+    setIsZooming(true);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!supportsHoverZoom()) return;
+    updateZoomCoords(e);
+  };
+
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsLightboxOpen(false);
+        setIsLightboxZoomed(false);
+      }
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [isLightboxOpen]);
 
   const handleAddToCart = () => {
     if (isOutOfStock) return;
@@ -298,10 +332,11 @@ export const ProductDetailPage: React.FC = () => {
   };
 
   const handleToggleWishlist = () => {
-    setIsWishlisted(!isWishlisted);
+    if (!product) return;
+    const added = toggleWishlist(product);
     addToast({
-      type: !isWishlisted ? 'success' : 'info',
-      message: !isWishlisted
+      type: added ? 'success' : 'info',
+      message: added
         ? `Added "${product.title}" to your Saved Items!`
         : `Removed "${product.title}" from Saved Items.`,
     });
@@ -310,7 +345,7 @@ export const ProductDetailPage: React.FC = () => {
   const handleCheckPincode = async (e: React.FormEvent) => {
     e.preventDefault();
     const pin = pincodeInput.trim();
-    if (!pin || pin.length < 6) {
+    if (!/^\d{6}$/.test(pin)) {
       setDeliveryStatus({
         checked: true,
         available: false,
@@ -484,9 +519,23 @@ export const ProductDetailPage: React.FC = () => {
             <div
               className="pdp-stage-img-wrap"
               ref={imageRef}
-              onMouseEnter={() => setIsZooming(true)}
+              onMouseEnter={handleMouseEnterZoom}
               onMouseLeave={() => setIsZooming(false)}
               onMouseMove={handleMouseMove}
+              onClick={() => {
+                setIsLightboxZoomed(false);
+                setIsLightboxOpen(true);
+              }}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setIsLightboxZoomed(false);
+                  setIsLightboxOpen(true);
+                }
+              }}
+              aria-label={`Zoom image of ${product.title}`}
             >
               <img
                 src={getUploadUrl(currentImage, 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800')}
@@ -496,9 +545,12 @@ export const ProductDetailPage: React.FC = () => {
                 fetchPriority="high"
                 style={{
                   transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`,
-                  transform: isZooming ? 'scale(1.45)' : 'scale(1)',
+                  transform: isZooming ? 'scale(1.22)' : 'scale(1)',
                 }}
               />
+              <span className="pdp-zoom-hint-pill" aria-hidden="true">
+                <ZoomIn size={13} /> Click to zoom
+              </span>
             </div>
           </div>
         </div>
@@ -701,9 +753,28 @@ export const ProductDetailPage: React.FC = () => {
             <form onSubmit={handleCheckPincode} className="pdp-delivery-form">
               <input
                 type="text"
+                inputMode="numeric"
+                maxLength={6}
+                pattern="\d{6}"
+                autoComplete="postal-code"
                 placeholder="Enter your 6-digit PIN code"
                 value={pincodeInput}
-                onChange={(e) => setPincodeInput(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                aria-label="6-digit PIN code"
+                aria-invalid={Boolean(deliveryStatus && !deliveryStatus.available)}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  const cleaned = raw.replace(/\D/g, '').slice(0, 6);
+                  setPincodeInput(cleaned);
+                  if (/[^0-9]/.test(raw)) {
+                    setDeliveryStatus({
+                      checked: true,
+                      available: false,
+                      message: 'Only numeric digits (0–9) are allowed in the 6-digit PIN code.',
+                    });
+                  } else if (deliveryStatus && !deliveryStatus.available) {
+                    setDeliveryStatus(null);
+                  }
+                }}
                 className="pdp-pincode-input"
               />
               <button type="submit" className="pdp-pincode-btn">
@@ -1486,6 +1557,54 @@ export const ProductDetailPage: React.FC = () => {
                 </form>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Product Image Zoom Lightbox Modal */}
+      {isLightboxOpen && (
+        <div
+          className="pdp-lightbox-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Zoomed view of ${product.title}`}
+          onClick={() => {
+            setIsLightboxOpen(false);
+            setIsLightboxZoomed(false);
+          }}
+        >
+          <div className="pdp-lightbox-toolbar" onClick={(e) => e.stopPropagation()}>
+            <span className="pdp-lightbox-title">{product.title}</span>
+            <div className="pdp-lightbox-actions">
+              <button
+                type="button"
+                className="pdp-lightbox-btn"
+                onClick={() => setIsLightboxZoomed((prev) => !prev)}
+              >
+                {isLightboxZoomed ? <ZoomOut size={16} /> : <ZoomIn size={16} />}
+                <span>{isLightboxZoomed ? 'Reset Zoom' : 'Zoom In'}</span>
+              </button>
+              <button
+                type="button"
+                className="pdp-lightbox-btn"
+                onClick={() => {
+                  setIsLightboxOpen(false);
+                  setIsLightboxZoomed(false);
+                }}
+                aria-label="Close zoomed image"
+              >
+                <X size={16} />
+                <span>Close</span>
+              </button>
+            </div>
+          </div>
+          <div className="pdp-lightbox-viewport" onClick={(e) => e.stopPropagation()}>
+            <img
+              src={getUploadUrl(currentImage, 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800')}
+              alt={product.title}
+              className={`pdp-lightbox-img ${isLightboxZoomed ? 'is-zoomed' : ''}`}
+              onClick={() => setIsLightboxZoomed((prev) => !prev)}
+            />
           </div>
         </div>
       )}

@@ -13,6 +13,8 @@ export const HomeOurProducts: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const { data: productResponse, isLoading } = useProducts({ limit: 100 });
   const products = productResponse?.data || [];
+  const { data: bestSellerResponse } = useProducts({ limit: 6, sortBy: 'best_selling', search: searchQuery.trim() || undefined });
+  const bestSellers = bestSellerResponse?.data || [];
   const { data: categories = [] } = useCategories();
 
   const productSections = useMemo(() => {
@@ -31,10 +33,7 @@ export const HomeOurProducts: React.FC = () => {
       {
         id: 'best-selling',
         name: 'Best Seller',
-        products: [...products]
-          .filter((product) => product.featured === true && matchesSearch(product))
-          .sort((a, b) => b.rating - a.rating)
-          .slice(0, 8),
+        products: bestSellers,
       },
       ...activeCategories.map((category) => ({
         id: category.id,
@@ -46,12 +45,14 @@ export const HomeOurProducts: React.FC = () => {
     ];
 
     return sections.filter((section) => section.products.length > 0);
-  }, [categories, products, searchQuery]);
+  }, [categories, products, bestSellers, searchQuery]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`);
+      navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}#products-catalog-section`, {
+        state: { scrollToSearchResults: true },
+      });
     }
   };
 
@@ -98,7 +99,11 @@ export const HomeOurProducts: React.FC = () => {
           <button
             type="button"
             className="agriflow-search-catalog-btn"
-            onClick={() => navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}`)}
+            onClick={() =>
+              navigate(`/products?search=${encodeURIComponent(searchQuery.trim())}#products-catalog-section`, {
+                state: { scrollToSearchResults: true },
+              })
+            }
           >
             Search all catalog for &ldquo;{searchQuery}&rdquo;
           </button>
@@ -113,13 +118,13 @@ export const HomeOurProducts: React.FC = () => {
               <span className="agriflow-category-product-count">{section.products.length} Products</span>
               <Link
                 className="agriflow-category-view-all"
-                to={section.id === 'best-selling' ? '/products?featured=true' : `/products?category=${encodeURIComponent(section.id)}`}
+                to={section.id === 'best-selling' ? '/products?sort=best_selling' : `/products?category=${encodeURIComponent(section.id)}`}
               >
                 View All Products
               </Link>
             </div>
 
-            <div className="agriflow-products-grid">
+            <div className={`agriflow-products-grid ${section.id === 'best-selling' ? 'agriflow-best-sellers-grid' : ''}`} style={section.id === 'best-selling' ? { '--product-count': section.products.length } as React.CSSProperties : undefined}>
               {section.products.map((item) => {
                 const image = getUploadUrl(item.images?.[0], FALLBACK_IMAGE);
                 const discounted = Boolean(item.discountPrice && item.discountPrice < item.price);

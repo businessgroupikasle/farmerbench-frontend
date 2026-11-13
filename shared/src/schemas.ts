@@ -1,4 +1,4 @@
-﻿import { z } from 'zod';
+import { z } from 'zod';
 
 const IndianMobileSchema = z
   .string()
@@ -18,6 +18,33 @@ const IndianMobileSchema = z
   });
 
 // ============================================================================
+// PASSWORD POLICY (applies only when a NEW password is set; login is unaffected)
+// ============================================================================
+
+export const MIN_PASSWORD_LENGTH = 8;
+
+const COMMON_PASSWORDS = new Set([
+  'password', 'password1', 'password123', 'passw0rd', '12345678', '123456789', '1234567890',
+  '11111111', '00000000', '87654321', 'qwerty123', 'qwertyuiop', 'iloveyou', 'abc12345',
+  'abcd1234', 'admin123', 'admin@123', 'welcome1', 'welcome123', 'letmein1', 'india123',
+  'india@123', 'farmer123', 'agriera123', 'agriera@123', 'test1234', 'changeme',
+]);
+
+export const isCommonPassword = (value: string) => COMMON_PASSWORDS.has(value.trim().toLowerCase());
+
+export const NewPasswordSchema = z
+  .string()
+  .min(MIN_PASSWORD_LENGTH, `Password must be at least ${MIN_PASSWORD_LENGTH} characters`)
+  .max(128, 'Password must be at most 128 characters')
+  .refine((value) => !isCommonPassword(value), 'This password is too common. Please choose a stronger one.');
+
+/** Safe image/profile URL: absolute http(s) only (no javascript:, data:, etc.). */
+const HttpUrlSchema = z
+  .string()
+  .url('Invalid URL')
+  .refine((value) => /^https?:\/\//i.test(value), 'URL must start with http:// or https://');
+
+// ============================================================================
 // AUTH SCHEMAS
 // ============================================================================
 
@@ -25,7 +52,7 @@ export const RegisterSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   name: z.string().min(2, 'Name must be at least 2 characters'),
-  phone: IndianMobileSchema.optional().nullable(),
+  phone: IndianMobileSchema,
   location: z.string().optional().nullable(),
   crops: z.string().optional().nullable(),
 });
@@ -53,7 +80,7 @@ export const CompleteRegistrationSchema = z.object({
   registrationToken: z.string().min(1, 'Registration token is required'),
   name: z.string().min(2, 'Name must be at least 2 characters'),
   phone: IndianMobileSchema,
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: NewPasswordSchema,
   location: z.string().min(2, 'Location is required'),
   crops: z.string().optional().nullable(),
 });
@@ -77,12 +104,12 @@ export const UpdateProfileSchema = z.object({
   phone: IndianMobileSchema.optional().nullable(),
   location: z.string().optional().nullable(),
   crops: z.string().optional().nullable(),
-  avatarUrl: z.string().url('Invalid avatar URL').optional().nullable(),
+  avatarUrl: HttpUrlSchema.optional().nullable(),
 });
 
 export const ChangePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
-  newPassword: z.string().min(6, 'New password must be at least 6 characters'),
+  newPassword: NewPasswordSchema,
 });
 
 export const ForgotPasswordSchema = z.object({
@@ -97,8 +124,8 @@ export const VerifyResetOtpSchema = z.object({
 export const ResetPasswordSchema = z
   .object({
     resetToken: z.string().min(1, 'Reset token is required'),
-    newPassword: z.string().min(6, 'New password must be at least 6 characters'),
-    confirmPassword: z.string().min(6, 'Confirm password must be at least 6 characters').optional(),
+    newPassword: NewPasswordSchema,
+    confirmPassword: z.string().optional(),
   })
   .refine((data) => !data.confirmPassword || data.newPassword === data.confirmPassword, {
     message: "Passwords don't match",
@@ -135,7 +162,10 @@ export const CreateCategorySchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   slug: z.string().min(2, 'Slug must be at least 2 characters'),
   description: z.string().optional(),
-  imageUrl: z.string().url('Invalid image URL').optional(),
+  imageUrl: z.string().refine(
+    (value) => /^https?:\/\//i.test(value) || value.startsWith('/uploads/'),
+    'Invalid image URL'
+  ).optional(),
   isActive: z.boolean().default(true),
   sortOrder: z.number().int().nonnegative().default(0),
 });
@@ -178,7 +208,7 @@ export const CreateHeroBannerSchema = z.object({
   endsAt: z.coerce.date().optional().nullable(),
 });
 export const UpdateHeroBannerSchema = CreateHeroBannerSchema.partial();
-export const ReorderHeroBannersSchema = z.object({ ids: z.array(z.string().uuid()).min(1) });
+export const ReorderHeroBannersSchema = z.object({ ids: z.array(z.string().uuid()).min(1).max(500) });
 
 // ============================================================================
 // PRODUCT SCHEMAS
@@ -195,7 +225,7 @@ export const CreateProductSchema = z.object({
   images: z.array(z.string().refine(
     (value) => /^https?:\/\//i.test(value) || value.startsWith('/uploads/'),
     'Invalid image URL'
-  )).optional().nullable().default([]),
+  )).max(50, 'A product can have at most 50 images').optional().nullable().default([]),
   attributes: z.record(z.any()).optional().nullable(),
   categoryId: z.string().uuid('Invalid category ID'),
   subcategoryId: z.string().uuid('Invalid subcategory ID').optional().nullable(),
@@ -214,7 +244,7 @@ export const ProductQuerySchema = z.object({
   minPrice: z.coerce.number().positive().optional(),
   maxPrice: z.coerce.number().positive().optional(),
   minRating: z.coerce.number().min(0).max(5).optional(),
-  sortBy: z.enum(['newest', 'price_asc', 'price_desc', 'rating', 'popular']).default('newest'),
+  sortBy: z.enum(['newest', 'price_asc', 'price_desc', 'rating', 'popular', 'best_selling']).default('newest'),
   featured: z.preprocess((val) => (val === undefined || val === '' ? undefined : val === 'true' || val === true), z.boolean().optional()),
 });
 
@@ -239,7 +269,7 @@ export const SyncCartSchema = z.object({
       quantity: z.number().int().positive(),
       selectedAttributes: z.record(z.any()).optional().nullable(),
     })
-  ),
+  ).max(200),
 });
 
 // ============================================================================
@@ -269,7 +299,7 @@ export const CreateOrderSchema = z.object({
         packSize: z.string().min(1).optional(),
       }).optional(),
     })
-  ).optional(),
+  ).max(200).optional(),
 });
 
 export const UpdateOrderStatusSchema = z.object({
@@ -296,11 +326,31 @@ export const VerifyRazorpayPaymentSchema = z.object({
 // REVIEW SCHEMAS
 // ============================================================================
 
+const ReviewRatingSchema = z.number().int().min(1, 'Rating must be between 1 and 5').max(5, 'Rating must be between 1 and 5');
+const ReviewCommentSchema = z
+  .string()
+  .min(5, 'Review comment must be at least 5 characters')
+  .max(5000, 'Review comment must be at most 5000 characters');
+
 export const CreateReviewSchema = z.object({
   productId: z.string().uuid('Invalid product ID'),
-  rating: z.number().int().min(1).max(5, 'Rating must be between 1 and 5'),
-  comment: z.string().min(5, 'Review comment must be at least 5 characters'),
+  rating: ReviewRatingSchema,
+  comment: ReviewCommentSchema,
 });
+
+/** Body for POST /products/:productId/reviews (product comes from the URL). */
+export const CreateProductReviewBodySchema = z.object({
+  productId: z.string().uuid('Invalid product ID').optional(),
+  rating: ReviewRatingSchema,
+  comment: ReviewCommentSchema,
+});
+
+export const UpdateReviewSchema = z
+  .object({
+    rating: ReviewRatingSchema.optional(),
+    comment: ReviewCommentSchema.optional(),
+  })
+  .refine((data) => data.rating !== undefined || data.comment !== undefined, 'Nothing to update');
 
 // ============================================================================
 // SERVICE BOOKING SCHEMAS
@@ -321,7 +371,9 @@ export const CreateServiceBookingSchema = z.object({
   farmSize: z.string().optional().nullable(),
   cropType: z.string().optional().nullable(),
   preferredDate: z.string().optional().nullable(),
-  message: z.string().max(2000, 'Message cannot exceed 2000 characters').optional().nullable(),
+  message: z.string().max(20000, 'Message cannot exceed 20000 characters').optional().nullable(),
+  details: z.record(z.union([z.string().max(10000), z.number().finite(), z.boolean(), z.null(), z.array(z.string().max(1000)).max(50)]))
+    .refine((value) => Object.keys(value).length <= 100 && JSON.stringify(value).length <= 50000, 'Service details are too long').optional(),
 });
 
 export const UpdateServiceBookingStatusSchema = z.object({
@@ -354,7 +406,7 @@ export const CreateBlogSchema = z.object({
   authorAvatar: z.string().optional().nullable(),
   authorBio: z.string().optional().nullable(),
   category: z.string().min(1, 'Category is required'),
-  tags: z.array(z.string()).optional(),
+  tags: z.array(z.string().max(60)).max(50).optional(),
   status: BlogStatusSchema.default('PUBLISHED'),
   readingTime: z.string().optional(),
   metaTitle: z.string().optional().nullable(),

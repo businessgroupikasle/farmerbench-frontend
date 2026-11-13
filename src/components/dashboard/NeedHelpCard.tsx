@@ -24,7 +24,7 @@ export const NeedHelpCard: React.FC<NeedHelpCardProps> = ({ onContactSupport }) 
         </div>
 
         <a
-          href="https://wa.me/9193607 63060"
+          href="https://wa.me/919360763060"
           target="_blank"
           rel="noopener noreferrer"
           className="fb-whatsapp-link"

@@ -32,6 +32,8 @@ import {
   User,
 } from 'lucide-react';
 import './FarmConsultancyPage.css';
+import { BookingInput } from '../components/common/BookingInput';
+import { getFarmerNameError, getBookingDateError } from '../utils/bookingValidation';
 import { serviceBookingService } from '../services/serviceBooking.service';
 
 // Assets
@@ -310,8 +312,10 @@ export const FarmConsultancyPage: React.FC = () => {
   // Form Submit Handler
   const handleSubmitConsultation = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.farmerName.trim()) {
-      alert('Please enter your full name.');
+    const dateError = getBookingDateError(formData.preferredDateTime, true);
+    if (dateError) { showValidation(dateError); return; }
+    if (getFarmerNameError(formData.farmerName)) {
+      showValidation(getFarmerNameError(formData.farmerName));
       return;
     }
     const cleanPhone = formData.mobileNumber.replace(/\D/g, '');
@@ -331,6 +335,7 @@ export const FarmConsultancyPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       const response = await serviceBookingService.createBooking({
+        details: { ...formData },
         serviceSlug: 'farm-consultancy',
         serviceName: 'Farm Consultancy',
         name: formData.farmerName.trim(),
@@ -348,7 +353,7 @@ export const FarmConsultancyPage: React.FC = () => {
           preferredDateTime: formData.preferredDateTime,
           uploadedFilesCount: uploadedFiles.length,
         }),
-      });
+      }, uploadedFiles);
 
       if (response.data?.bookingReference) {
         setBookingReference(response.data.bookingReference);
@@ -870,7 +875,7 @@ export const FarmConsultancyPage: React.FC = () => {
                   <div className="consult-dev-row-3">
                     <div className="consult-dev-field">
                       <label className="consult-dev-label">Farmer Name *</label>
-                      <input
+                      <BookingInput validation="name"
                         required
                         type="text"
                         placeholder="Enter your full name"
@@ -1097,7 +1102,7 @@ export const FarmConsultancyPage: React.FC = () => {
 
                     <div className="consult-dev-field">
                       <label className="consult-dev-label">Preferred Date and Time</label>
-                      <input
+                      <BookingInput validation="datetime"
                         type="datetime-local"
                         value={formData.preferredDateTime}
                         onChange={(e) =>

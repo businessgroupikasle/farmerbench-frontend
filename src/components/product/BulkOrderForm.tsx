@@ -11,6 +11,26 @@ interface Props {
   user?: { name?: string | null; email?: string | null; phone?: string | null } | null;
 }
 
+const validateBulkOrderName = (value: string, enforceMinLength: boolean): string | undefined => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return enforceMinLength ? 'Please enter your full name.' : undefined;
+  }
+  if (/^\d+$/.test(trimmed.replace(/\s+/g, ''))) {
+    return 'Name cannot be numeric only. Please enter a valid name with letters.';
+  }
+  if (/\d/.test(trimmed)) {
+    return 'Name cannot contain numbers. Please enter letters and spaces only.';
+  }
+  if (!/^[A-Za-z\u00C0-\u024F\s.'-]+$/.test(trimmed) || !/[A-Za-z\u00C0-\u024F]/.test(trimmed)) {
+    return 'Please enter a valid name containing letters.';
+  }
+  if (enforceMinLength && trimmed.length < 3) {
+    return 'Enter at least 3 characters.';
+  }
+  return undefined;
+};
+
 export const BulkOrderForm: React.FC<Props> = ({ product, packSize, sku, user }) => {
   const { addToast } = useUIStore();
   const [open, setOpen] = useState(false);
@@ -48,15 +68,19 @@ export const BulkOrderForm: React.FC<Props> = ({ product, packSize, sku, user })
 
   const update = (key: keyof typeof form, value: string | number) => {
     setForm((current) => ({ ...current, [key]: value }));
+    if (key === 'name' && typeof value === 'string') {
+      const nameError = validateBulkOrderName(value, false);
+      setErrors((current) => ({ ...current, name: nameError }));
+      return;
+    }
     if (key in errors) setErrors((current) => ({ ...current, [key]: undefined }));
   };
 
   const validate = () => {
     const next: typeof errors = {};
-    const name = form.name.trim();
+    const nameError = validateBulkOrderName(form.name, true);
     const phone = form.phone.replace(/\D/g, '');
-    if (name.length < 3) next.name = 'Enter at least 3 characters.';
-    else if (!/^[A-Za-z\u00C0-\u024F\s.'-]+$/.test(name)) next.name = 'Name can contain letters and spaces only.';
+    if (nameError) next.name = nameError;
     if (!/^[6-9]\d{9}$/.test(phone)) next.phone = 'Enter a valid 10-digit Indian mobile number.';
     if (!Number.isInteger(form.quantity) || form.quantity < 10) next.quantity = 'Minimum bulk quantity is 10.';
     if (form.location.trim().length < 5) next.location = 'Enter a complete delivery location.';
@@ -127,7 +151,7 @@ export const BulkOrderForm: React.FC<Props> = ({ product, packSize, sku, user })
               </div>
             </div>
           ) : (
-            <form className="pdp-bulk-form" onSubmit={submit}>
+            <form className="pdp-bulk-form" onSubmit={submit} noValidate>
               <div className="pdp-bulk-form-heading">
                 <span className="pdp-bulk-heading-title">Bulk Order Enquiry</span>
                 <span className="pdp-bulk-pack-badge">
@@ -147,12 +171,21 @@ export const BulkOrderForm: React.FC<Props> = ({ product, packSize, sku, user })
                   <input
                     required
                     autoComplete="name"
+                    aria-invalid={Boolean(errors.name)}
                     className={errors.name ? 'has-error' : ''}
                     value={form.name}
                     onChange={(e) => update('name', e.target.value)}
+                    onBlur={(e) => {
+                      const nameError = validateBulkOrderName(e.target.value, true);
+                      setErrors((current) => ({ ...current, name: nameError }));
+                    }}
                     placeholder="Your full name"
                   />
-                  {errors.name && <small className="pdp-field-error">{errors.name}</small>}
+                  {errors.name && (
+                    <small className="pdp-field-error" role="alert">
+                      {errors.name}
+                    </small>
+                  )}
                 </label>
 
                 <label>

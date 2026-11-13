@@ -32,7 +32,13 @@ export const useAdminOrders = (params?: { page?: number; limit?: number; status?
     queryKey: ['admin', 'orders', params],
     queryFn: async () => {
       const res = await orderService.getAllOrders(params);
-      return res.data;
+      if (!res.data || params?.page) return res.data;
+      const all = [...res.data.orders];
+      for (let page = 2; page <= res.data.totalPages; page++) {
+        const next = await orderService.getAllOrders({ ...params, page });
+        all.push(...(next.data?.orders || []));
+      }
+      return { ...res.data, orders: all };
     },
     staleTime: 1000 * 60,
   });

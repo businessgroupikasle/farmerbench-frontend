@@ -25,6 +25,8 @@ import {
   Zap,
 } from 'lucide-react';
 import './DripIrrigationPage.css';
+import { BookingInput } from '../components/common/BookingInput';
+import { getFarmerNameError } from '../utils/bookingValidation';
 import { serviceBookingService } from '../services/serviceBooking.service';
 
 // Assets
@@ -266,8 +268,8 @@ export const DripIrrigationPage: React.FC = () => {
   // Form Submit Handler
   const handleSubmitPlan = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.farmerName.trim()) {
-      alert('Please enter your full name.');
+    if (getFarmerNameError(formData.farmerName)) {
+      showValidation(getFarmerNameError(formData.farmerName));
       return;
     }
     const cleanPhone = formData.mobileNumber.replace(/\D/g, '');
@@ -291,6 +293,7 @@ export const DripIrrigationPage: React.FC = () => {
     setIsSubmitting(true);
     try {
       const response = await serviceBookingService.createBooking({
+        details: { ...formData },
         serviceSlug: 'drip-irrigation',
         serviceName: 'Drip Irrigation',
         name: formData.farmerName.trim(),
@@ -306,7 +309,7 @@ export const DripIrrigationPage: React.FC = () => {
           requiredService: formData.requiredService,
           uploadedFilesCount: uploadedFiles.length,
         }),
-      });
+      }, uploadedFiles);
 
       if (response.data?.bookingReference) {
         setBookingReference(response.data.bookingReference);
@@ -702,7 +705,7 @@ export const DripIrrigationPage: React.FC = () => {
                   <div className="drip-dev-row-3">
                     <div className="drip-dev-field">
                       <label className="drip-dev-label">Farmer Name *</label>
-                      <input
+                      <BookingInput validation="name"
                         required
                         type="text"
                         placeholder="Enter your full name"

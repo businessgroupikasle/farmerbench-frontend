@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useUIStore } from '../store/uiStore';
+import { NewPasswordSchema } from '@formerbench/shared';
 import { authService } from '../services/auth.service';
 import {
   getEmailValidationError,
@@ -40,8 +41,6 @@ import farmerLogo from '../assets/AgriEra-logo.png';
 
 import './LoginPage.css';
 
-// Same base URL the shared axios client uses (VITE_API_BASE_URL), never a hard-coded localhost
-const AUTH_API_BASE = (import.meta.env.VITE_API_BASE_URL || '/api').replace(/\/+$/, '');
 
 interface SlideData {
   image: string;
@@ -159,6 +158,7 @@ export const LoginPage: React.FC = () => {
   // 1. SIGNUP WITH INLINE EMAIL OTP VERIFICATION
   // =========================================================================
   const handleSendSignupInlineOtp = async () => {
+    if (isSignupOtpSending || signupCountdown > 0) return;
     setError(null);
     const nameValidationError = getFullNameValidationError(name);
     if (nameValidationError) {
@@ -174,22 +174,8 @@ export const LoginPage: React.FC = () => {
     setIsSignupOtpSending(true);
 
     try {
-      const res = await fetch(`${AUTH_API_BASE}/auth/register-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name.trim() || emailOrPhone.split('@')[0],
-          email: emailOrPhone.trim(),
-          phone: phoneNumber.trim() || null,
-          password: password || undefined,
-        }),
-      });
-      const data = await res.json();
+      await authService.sendRegistrationOtp({ name: name.trim(), email: emailOrPhone.trim() });
       setIsSignupOtpSending(false);
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Failed to dispatch verification code');
-      }
 
       setSignupOtpSent(true);
       setSignupCountdown(60);
@@ -250,23 +236,11 @@ export const LoginPage: React.FC = () => {
     setIsSignupVerifying(true);
 
     try {
-      const res = await fetch(`${AUTH_API_BASE}/auth/verify-register-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: emailOrPhone.trim(),
-          otp: entered,
-        }),
-      });
-      const data = await res.json();
+      const res = await authService.verifyRegistrationOtp({ email: emailOrPhone.trim(), otp: entered });
+      if (!res.data?.registrationToken) throw new Error('Verification failed. Please request a new code.');
       setIsSignupVerifying(false);
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Verification failed. Code mismatch.');
-      }
-
+      setRegistrationToken(res.data.registrationToken);
       setIsEmailVerified(true);
-      setRegistrationToken(data.data?.registrationToken || null);
       setSignupOtpSent(false);
 
       addToast({
@@ -308,8 +282,9 @@ export const LoginPage: React.FC = () => {
       setError('Please enter your location');
       return;
     }
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters');
+    const passwordCheck = NewPasswordSchema.safeParse(password);
+    if (!passwordCheck.success) {
+      setError(passwordCheck.error.issues[0].message);
       return;
     }
     if (password !== signupConfirmPassword) {
@@ -320,29 +295,13 @@ export const LoginPage: React.FC = () => {
     setIsSubmittingSignup(true);
 
     try {
-      const res = await fetch(`${AUTH_API_BASE}/auth/complete-registration`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          registrationToken,
-          name: name.trim(),
-          phone: phoneNumber.trim(),
-          location: locationValue.trim(),
-          password,
-        }),
+      const res = await authService.completeRegistration({
+        registrationToken, name: name.trim(), phone: phoneNumber.trim(), location: locationValue.trim(), password,
       });
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Account creation failed.');
-      }
-
-      if (!data.data?.user || !data.data?.token) {
-        throw new Error('Account was created but the login session was not returned.');
-      }
+      if (!res.data?.user || !res.data?.token) throw new Error('Account was created but the login session was not returned.');
 
       sessionStorage.setItem('post_auth_redirect', '/products');
-      setAuthSession(data.data.user, data.data.token);
+      setAuthSession(res.data.user, res.data.token);
       addToast({ type: 'success', message: 'Welcome to AgriEra! Your account is active.' });
       navigate('/products');
     } catch (err: any) {
@@ -406,7 +365,7 @@ export const LoginPage: React.FC = () => {
     setError(null);
 
     const cleanEmail = forgotEmail.trim();
-    if (!cleanEmail || !cleanEmail.includes('@')) {
+    if (getEmailValidationError(cleanEmail)) {
       setError('Please enter a valid email address.');
       return;
     }
@@ -550,8 +509,9 @@ export const LoginPage: React.FC = () => {
       return;
     }
 
-    if (!newPassword || newPassword.length < 8) {
-      setError('Password must be at least 8 characters long.');
+    const passwordCheck = NewPasswordSchema.safeParse(newPassword);
+    if (!passwordCheck.success) {
+      setError(passwordCheck.error.issues[0].message);
       return;
     }
 
@@ -593,6 +553,17 @@ export const LoginPage: React.FC = () => {
     setError(null);
     try {
       const result = await authService.googleLogin(response.credential);
+      if (result.data && 'registrationToken' in result.data) {
+        navigate('/signup');
+        setMode('signup');
+        setEmailOrPhone(result.data.email);
+        setName(result.data.name);
+        setRegistrationToken(result.data.registrationToken);
+        setIsEmailVerified(true);
+        setSignupOtpSent(false);
+        addToast({ type: 'info', message: 'Email verified. Add your mobile number and complete your details to register.' });
+        return;
+      }
       if (!result.data?.user || !result.data?.token) {
         throw new Error('Google sign-in completed without a valid app session.');
       }
@@ -1227,9 +1198,11 @@ export const LoginPage: React.FC = () => {
                           type="email"
                           placeholder="Email Address"
                           value={emailOrPhone}
-                          disabled={isEmailVerified}
+                          disabled={isEmailVerified || isSignupOtpSending || isSignupVerifying}
                           onChange={(e) => {
                             setEmailOrPhone(e.target.value);
+                            setRegistrationToken(null);
+                            setSignupCountdown(0);
                             setIsEmailVerified(false);
                             setSignupOtpSent(false);
                             setError(null);
@@ -1320,7 +1293,11 @@ export const LoginPage: React.FC = () => {
                         </div>
                         <input
                           type="tel"
-                          placeholder="Phone Number (e.g. +91 98421 88321)"
+                          placeholder="10-digit Mobile Number"
+                          inputMode="numeric"
+                          maxLength={10}
+                          pattern="[6-9][0-9]{9}"
+                          title="Enter a valid 10-digit mobile number"
                           value={phoneNumber}
                           onChange={(e) => {
                             setPhoneNumber(e.target.value);

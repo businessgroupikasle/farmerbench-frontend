@@ -2,6 +2,8 @@ import { ApiResponse } from '@formerbench/shared';
 import { apiClient } from './api';
 
 export interface StoreShippingSettings {
+  maintenanceMode?: boolean;
+  maintenanceMessage?: string;
   standardShippingFee: number;
   freeShippingThreshold: number;
   shippingPolicyEffectiveDate?: string | null;

@@ -8,7 +8,7 @@ import { useWishlistStore } from '../../store/wishlistStore';
 import { useCompareStore } from '../../store/compareStore';
 import { useUIStore } from '../../store/uiStore';
 import { getUploadUrl } from '../../utils/image';
-import { formatPrice } from '../../utils/currency';
+import { formatPrice, getProductPricing } from '../../utils/currency';
 
 interface ProductCardProps {
   product: Product;
@@ -23,15 +23,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { toggleCompare, isInCompare } = useCompareStore();
   const { addToast } = useUIStore();
 
-  const rawPrice = Number(product.price) || 0;
-  const rawDiscountPrice = Number(product.discountPrice) || 0;
-  const isDiscounted = rawPrice > 0 && rawDiscountPrice > 0 && rawPrice !== rawDiscountPrice;
-  const originalPrice = isDiscounted ? Math.max(rawPrice, rawDiscountPrice) : rawPrice;
-  const currentPrice = isDiscounted ? Math.min(rawPrice, rawDiscountPrice) : rawPrice;
-  const discountPercent = isDiscounted
-    ? Math.round(((originalPrice - currentPrice) / originalPrice) * 100)
-    : 0;
-  const savingsAmount = isDiscounted ? Math.max(0, originalPrice - currentPrice) : 0;
+  const { isDiscounted, originalPrice, currentPrice, discountPercent, savingsAmount } = getProductPricing(product);
 
   const isLowStock = product.stock > 0 && product.stock <= 5;
   const isOutOfStock = product.stock === 0;

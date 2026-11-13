@@ -2,10 +2,12 @@ import React, { useRef } from 'react';
 import { ArrowRight, ChevronLeft, ChevronRight, Heart, Star, Check, ShoppingBag } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Product } from '@formerbench/shared';
+import { formatPrice, getProductPricing } from '../../utils/currency';
+import { getUploadUrl } from '../../utils/image';
 
 interface WishlistCarouselProps {
   wishlistItems: Product[];
-  onViewAllWishlist: () => void;
+  onViewAllWishlist?: () => void;
   onAddToCart: (product: Product | any) => void;
   onRemoveFromWishlist: (productId: string) => void;
 }
@@ -37,17 +39,20 @@ export const WishlistCarousel: React.FC<WishlistCarouselProps> = ({
     <div className="fb-card">
       <div className="fb-card-header">
         <h3 className="fb-card-title">Your Wishlist</h3>
-        {totalCount > 0 && (
+        {totalCount > 0 && (onViewAllWishlist || totalCount > 3) && (
           <div className="fb-wishlist-header-actions">
-            <a
-              className="fb-card-link"
-              onClick={(e) => {
-                e.preventDefault();
-                onViewAllWishlist();
-              }}
-            >
-              View All {totalCount} {totalCount === 1 ? 'Item' : 'Items'} <ArrowRight size={14} />
-            </a>
+            {onViewAllWishlist && (
+              <a
+                href="#wishlist"
+                className="fb-card-link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onViewAllWishlist();
+                }}
+              >
+                View All {totalCount} {totalCount === 1 ? 'Item' : 'Items'} <ArrowRight size={14} />
+              </a>
+            )}
             {totalCount > 3 && (
               <div className="fb-carousel-controls">
                 <button className="fb-carousel-btn" onClick={scrollLeft} aria-label="Previous">
@@ -96,11 +101,12 @@ export const WishlistCarousel: React.FC<WishlistCarouselProps> = ({
       ) : (
         <div className="fb-wishlist-scroll-track" ref={scrollRef}>
           {wishlistItems.map((item: any) => {
-            const imgUrl =
-              item.images?.[0] || item.imageUrl || '';
+            const rawImgUrl = item.images?.[0] || item.imageUrl || '';
+            const imgUrl = rawImgUrl ? getUploadUrl(rawImgUrl) : '';
             const rating = item.rating || 5;
             const reviews = item.numReviews || 0;
             const inStock = (item.stock ?? 1) > 0;
+            const { isDiscounted, originalPrice, currentPrice } = getProductPricing(item);
 
             return (
               <div key={item.id} className="fb-wishlist-product-card">
@@ -152,9 +158,16 @@ export const WishlistCarousel: React.FC<WishlistCarouselProps> = ({
                 </div>
 
                 <div className="fb-wishlist-price-row">
-                  <span className="fb-wishlist-price">
-                    ₹{item.price ? Number(item.price).toFixed(2) : '0.00'}
-                  </span>
+                  <div className="fb-wishlist-price-group">
+                    <span className="fb-wishlist-price">
+                      {formatPrice(currentPrice)}
+                    </span>
+                    {isDiscounted && (
+                      <span className="fb-wishlist-original-price">
+                        {formatPrice(originalPrice)}
+                      </span>
+                    )}
+                  </div>
                   <button
                     className="fb-btn-add-cart-mini"
                     onClick={() => onAddToCart(item)}

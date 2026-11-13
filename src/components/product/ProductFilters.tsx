@@ -5,7 +5,29 @@ import { useFilterStore } from '../../store/filterStore';
 import { productService } from '../../services/product.service';
 import { RotateCcw, Filter, Star, CheckSquare, Square, Sparkles, Tag, Layers } from 'lucide-react';
 
-export const ProductFilters: React.FC = () => {
+interface ProductFiltersProps {
+  onCategoryChange?: (category: string | undefined) => void;
+  onSubcategoryChange?: (subcategoryId: string | undefined) => void;
+  onResetFilters?: () => void;
+  onFilterApplied?: (options?: { keepMobileOpen?: boolean }) => void;
+  resultCount?: number;
+  onCloseMobileFilters?: () => void;
+}
+
+const parsePositivePrice = (raw: string): number | undefined => {
+  if (!raw.trim()) return undefined;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+};
+
+export const ProductFilters: React.FC<ProductFiltersProps> = ({
+  onCategoryChange,
+  onSubcategoryChange,
+  onResetFilters,
+  onFilterApplied,
+  resultCount,
+  onCloseMobileFilters,
+}) => {
   const { data: categories = [] } = useCategories();
   const {
     filters,
@@ -26,12 +48,32 @@ export const ProductFilters: React.FC = () => {
   const activeSubcategories = (selectedCategory?.subcategories || []).filter(
     (subcategory) => subcategory.isActive
   );
+
+  const isPriceRangeInvalid =
+    filters.minPrice !== undefined &&
+    filters.maxPrice !== undefined &&
+    filters.minPrice > filters.maxPrice;
+
   const subcategoryCountQueries = useQueries({
     queries: activeSubcategories.map((subcategory) => ({
-      queryKey: ['products', 'subcategory-count', subcategory.id],
+      queryKey: [
+        'products',
+        'subcategory-count',
+        subcategory.id,
+        filters.search || '',
+        !isPriceRangeInvalid ? filters.minPrice ?? null : null,
+        !isPriceRangeInvalid ? filters.maxPrice ?? null : null,
+        filters.minRating ?? null,
+        Boolean(filters.featured),
+      ],
       queryFn: async () => {
         const response = await productService.getProducts({
           subcategoryId: subcategory.id,
+          ...(filters.search ? { search: filters.search } : {}),
+          ...(!isPriceRangeInvalid && filters.minPrice !== undefined ? { minPrice: filters.minPrice } : {}),
+          ...(!isPriceRangeInvalid && filters.maxPrice !== undefined ? { maxPrice: filters.maxPrice } : {}),
+          ...(filters.minRating !== undefined ? { minRating: filters.minRating } : {}),
+          ...(filters.featured ? { featured: filters.featured } : {}),
           page: 1,
           limit: 1,
           sortBy: 'newest',
@@ -41,6 +83,7 @@ export const ProductFilters: React.FC = () => {
       staleTime: 1000 * 60 * 2,
     })),
   });
+
   const subcategoryCounts = new Map(
     activeSubcategories.map((subcategory, index) => [
       subcategory.id,
@@ -50,6 +93,7 @@ export const ProductFilters: React.FC = () => {
 
   const sortOptions = [
     { label: 'Newest Arrivals', value: 'newest' },
+    { label: 'Best Selling', value: 'best_selling' },
     { label: 'Price: Low to High', value: 'price_asc' },
     { label: 'Price: High to Low', value: 'price_desc' },
     { label: 'Top Rated', value: 'rating' },
@@ -73,6 +117,36 @@ export const ProductFilters: React.FC = () => {
     inStockOnly,
   ].filter(Boolean).length;
 
+  const handleCategorySelect = (
+    nextCategory: string | undefined,
+    hasActiveChildren = false
+  ) => {
+    if (onCategoryChange) {
+      onCategoryChange(nextCategory);
+    } else {
+      setCategory(nextCategory);
+    }
+    onFilterApplied?.({ keepMobileOpen: hasActiveChildren });
+  };
+
+  const handleSubcategorySelect = (nextSubcategoryId: string | undefined) => {
+    if (onSubcategoryChange) {
+      onSubcategoryChange(nextSubcategoryId);
+    } else {
+      setSubcategory(nextSubcategoryId);
+    }
+    onFilterApplied?.();
+  };
+
+  const handleReset = () => {
+    if (onResetFilters) {
+      onResetFilters();
+    } else {
+      resetFilters();
+    }
+    onFilterApplied?.();
+  };
+
   return (
     <div className="fb-filters-panel">
       {/* Header */}
@@ -87,7 +161,7 @@ export const ProductFilters: React.FC = () => {
         {activeFilterCount > 0 && (
           <button
             type="button"
-            onClick={resetFilters}
+            onClick={handleReset}
             className="fb-filters-reset-btn"
             title="Reset all filters"
           >
@@ -104,7 +178,10 @@ export const ProductFilters: React.FC = () => {
         </label>
         <select
           value={filters.sortBy}
-          onChange={(e) => setSortBy(e.target.value as any)}
+          onChange={(e) => {
+            setSortBy(e.target.value as any);
+            onFilterApplied?.();
+          }}
           className="fb-filter-select"
         >
           {sortOptions.map((opt) => (
@@ -124,7 +201,7 @@ export const ProductFilters: React.FC = () => {
         <div className="fb-filter-categories-list">
           <button
             type="button"
-            onClick={() => setCategory(undefined)}
+            onClick={() => handleCategorySelect(undefined, false)}
             className={`fb-category-item-btn ${!filters.category ? 'active' : ''}`}
           >
             <span>All Categories</span>
@@ -132,11 +209,17 @@ export const ProductFilters: React.FC = () => {
 
           {categories.filter((cat) => cat.isActive).map((cat) => {
             const isSelected = filters.category === cat.slug || filters.category === cat.id;
+            const hasChildren = (cat.subcategories || []).some((sub) => sub.isActive);
             return (
               <button
                 key={cat.id}
                 type="button"
-                onClick={() => setCategory(isSelected ? undefined : (cat.slug || cat.id))}
+                onClick={() =>
+                  handleCategorySelect(
+                    isSelected ? undefined : (cat.slug || cat.id),
+                    !isSelected && hasChildren
+                  )
+                }
                 className={`fb-category-item-btn ${isSelected ? 'active' : ''}`}
               >
                 <span className="fb-cat-name">{cat.name}</span>
@@ -156,10 +239,26 @@ export const ProductFilters: React.FC = () => {
           <div className="fb-filter-section">
             <label className="fb-filter-section-title"><Layers size={15} /><span>Subcategories</span></label>
             <div className="fb-filter-categories-list">
-              <button type="button" onClick={() => setSubcategory(undefined)} className={`fb-category-item-btn ${!filters.subcategoryId ? 'active' : ''}`}>All {selected?.name}</button>
+              <button
+                type="button"
+                onClick={() => handleSubcategorySelect(undefined)}
+                className={`fb-category-item-btn ${!filters.subcategoryId ? 'active' : ''}`}
+              >
+                All {selected?.name}
+              </button>
               {children.map((sub) => (
-                <button key={sub.id} type="button" onClick={() => setSubcategory(filters.subcategoryId === sub.id ? undefined : sub.id)} className={`fb-category-item-btn ${filters.subcategoryId === sub.id ? 'active' : ''}`}>
-                  <span className="fb-cat-name">{sub.name}</span><span className="fb-cat-count">{subcategoryCounts.get(sub.id) ?? 0}</span>
+                <button
+                  key={sub.id}
+                  type="button"
+                  onClick={() =>
+                    handleSubcategorySelect(
+                      filters.subcategoryId === sub.id ? undefined : sub.id
+                    )
+                  }
+                  className={`fb-category-item-btn ${filters.subcategoryId === sub.id ? 'active' : ''}`}
+                >
+                  <span className="fb-cat-name">{sub.name}</span>
+                  <span className="fb-cat-count">{subcategoryCounts.get(sub.id) ?? 0}</span>
                 </button>
               ))}
             </div>
@@ -173,7 +272,7 @@ export const ProductFilters: React.FC = () => {
           <Tag size={15} />
           <span>Price Range (₹)</span>
         </label>
-        
+
         {/* Quick Presets */}
         <div className="fb-price-presets-grid">
           {pricePresets.map((preset, idx) => {
@@ -189,6 +288,7 @@ export const ProductFilters: React.FC = () => {
                   } else {
                     setPriceRange(preset.min, preset.max);
                   }
+                  onFilterApplied?.();
                 }}
                 className={`fb-price-preset-pill ${isPresetActive ? 'active' : ''}`}
               >
@@ -205,14 +305,25 @@ export const ProductFilters: React.FC = () => {
             <input
               type="number"
               placeholder="Min"
-              min="0"
+              min="1"
+              aria-label="Minimum price"
               value={filters.minPrice ?? ''}
               onChange={(e) =>
                 setPriceRange(
-                  e.target.value ? Number(e.target.value) : undefined,
+                  parsePositivePrice(e.target.value),
                   filters.maxPrice
                 )
               }
+              onBlur={() => {
+                if (!isPriceRangeInvalid && filters.minPrice !== undefined) {
+                  onFilterApplied?.();
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !isPriceRangeInvalid) {
+                  onFilterApplied?.();
+                }
+              }}
               className="fb-price-input"
             />
           </div>
@@ -222,18 +333,34 @@ export const ProductFilters: React.FC = () => {
             <input
               type="number"
               placeholder="Max"
-              min="0"
+              min="1"
+              aria-label="Maximum price"
               value={filters.maxPrice ?? ''}
               onChange={(e) =>
                 setPriceRange(
                   filters.minPrice,
-                  e.target.value ? Number(e.target.value) : undefined
+                  parsePositivePrice(e.target.value)
                 )
               }
+              onBlur={() => {
+                if (!isPriceRangeInvalid && filters.maxPrice !== undefined) {
+                  onFilterApplied?.();
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !isPriceRangeInvalid) {
+                  onFilterApplied?.();
+                }
+              }}
               className="fb-price-input"
             />
           </div>
         </div>
+        {isPriceRangeInvalid && (
+          <p className="fb-price-range-hint" role="alert">
+            Min price should not exceed Max price.
+          </p>
+        )}
       </div>
 
       {/* 4. Customer Rating */}
@@ -243,13 +370,16 @@ export const ProductFilters: React.FC = () => {
           <span>Minimum Rating</span>
         </label>
         <div className="fb-ratings-list">
-          {[4, 3, 2].map((stars) => {
+          {[5, 4, 3, 2].map((stars) => {
             const isSelected = filters.minRating === stars;
             return (
               <button
                 key={stars}
                 type="button"
-                onClick={() => setMinRating(isSelected ? undefined : stars)}
+                onClick={() => {
+                  setMinRating(isSelected ? undefined : stars);
+                  onFilterApplied?.();
+                }}
                 className={`fb-rating-btn ${isSelected ? 'active' : ''}`}
               >
                 <div className="fb-stars-wrap">
@@ -262,7 +392,9 @@ export const ProductFilters: React.FC = () => {
                     />
                   ))}
                 </div>
-                <span className="fb-rating-text">{stars} Stars & Up</span>
+                <span className="fb-rating-text">
+                  {stars === 5 ? '5 Stars' : `${stars} Stars & Up`}
+                </span>
               </button>
             );
           })}
@@ -278,7 +410,10 @@ export const ProductFilters: React.FC = () => {
           {/* In Stock Only */}
           <button
             type="button"
-            onClick={() => setInStockOnly(!inStockOnly)}
+            onClick={() => {
+              setInStockOnly(!inStockOnly);
+              onFilterApplied?.();
+            }}
             className="fb-checkbox-row-btn"
           >
             {inStockOnly ? (
@@ -292,7 +427,10 @@ export const ProductFilters: React.FC = () => {
           {/* Featured Only */}
           <button
             type="button"
-            onClick={() => setFeatured(!filters.featured ? true : undefined)}
+            onClick={() => {
+              setFeatured(!filters.featured ? true : undefined);
+              onFilterApplied?.();
+            }}
             className="fb-checkbox-row-btn"
           >
             {filters.featured ? (
@@ -307,6 +445,18 @@ export const ProductFilters: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {onCloseMobileFilters && (
+        <button
+          type="button"
+          onClick={onCloseMobileFilters}
+          className="fb-mobile-filters-done-btn hide-desktop"
+        >
+          {typeof resultCount === 'number'
+            ? `View ${resultCount} ${resultCount === 1 ? 'Result' : 'Results'}`
+            : 'Apply & View Results'}
+        </button>
+      )}
     </div>
   );
 };

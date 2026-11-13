@@ -714,36 +714,43 @@
 }
 
 /* --------------------------------------------------------------------------
-   Mobile & Responsive Adaptations (Up to 640px)
+   Mobile & Responsive Adaptations (Up to 980px / 640px)
    -------------------------------------------------------------------------- */
+@media (max-width: 980px) {
+  .fb-chat-widget-container {
+    bottom: calc(72px + env(safe-area-inset-bottom));
+    right: 10px;
+  }
+}
+
 @media (max-width: 640px) {
   .fb-chat-widget-container {
-    bottom: calc(76px + env(safe-area-inset-bottom));
-    right: 10px;
+    bottom: calc(70px + env(safe-area-inset-bottom));
+    right: 8px;
   }
 
   .fb-chat-toggle-btn {
     gap: 5px;
-    padding: 6px 11px 6px 7px;
+    padding: 5px 10px 5px 6px;
   }
 
   .fb-chat-toggle-icon-wrap {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
   }
 
   .fb-chat-leaf-icon {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
   }
 
   .fb-chat-sparkle-icon {
-    width: 9px;
-    height: 9px;
+    width: 8px;
+    height: 8px;
   }
 
   .fb-chat-toggle-label {
-    font-size: 0.74rem;
+    font-size: 0.7rem;
   }
 
   .fb-chat-window {

@@ -1,3 +1,4 @@
+import { socialLinks } from '../../utils/socialLinks';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Phone, Mail, MapPin } from 'lucide-react';
@@ -24,7 +25,9 @@ export const Footer: React.FC = () => {
         const target = e.target as HTMLElement;
         const anchor = target.closest('a');
         // Only scroll for internal links, not external links like social media
-        if (anchor && !anchor.getAttribute('target')) {
+        const href = anchor?.getAttribute('href') || '';
+        // Skip scroll-to-top for hash links, catalog filter links, or external links
+        if (anchor && !anchor.getAttribute('target') && !href.includes('#') && !href.startsWith('/products?')) {
           window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
           if (document.documentElement) document.documentElement.scrollTop = 0;
           if (document.body) document.body.scrollTop = 0;
@@ -55,13 +58,13 @@ export const Footer: React.FC = () => {
             {/* Social Icons */}
             <div className="AgriEra-social-links">
               {/* Facebook */}
-              <a href="https://facebook.com" target="_blank" rel="noreferrer" className="AgriEra-social-icon" aria-label="Facebook">
+              <a href={socialLinks.facebook} target="_blank" rel="noopener noreferrer" className="AgriEra-social-icon" aria-label="Facebook">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
                 </svg>
               </a>
               {/* Instagram */}
-              <a href="https://instagram.com" target="_blank" rel="noreferrer" className="AgriEra-social-icon" aria-label="Instagram">
+              <a href={socialLinks.instagram} target="_blank" rel="noopener noreferrer" className="AgriEra-social-icon" aria-label="Instagram">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
                   <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
@@ -69,14 +72,14 @@ export const Footer: React.FC = () => {
                 </svg>
               </a>
               {/* YouTube */}
-              <a href={import.meta.env.VITE_YOUTUBE_URL || 'https://youtube.com'} target="_blank" rel="noreferrer" className="AgriEra-social-icon" aria-label="YouTube">
+              <a href={socialLinks.youtube} target="_blank" rel="noopener noreferrer" className="AgriEra-social-icon" aria-label="YouTube">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/>
                   <polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" fill="#123C22"/>
                 </svg>
               </a>
               {/* WhatsApp */}
-              <a href="https://whatsapp.com" target="_blank" rel="noreferrer" className="AgriEra-social-icon" aria-label="WhatsApp">
+              <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className="AgriEra-social-icon" aria-label="WhatsApp">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
                 </svg>
@@ -103,7 +106,7 @@ export const Footer: React.FC = () => {
                 activeCategories.slice(0, 6).map((cat) => (
                   <li key={cat.id}>
                     <Link
-                      to={`/products?category=${cat.slug || cat.id}`}
+                      to={`/products?category=${cat.slug || cat.id}#products-catalog-section`}
                       className="AgriEra-footer-link"
                     >
                       {formatCategoryName(cat.name)}
@@ -112,12 +115,12 @@ export const Footer: React.FC = () => {
                 ))
               ) : (
                 <>
-                  <li><Link to="/products?category=organic-farming" className="AgriEra-footer-link">Organic Farming</Link></li>
-                  <li><Link to="/products?category=chemical" className="AgriEra-footer-link">Chemical</Link></li>
-                  <li><Link to="/products?category=traps" className="AgriEra-footer-link">Traps</Link></li>
-                  <li><Link to="/products?category=Seedlings" className="AgriEra-footer-link">Seedlings</Link></li>
-                  <li><Link to="/products?category=seeds" className="AgriEra-footer-link">Seeds</Link></li>
-                  <li><Link to="/products?category=farm-equipment" className="AgriEra-footer-link">Farm Equipment</Link></li>
+                  <li><Link to="/products?category=organic-farming#products-catalog-section" className="AgriEra-footer-link">Organic Farming</Link></li>
+                  <li><Link to="/products?category=chemical#products-catalog-section" className="AgriEra-footer-link">Chemical</Link></li>
+                  <li><Link to="/products?category=traps#products-catalog-section" className="AgriEra-footer-link">Traps</Link></li>
+                  <li><Link to="/products?category=Seedlings#products-catalog-section" className="AgriEra-footer-link">Seedlings</Link></li>
+                  <li><Link to="/products?category=seeds#products-catalog-section" className="AgriEra-footer-link">Seeds</Link></li>
+                  <li><Link to="/products?category=farm-equipment#products-catalog-section" className="AgriEra-footer-link">Farm Equipment</Link></li>
                 </>
               )}
               <li><Link to="/products" className="AgriEra-footer-link">All Products</Link></li>
@@ -162,7 +165,7 @@ export const Footer: React.FC = () => {
               </li>
               <li className="AgriEra-contact-item">
                 <MapPin size={16} className="AgriEra-contact-icon" />
-                <a href="https://www.google.com/maps/search/?api=1&query=123%2C+Green+Fields%2C+Coimbatore+641001%2C+Tamil+Nadu%2C+India" target="_blank" rel="noreferrer">123, Green Fields, Coimbatore - 641001, Tamil Nadu, India</a>
+                <a href="https://www.google.com/maps/search/?api=1&query=123%2C+Green+Fields%2C+Coimbatore+641001%2C+Tamil+Nadu%2C+India" target="_blank" rel="noopener noreferrer">123, Green Fields, Coimbatore - 641001, Tamil Nadu, India</a>
               </li>
             </ul>
           </div>
