@@ -81,39 +81,44 @@ const LOCAL_PINCODE_MAP: Record<string, { place: string; district: string; state
   '629001': { place: 'Nagercoil H.O', district: 'Kanyakumari', state: 'Tamil Nadu' },
 };
 
+const MAX_PHOTOS = 5;
+const MAX_PHOTOS_ERROR = 'Maximum 5 images allowed. Remove an existing image to upload another.';
+
+const createInitialFormData = () => ({
+  // 1. Crop Details
+  cropName: '',
+  cropVariety: '',
+  growthStage: '',
+  sowingDate: '',
+  farmSizeValue: '',
+  farmSizeUnit: '',
+  locationPincode: '',
+  irrigationMethod: '',
+
+  // 2. Problem & Symptoms
+  problemCategory: '',
+  affectedPart: '',
+  noticedWhen: '',
+  affectedPercent: '',
+  problemSeverity: '',
+  symptomsDescription: '',
+  treatmentApplied: '',
+  treatmentUsed: '',
+
+  // 4. Contact & Response
+  farmerName: '',
+  phone: '',
+  email: '',
+  responseMethod: 'WhatsApp',
+  preferredLanguage: 'Tamil',
+  bestTimeToContact: '9 AM - 12 PM',
+  urgency: 'Normal',
+  termsConfirmed: true,
+});
+
 export const CropDoctorPage: React.FC = () => {
   // Form State
-  const [formData, setFormData] = useState({
-    // 1. Crop Details
-    cropName: '',
-    cropVariety: '',
-    growthStage: '',
-    sowingDate: '',
-    farmSizeValue: '',
-    farmSizeUnit: '',
-    locationPincode: '',
-    irrigationMethod: '',
-
-    // 2. Problem & Symptoms
-    problemCategory: '',
-    affectedPart: '',
-    noticedWhen: '',
-    affectedPercent: '',
-    problemSeverity: '',
-    symptomsDescription: '',
-    treatmentApplied: '',
-    treatmentUsed: '',
-
-    // 4. Contact & Response
-    farmerName: '',
-    phone: '',
-    email: '',
-    responseMethod: 'WhatsApp',
-    preferredLanguage: 'Tamil',
-    bestTimeToContact: '9 AM - 12 PM',
-    urgency: 'Normal',
-    termsConfirmed: true,
-  });
+  const [formData, setFormData] = useState(createInitialFormData);
 
   const [previewPhotos, setPreviewPhotos] = useState<PreviewPhoto[]>([]);
 
@@ -123,6 +128,16 @@ export const CropDoctorPage: React.FC = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [bookingReference, setBookingReference] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+  const [submittedSummary, setSubmittedSummary] = useState<{
+    farmerName: string;
+    responseMethod: string;
+    phone: string;
+    preferredLanguage: string;
+    bestTimeToContact: string;
+    cropName: string;
+    symptoms: string;
+  } | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [hasDraft, setHasDraft] = useState(false);
 
@@ -134,6 +149,15 @@ export const CropDoctorPage: React.FC = () => {
 
   const [pincodeError, setPincodeError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const diagnosisSectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (isSubmitted) {
+      requestAnimationFrame(() => {
+        diagnosisSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+  }, [isSubmitted]);
 
   // Prefill contact details from the signed-in account and refresh them from the API.
   useEffect(() => {
@@ -329,8 +353,14 @@ export const CropDoctorPage: React.FC = () => {
     }
   };
 
+  const isMaxPhotosReached = previewPhotos.length >= MAX_PHOTOS;
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    if (isMaxPhotosReached) {
+      setIsDragOver(false);
+      return;
+    }
     setIsDragOver(true);
   };
 
@@ -342,12 +372,21 @@ export const CropDoctorPage: React.FC = () => {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
+    if (isMaxPhotosReached) {
+      setPhotoError(MAX_PHOTOS_ERROR);
+      return;
+    }
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       handleFilesSelected(Array.from(e.dataTransfer.files));
     }
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (isMaxPhotosReached) {
+      setPhotoError(MAX_PHOTOS_ERROR);
+      e.target.value = '';
+      return;
+    }
     if (e.target.files && e.target.files.length > 0) {
       handleFilesSelected(Array.from(e.target.files));
     }
@@ -356,9 +395,16 @@ export const CropDoctorPage: React.FC = () => {
   };
 
   const handleFilesSelected = (files: File[]) => {
-    if (previewPhotos.length + files.length > 5 || files.some(file => file.size > 10 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type))) {
-      setFormError('Upload up to 5 JPG, PNG or WebP images, each no larger than 10 MB.'); return;
+    if (previewPhotos.length >= MAX_PHOTOS || previewPhotos.length + files.length > MAX_PHOTOS) {
+      setPhotoError(MAX_PHOTOS_ERROR);
+      return;
     }
+    if (files.some(file => file.size > 10 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(file.type))) {
+      setPhotoError('Upload JPG, PNG or WebP images only, each no larger than 10 MB.');
+      return;
+    }
+    setPhotoError(null);
+    setFormError(null);
     const newItems: PreviewPhoto[] = files.map((file, idx) => ({
       id: `upload-${Date.now()}-${idx}`,
       name: file.name,
@@ -366,10 +412,11 @@ export const CropDoctorPage: React.FC = () => {
       src: URL.createObjectURL(file),
       file,
     }));
-    setPreviewPhotos((prev) => [...prev, ...newItems].slice(0, 5));
+    setPreviewPhotos((prev) => [...prev, ...newItems].slice(0, MAX_PHOTOS));
   };
 
   const removePhoto = (id: string) => {
+    setPhotoError(null);
     setPreviewPhotos((prev) => {
       const target = prev.find((photo) => photo.id === id);
       if (target) URL.revokeObjectURL(target.src);
@@ -459,6 +506,21 @@ export const CropDoctorPage: React.FC = () => {
       const ref = response.data?.bookingReference;
       if (ref) {
         setBookingReference(ref);
+      }
+      setSubmittedSummary({
+        farmerName: formData.farmerName.trim(),
+        responseMethod: formData.responseMethod,
+        phone: cleanPhone,
+        preferredLanguage: formData.preferredLanguage,
+        bestTimeToContact: formData.bestTimeToContact,
+        cropName: formData.cropName,
+        symptoms: formData.symptomsDescription.trim(),
+      });
+      try {
+        localStorage.removeItem('crop_doctor_draft');
+        setHasDraft(false);
+      } catch {
+        // ignore
       }
       setIsSubmitted(true);
     } catch (err: any) {
@@ -562,22 +624,30 @@ export const CropDoctorPage: React.FC = () => {
       {/* ====================================================================
           3. SUBMIT A CROP PROBLEM (Two Column Layout from 3rd Screenshot)
           ==================================================================== */}
-      <section id="diagnosis-form-section" className="crop-doctor-assessment-section">
+      <section id="diagnosis-form-section" ref={diagnosisSectionRef} className="crop-doctor-assessment-section">
         <div className="crop-doctor-assessment-container">
           {/* Main Form Left Card */}
           <div className="crop-doctor-main-form-card">
             {isSubmitted ? (
-              <div className="crop-doctor-success-card">
+              <div className="crop-doctor-success-card" role="status" aria-live="polite">
                 <div className="crop-doctor-success-icon">
                   <CheckCircle2 size={36} />
                 </div>
                 <h3 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#0F291B', margin: '0 0 0.5rem' }}>
                   Crop Problem Submitted for Expert Review!
                 </h3>
-                <p style={{ color: '#475569', fontSize: '1rem', maxWidth: '520px', margin: '0 auto 1.5rem', lineHeight: '1.6' }}>
-                  Thank you, <strong>{formData.farmerName}</strong>. Your crop health enquiry has been assigned to our
-                  senior agronomist panel. An expert will review your symptom photos and contact you via{' '}
-                  <strong>{formData.responseMethod}</strong> within 24 hours.
+                <p style={{ color: '#475569', fontSize: '1rem', maxWidth: '520px', margin: '0 auto 1.25rem', lineHeight: '1.6' }}>
+                  Thank you, <strong>{submittedSummary?.farmerName || formData.farmerName}</strong>. Your crop health enquiry has been assigned to our
+                  senior agronomist panel.
+                  {(submittedSummary?.responseMethod || formData.responseMethod) === 'Phone Call' && (
+                    <> Our expert will call <strong>+91 {submittedSummary?.phone || formData.phone}</strong> ({submittedSummary?.preferredLanguage || formData.preferredLanguage}, {submittedSummary?.bestTimeToContact || formData.bestTimeToContact}) within 24 hours.</>
+                  )}
+                  {(submittedSummary?.responseMethod || formData.responseMethod) === 'WhatsApp' && (
+                    <> Our expert will communicate via <strong>WhatsApp</strong> on <strong>+91 {submittedSummary?.phone || formData.phone}</strong> within 24 hours.</>
+                  )}
+                  {(submittedSummary?.responseMethod || formData.responseMethod) === 'In-App Message' && (
+                    <> Expert diagnosis and treatment replies will be delivered as an <strong>In-App Message</strong> under <strong>My Account → Crop Doctor Requests</strong>.</>
+                  )}
                 </p>
 
                 {bookingReference && (
@@ -594,12 +664,52 @@ export const CropDoctorPage: React.FC = () => {
                   </div>
                 )}
 
-                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem' }}>
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem', flexWrap: 'wrap' }}>
+                  {(submittedSummary?.responseMethod || formData.responseMethod) === 'WhatsApp' && (
+                    <a
+                      href={`https://wa.me/919360763060?text=${encodeURIComponent(
+                        `Hello AgriEra Crop Doctor, my tracking reference is ${bookingReference || 'Submitted'} for ${submittedSummary?.cropName || formData.cropName}. Symptoms: ${submittedSummary?.symptoms || formData.symptomsDescription}`
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="crop-doctor-btn-primary"
+                      style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}
+                    >
+                      <MessageCircle size={16} /> Continue on WhatsApp
+                    </a>
+                  )}
+                  {(submittedSummary?.responseMethod || formData.responseMethod) === 'In-App Message' && (
+                    <Link
+                      to="/dashboard?tab=crop-doctor"
+                      className="crop-doctor-btn-primary"
+                      style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}
+                    >
+                      <Send size={16} /> View In-App Expert Responses
+                    </Link>
+                  )}
                   <button
                     type="button"
                     onClick={() => {
+                      previewPhotos.forEach((photo) => URL.revokeObjectURL(photo.src));
+                      setPreviewPhotos([]);
+                      setFormData(createInitialFormData());
+                      setBookingReference('');
+                      setSubmittedSummary(null);
+                      setFormError(null);
+                      setPincodeError(null);
+                      setPhotoError(null);
+                      setPostalFeedback({ status: 'idle', pincode: '' });
+                      setActiveStep(1);
                       setIsSubmitted(false);
-                      setFormData((prev) => ({ ...prev, symptomsDescription: '' }));
+                      try {
+                        localStorage.removeItem('crop_doctor_draft');
+                        setHasDraft(false);
+                      } catch {
+                        // ignore
+                      }
+                      requestAnimationFrame(() => {
+                        diagnosisSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      });
                     }}
                     className="crop-doctor-btn-primary"
                   >
@@ -1060,23 +1170,47 @@ export const CropDoctorPage: React.FC = () => {
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
-                    onClick={() => fileInputRef.current?.click()}
-                    className={`crop-doctor-dropzone-box ${isDragOver ? 'dragging' : ''}`}
+                    onClick={() => {
+                      if (isMaxPhotosReached) {
+                        setPhotoError(MAX_PHOTOS_ERROR);
+                        return;
+                      }
+                      fileInputRef.current?.click();
+                    }}
+                    aria-disabled={isMaxPhotosReached}
+                    className={`crop-doctor-dropzone-box ${isDragOver && !isMaxPhotosReached ? 'dragging' : ''} ${isMaxPhotosReached ? 'is-disabled' : ''}`}
                   >
                     <input
                       ref={fileInputRef}
                       type="file"
                       multiple
+                      disabled={isMaxPhotosReached}
                       accept="image/*"
                       onChange={handleFileInputChange}
                       style={{ display: 'none' }}
                     />
                     <Upload size={32} className="crop-doctor-dropzone-cloud-icon" />
                     <p className="crop-doctor-dropzone-prompt">
-                      Drag & drop photos here or <span className="crop-doctor-choose-btn">Choose Photos</span>
+                      {isMaxPhotosReached ? (
+                        <span>Maximum 5 images uploaded (5/5)</span>
+                      ) : (
+                        <>
+                          Drag & drop photos here or <span className="crop-doctor-choose-btn">Choose Photos</span>
+                        </>
+                      )}
                     </p>
-                    <span className="crop-doctor-dropzone-limit">JPG, PNG or WEBP • Maximum 10 MB each</span>
+                    <span className="crop-doctor-dropzone-limit">
+                      {isMaxPhotosReached
+                        ? 'Remove an existing photo below to upload another image.'
+                        : 'JPG, PNG or WEBP • Maximum 10 MB each'}
+                    </span>
                   </div>
+
+                  {(isMaxPhotosReached || photoError) && (
+                    <p className="crop-doctor-photo-error" role="alert">
+                      {isMaxPhotosReached ? photoError || MAX_PHOTOS_ERROR : photoError}
+                    </p>
+                  )}
 
                   {previewPhotos.length > 0 && (
                     <ul className="crop-doctor-photo-previews" aria-label="Uploaded photos">
@@ -1185,6 +1319,23 @@ export const CropDoctorPage: React.FC = () => {
                             <span>{resp.label}</span>
                           </button>
                         ))}
+                      </div>
+                      <div className="crop-doctor-response-hint">
+                        {formData.responseMethod === 'Phone Call' && (
+                          <span>Expert will call your registered mobile number in {formData.preferredLanguage} during {formData.bestTimeToContact}.</span>
+                        )}
+                        {formData.responseMethod === 'WhatsApp' && (
+                          <span>Expert will contact you and share treatment recommendations on WhatsApp via your registered number.</span>
+                        )}
+                        {formData.responseMethod === 'In-App Message' && (
+                          <span>
+                            Expert replies will appear directly in{' '}
+                            <Link to="/dashboard?tab=crop-doctor">My Account → Crop Doctor Requests</Link>.
+                            {!localStorage.getItem('formerbench_auth_token') && (
+                              <> Please <Link to="/login">sign in</Link> before submitting to receive in-app replies.</>
+                            )}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

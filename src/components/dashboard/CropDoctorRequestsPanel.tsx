@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { CalendarDays, MapPin, MessageSquare, Sprout, Stethoscope } from 'lucide-react';
+import { CalendarDays, MapPin, MessageCircle, MessageSquare, Phone, Sprout, Stethoscope } from 'lucide-react';
 import { ServiceBookingRecord } from '../../services/serviceBooking.service';
 
 interface CropDoctorRequestsPanelProps {
@@ -27,6 +27,14 @@ const statusLabel: Record<string, string> = {
   COMPLETED: 'Expert replied',
   CANCELLED: 'Request cancelled',
 };
+
+const normalizeResponseMethod = (booking: ServiceBookingRecord, details: Record<string, any>) =>
+  String(
+    (booking.details as Record<string, any> | null)?.responseMethod ||
+      details.preferredResponseMethod ||
+      details.responseMethod ||
+      'WhatsApp'
+  );
 
 export const CropDoctorRequestsPanel: React.FC<CropDoctorRequestsPanelProps> = ({
   bookings,
@@ -64,6 +72,15 @@ export const CropDoctorRequestsPanel: React.FC<CropDoctorRequestsPanelProps> = (
           {visibleRequests.map((booking) => {
             const details = readDetails(booking.message);
             const hasReply = Boolean(booking.adminNotes?.trim());
+            const responseMethod = normalizeResponseMethod(booking, details);
+            const preferredLanguage =
+              (booking.details as Record<string, any> | null)?.preferredLanguage || details.preferredLanguage;
+            const bestTime =
+              (booking.details as Record<string, any> | null)?.bestTimeToContact || details.bestTimeToContact;
+            const whatsappFollowUpUrl = `https://wa.me/919360763060?text=${encodeURIComponent(
+              `Hello AgriEra Crop Doctor, following up on request ${booking.bookingReference} (${details.cropName || booking.cropType || 'Crop'}).`
+            )}`;
+
             return (
               <article key={booking.id} style={{ border: '1px solid var(--fb-card-border)', borderRadius: 12, padding: '1rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
@@ -78,10 +95,16 @@ export const CropDoctorRequestsPanel: React.FC<CropDoctorRequestsPanelProps> = (
                   </span>
                 </div>
 
-                <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', color: 'var(--fb-text-muted)', fontSize: '0.8rem', marginTop: '0.7rem' }}>
-                  <span><CalendarDays size={13} /> {new Date(booking.createdAt).toLocaleDateString('en-IN')}</span>
+                <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap', color: 'var(--fb-text-muted)', fontSize: '0.8rem', marginTop: '0.7rem', alignItems: 'center' }}>
+                  <span><CalendarDays size={13} /> {new Date(booking.createdAt).toLocaleDateString('en-GB')}</span>
                   <span><MapPin size={13} /> {booking.location}</span>
                   {details.problemSeverity && <span>Severity: {details.problemSeverity}</span>}
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, background: '#F0FDF4', color: '#166534', padding: '0.15rem 0.55rem', borderRadius: 999, fontWeight: 700, border: '1px solid #BBF7D0' }}>
+                    {responseMethod === 'Phone Call' ? <Phone size={12} /> : responseMethod === 'WhatsApp' ? <MessageCircle size={12} /> : <MessageSquare size={12} />}
+                    {responseMethod}
+                  </span>
+                  {preferredLanguage && <span>Language: {preferredLanguage}</span>}
+                  {bestTime && responseMethod === 'Phone Call' && <span>Best time: {bestTime}</span>}
                 </div>
 
                 {details.symptoms && (
@@ -91,8 +114,27 @@ export const CropDoctorRequestsPanel: React.FC<CropDoctorRequestsPanelProps> = (
                 )}
 
                 <div style={{ background: hasReply ? '#ECFDF3' : '#FFF7ED', border: `1px solid ${hasReply ? '#BBF7D0' : '#FED7AA'}`, borderRadius: 8, padding: '0.85rem', marginTop: '0.8rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, color: hasReply ? '#166534' : '#9A3412', marginBottom: hasReply ? '0.35rem' : 0 }}>
-                    <MessageSquare size={15} /> {hasReply ? 'Expert Reply' : 'Awaiting expert reply'}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.5rem', flexWrap: 'wrap', marginBottom: hasReply ? '0.35rem' : 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 800, color: hasReply ? '#166534' : '#9A3412' }}>
+                      <MessageSquare size={15} />
+                      {hasReply
+                        ? 'In-App Expert Response'
+                        : responseMethod === 'Phone Call'
+                        ? `Awaiting expert phone call to ${booking.phone}`
+                        : responseMethod === 'WhatsApp'
+                        ? `Awaiting expert WhatsApp message on ${booking.phone}`
+                        : 'Awaiting in-app expert reply'}
+                    </div>
+                    {responseMethod === 'WhatsApp' && (
+                      <a
+                        href={whatsappFollowUpUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: '0.76rem', fontWeight: 700, color: '#15803D', textDecoration: 'underline' }}
+                      >
+                        <MessageCircle size={13} /> Open WhatsApp Support
+                      </a>
+                    )}
                   </div>
                   {hasReply && <p style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.55 }}>{booking.adminNotes}</p>}
                 </div>

@@ -1,5 +1,10 @@
-export const getFarmerNameError = (value: string): string =>
-  value.trim() && /\p{L}/u.test(value) ? '' : 'Please enter a valid farmer name.';
+export const getFarmerNameError = (value: string): string => {
+  const trimmed = value.trim();
+  if (!trimmed || !/\p{L}/u.test(trimmed) || /\d/.test(trimmed) || !/^[\p{L}\s.'-]+$/u.test(trimmed)) {
+    return 'Please enter a valid farmer name.';
+  }
+  return '';
+};
 
 // Native date inputs use local calendar values, not UTC dates.
 export const localDateMinimum = (withTime = false, now = new Date()): string => {

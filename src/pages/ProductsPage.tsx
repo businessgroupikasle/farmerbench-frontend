@@ -1,13 +1,16 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useProducts } from '../hooks/useProducts';
 import { useCategories } from '../hooks/useCategories';
+import { useAuth } from '../hooks/useAuth';
+import { useWishlistStore } from '../store/wishlistStore';
 import { useFilterStore } from '../store/filterStore';
 import { ProductGrid } from '../components/product/ProductGrid';
 import { ProductFilters } from '../components/product/ProductFilters';
 import { ProductHero } from '../components/product/ProductHero';
 import { CompareDrawer } from '../components/product/CompareDrawer';
 import { Pagination } from '../components/common/Pagination';
+import { SEO } from '../components/common/SEO';
 import { getUploadUrl } from '../utils/image';
 import organicReference from '../assets/categories/organic-farming.png';
 import chemicalReference from '../assets/categories/chemical.png';
@@ -18,8 +21,11 @@ import farmEquipmentReference from '../assets/categories/farm-equipment.png?url'
 import bananaReference from '../assets/crops/banana.jpg';
 import coconutReference from '../assets/crops/coconut.jpg';
 import fungicideReference from '../assets/trichoderma-fungicide.jpg';
-import { X, SlidersHorizontal, ArrowUpDown, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { X, SlidersHorizontal, ArrowUpDown, ChevronLeft, ChevronRight, Search, Heart } from 'lucide-react';
+import { Category } from '@formerbench/shared';
 import './ProductsPage.css';
+
+const EMPTY_CATEGORIES: Category[] = [];
 
 const MAIN_CATEGORY_IMAGES: Record<string, string> = {
   'organic-farming': organicReference,
@@ -75,9 +81,13 @@ export const ProductsPage: React.FC = () => {
     resetFilters,
   } = useFilterStore();
 
-  const { data: apiCategories = [] } = useCategories();
+  const { data: rawCategories } = useCategories();
+  const apiCategories = rawCategories ?? EMPTY_CATEGORIES;
   const { data: mobileCatalogResponse } = useProducts({ page: 1, limit: 100 });
   const mobileCatalogProducts = mobileCatalogResponse?.data || [];
+  const { isAuthenticated } = useAuth();
+  const { items: wishlistItems } = useWishlistStore();
+  const wishlistCount = wishlistItems.length;
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const categoryPillsRef = useRef<HTMLDivElement>(null);
   const [searchTerm, setSearchTerm] = useState(filters.search || '');
@@ -471,6 +481,18 @@ export const ProductsPage: React.FC = () => {
     });
   }
 
+  const currentCategoryName = filters.category
+    ? apiCategories.find((c) => c.slug === filters.category || c.id === filters.category)?.name
+    : null;
+  const pageTitle = currentCategoryName
+    ? `${currentCategoryName} Products | Buy Online | AgriEra`
+    : filters.search
+    ? `Search Results for "${filters.search}" | AgriEra`
+    : 'All Agricultural Products | Bio-Fertilizers & Seeds | AgriEra';
+  const pageDescription = currentCategoryName
+    ? `Explore our range of premium ${currentCategoryName} agricultural products. Certified quality bio-inputs delivered across India.`
+    : 'Browse all agricultural products, organic fertilizers, crop protection, seedling packs, and farm equipment on AgriEra.';
+
   return (
     <div
       className={
@@ -478,6 +500,20 @@ export const ProductsPage: React.FC = () => {
         (!hasActiveCatalogQuery ? 'is-mobile-category-index' : 'is-mobile-product-results')
       }
     >
+      <SEO
+        title={pageTitle}
+        description={pageDescription}
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'ItemList',
+          itemListElement: (products || []).slice(0, 10).map((prod, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            name: prod.title,
+            url: `https://agriera.in/product/${prod.slug || prod.id}`,
+          })),
+        }}
+      />
       {/* 1. Promotional Hero Banner matching reference design */}
       <ProductHero
         initialSearch={filters.search || ''}
@@ -578,6 +614,30 @@ export const ProductsPage: React.FC = () => {
                 <option value="rating">Top Rated</option>
               </select>
             </div>
+
+            {/* Direct Wishlist Button */}
+            <Link
+              to="/dashboard?tab=wishlist"
+              onClick={() => {
+                if (!isAuthenticated) {
+                  sessionStorage.setItem('post_auth_redirect', '/dashboard?tab=wishlist');
+                }
+              }}
+              className="fb-catalog-wishlist-btn"
+              title="View your saved wishlist items"
+              aria-label="View saved wishlist items"
+            >
+              <Heart
+                size={16}
+                strokeWidth={2.2}
+                color={wishlistCount > 0 ? '#DC2626' : '#294337'}
+                fill={wishlistCount > 0 ? '#DC2626' : 'none'}
+              />
+              <span className="fb-catalog-wishlist-text">Wishlist</span>
+              {wishlistCount > 0 && (
+                <span className="fb-catalog-wishlist-count">{wishlistCount}</span>
+              )}
+            </Link>
 
             {/* Mobile Filter Toggle */}
             <button

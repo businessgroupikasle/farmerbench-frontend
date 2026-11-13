@@ -5,8 +5,8 @@ export const getFullNameValidationError = (value: string): string | null => {
     return 'Please enter your full name';
   }
 
-  if (!/\p{L}/u.test(fullName)) {
-    return 'Full name must include at least one letter and cannot contain only numbers';
+  if (!/\p{L}/u.test(fullName) || /\d/.test(fullName)) {
+    return 'Full name must contain letters only and cannot include numbers';
   }
 
   return null;

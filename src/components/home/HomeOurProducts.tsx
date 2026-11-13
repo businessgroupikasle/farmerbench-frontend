@@ -76,6 +76,7 @@ export const HomeOurProducts: React.FC = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search products (e.g. neem oil, seeds, traps)..."
             aria-label="Search best selling products"
+            autoComplete="off"
           />
           {searchQuery && (
             <button
@@ -150,7 +151,10 @@ export const HomeOurProducts: React.FC = () => {
                     <div className="agriflow-product-info">
                       <div className="agriflow-product-meta">
                         <span>{item.subcategory?.name || item.category?.name || 'Farm Product'}</span>
-                        <span><Star size={14} fill="currentColor" /> {(item.rating || 0).toFixed(1)}</span>
+                        <span>
+                          <Star size={14} fill="currentColor" /> {(item.rating || 0).toFixed(1)}
+                          {(item.numReviews || 0) > 0 ? ` (${item.numReviews})` : ' (No Reviews)'}
+                        </span>
                       </div>
                       <h3 className="agriflow-product-name">{item.title}</h3>
                       <div className="agriflow-product-price">

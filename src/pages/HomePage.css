@@ -1519,6 +1519,22 @@
   padding: 6px 0;
 }
 
+.agriflow-products-search-inner input::-webkit-search-cancel-button,
+.agriflow-products-search-inner input::-webkit-search-decoration,
+.agriflow-products-search-inner input::-webkit-search-results-button,
+.agriflow-products-search-inner input::-webkit-search-results-decoration {
+  display: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.agriflow-products-search-inner input::-ms-clear,
+.agriflow-products-search-inner input::-ms-reveal {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 .agriflow-products-search-inner input::placeholder {
   color: #7E9084;
 }

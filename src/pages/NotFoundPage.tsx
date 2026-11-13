@@ -1,11 +1,17 @@
 import React from 'react';
 import { Home, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { SEO } from '../components/common/SEO';
 import notFoundIllustration from '../assets/illustrations/agri-404-field.png';
 import './NotFoundPage.css';
 
 export const NotFoundPage: React.FC = () => (
   <main className="not-found-page">
+    <SEO
+      title="404 - Page Not Found"
+      description="The page you are looking for does not exist or has been moved."
+      noindex={true}
+    />
     <section className="not-found-card" aria-labelledby="not-found-title">
       <div className="not-found-visual" aria-hidden="true">
         <img src={notFoundIllustration} alt="" decoding="async" fetchPriority="high" />

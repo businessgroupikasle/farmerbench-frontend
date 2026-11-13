@@ -27,4 +27,16 @@ export const orderService = {
   async updateOrderStatus(id: string, data: UpdateOrderStatusInput): Promise<ApiResponse<Order>> {
     return apiClient.put(`/orders/${id}/status`, data);
   },
+
+  async cancelOrder(id: string, reason?: string): Promise<ApiResponse<Order>> {
+    return apiClient.post(`/orders/${id}/cancel`, { reason });
+  },
+
+  async requestExchange(id: string, data: { reason: string; details?: string; itemIds?: string[] }): Promise<ApiResponse<any>> {
+    return apiClient.post(`/orders/${id}/exchange`, data);
+  },
+
+  async processRefund(id: string): Promise<ApiResponse<Order>> {
+    return apiClient.post(`/orders/${id}/refund`);
+  },
 };

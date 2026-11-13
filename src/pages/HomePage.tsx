@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { HomeHero } from '../components/home/HomeHero';
 import { HomeOurProducts } from '../components/home/HomeOurProducts';
 import { HomeLatestNews } from '../components/home/HomeLatestNews';
@@ -6,6 +6,7 @@ import { HomeSmartHub } from '../components/home/HomeSmartHub';
 import { HomeMarketPrices } from '../components/home/HomeMarketPrices';
 import { HomeCategories } from '../components/home/HomeCategories';
 import { HomeCouponOffer } from '../components/home/HomeCouponOffer';
+import { SEO } from '../components/common/SEO';
 import './HomePage.css';
 
 export const HomePage: React.FC = () => {
@@ -16,6 +17,21 @@ export const HomePage: React.FC = () => {
 
   return (
     <div className="homepage-layout">
+      <SEO
+        title="AgriEra | Modern Agricultural Commerce & Agronomy Services"
+        description="AgriEra delivers certified organic bio-fertilizers, seeds, farm development services, and crop doctor diagnostic consultations across India."
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          name: 'AgriEra',
+          url: 'https://agriera.in',
+          potentialAction: {
+            '@type': 'SearchAction',
+            target: 'https://agriera.in/products?search={search_term_string}',
+            'query-input': 'required name=search_term_string',
+          },
+        }}
+      />
       {/* 1. Hero Section (Natural Organic Products) */}
       <HomeHero onReady={handleHeroReady} />
 

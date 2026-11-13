@@ -74,7 +74,7 @@ export const CartPage: React.FC = () => {
   const handleToggleWishlistProduct = (prod: Product) => {
     const added = toggleWishlist(prod);
     if (added) {
-      addToast({ type: 'success', message: `${prod.title} added to wishlist` });
+      addToast({ type: 'success', message: `${prod.title} added to wishlist! View saved items anytime from the Wishlist button in the header.` });
     } else {
       addToast({ type: 'info', message: `${prod.title} removed from wishlist` });
     }
@@ -244,10 +244,12 @@ export const CartPage: React.FC = () => {
         <div
           className="cart-step-node"
           onClick={() => {
-            if (items.length > 0) navigate('/checkout');
+            if (items.length > 0) {
+              addToast({ type: 'info', message: 'Please complete Delivery Address details first.' });
+            }
           }}
-          style={{ cursor: items.length > 0 ? 'pointer' : 'not-allowed' }}
-          title={items.length > 0 ? 'Proceed to Payment Option' : 'Cart is empty'}
+          style={{ cursor: 'not-allowed' }}
+          title="Complete Delivery Address first"
         >
           <div className="cart-step-circle inactive">3</div>
           <span className="cart-step-label">Payment</span>

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { useCart } from '../../hooks/useCart';
+import { useWishlistStore } from '../../store/wishlistStore';
 import {
   ShoppingCart,
   ChevronDown,
@@ -32,6 +33,8 @@ import { getUploadUrl } from '../../utils/image';
 export const Navbar: React.FC = () => {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const { totalItems } = useCart();
+  const { items: wishlistItems } = useWishlistStore();
+  const wishlistCount = wishlistItems.length;
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -183,8 +186,37 @@ export const Navbar: React.FC = () => {
               Contact Us
             </Link>
 
-            {/* Right Action Group: Cart, My Account, Language Selector */}
+            {/* Right Action Group: Wishlist, Cart, My Account, Language Selector */}
             <div className="agriflow-header-actions">
+              {/* Wishlist Widget */}
+              <Link
+                to="/dashboard?tab=wishlist"
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    sessionStorage.setItem('post_auth_redirect', '/dashboard?tab=wishlist');
+                  }
+                }}
+                className="agriflow-cart-widget-btn agriflow-wishlist-widget-btn"
+                aria-label="View saved wishlist"
+                title="View Wishlist"
+                style={{ textDecoration: 'none' }}
+              >
+                <div className="agriflow-cart-icon-box">
+                  <Heart
+                    size={18}
+                    strokeWidth={2.2}
+                    color={wishlistCount > 0 ? '#DC2626' : '#294337'}
+                    fill={wishlistCount > 0 ? '#DC2626' : 'none'}
+                  />
+                  {wishlistCount > 0 && (
+                    <span className="agriflow-cart-green-badge agriflow-wishlist-badge">
+                      {wishlistCount > 99 ? '99+' : wishlistCount}
+                    </span>
+                  )}
+                </div>
+                <span className="agriflow-cart-widget-title">Wishlist</span>
+              </Link>
+
               {/* Cart Widget */}
               <Link to="/cart" className="agriflow-cart-widget-btn" aria-label="View shopping cart" style={{ textDecoration: 'none' }}>
                 <div className="agriflow-cart-icon-box">
@@ -250,8 +282,16 @@ export const Navbar: React.FC = () => {
                     <Link to="/dashboard?tab=orders" onClick={() => setIsUserMenuOpen(false)} className="agriflow-user-menu-item">
                       <PackageCheck size={15} /> My Orders
                     </Link>
-                    <Link to="/dashboard?tab=wishlist" onClick={() => setIsUserMenuOpen(false)} className="agriflow-user-menu-item">
-                      <Heart size={15} /> Wishlist
+                    <Link to="/dashboard?tab=wishlist" onClick={() => setIsUserMenuOpen(false)} className="agriflow-user-menu-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <Heart size={15} color={wishlistCount > 0 ? '#DC2626' : 'currentColor'} fill={wishlistCount > 0 ? '#DC2626' : 'none'} />
+                        Wishlist
+                      </span>
+                      {wishlistCount > 0 && (
+                        <span className="agriflow-wishlist-pill-badge">
+                          {wishlistCount}
+                        </span>
+                      )}
                     </Link>
                     {isAdmin && (
                       <Link to="/admin" onClick={() => setIsUserMenuOpen(false)} className="agriflow-user-menu-item" style={{ color: '#D97706', fontWeight: 600 }}>
@@ -278,8 +318,26 @@ export const Navbar: React.FC = () => {
             </div>
           </div>
 
-          {/* Mobile Menu & Cart */}
-          <div style={{ display: 'none', alignItems: 'center', gap: '0.6rem' }} className="show-mobile-flex">
+          {/* Mobile Menu & Wishlist */}
+          <div style={{ display: 'none', alignItems: 'center', gap: '0.75rem' }} className="show-mobile-flex">
+            <Link
+              to="/dashboard?tab=wishlist"
+              onClick={() => {
+                if (!isAuthenticated) {
+                  sessionStorage.setItem('post_auth_redirect', '/dashboard?tab=wishlist');
+                }
+              }}
+              style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', color: wishlistCount > 0 ? '#DC2626' : '#294337', textDecoration: 'none' }}
+              aria-label="View saved wishlist"
+              title="Wishlist"
+            >
+              <Heart size={22} strokeWidth={2.2} fill={wishlistCount > 0 ? '#DC2626' : 'none'} />
+              {wishlistCount > 0 && (
+                <span className="agriflow-cart-green-badge agriflow-wishlist-badge" style={{ top: '-6px', right: '-8px' }}>
+                  {wishlistCount > 99 ? '99+' : wishlistCount}
+                </span>
+              )}
+            </Link>
             <LanguageSelector />
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -329,6 +387,27 @@ export const Navbar: React.FC = () => {
             </details>
             <Link to="/products" onClick={() => setIsMobileMenuOpen(false)} className={`agriflow-nav-link ${isProducts ? 'active-text' : ''}`}>
               Products
+            </Link>
+            <Link
+              to="/dashboard?tab=wishlist"
+              onClick={() => {
+                if (!isAuthenticated) {
+                  sessionStorage.setItem('post_auth_redirect', '/dashboard?tab=wishlist');
+                }
+                setIsMobileMenuOpen(false);
+              }}
+              className="agriflow-nav-link"
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+            >
+              <span style={{ display: 'flex', alignItems: 'center', gap: '0.55rem' }}>
+                <Heart size={16} color={wishlistCount > 0 ? '#DC2626' : 'currentColor'} fill={wishlistCount > 0 ? '#DC2626' : 'none'} />
+                Wishlist
+              </span>
+              {wishlistCount > 0 && (
+                <span className="agriflow-wishlist-pill-badge">
+                  {wishlistCount}
+                </span>
+              )}
             </Link>
             <Link to="/blog" onClick={() => setIsMobileMenuOpen(false)} className={`agriflow-nav-link ${isBlog ? 'active-text' : ''}`}>
               Blog

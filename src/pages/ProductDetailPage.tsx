@@ -1,5 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { trackViewItem, trackAddToCart } from '../utils/analytics';
+import { SEO } from '../components/common/SEO';
 import { useProduct, useProductMutations, useProducts } from '../hooks/useProducts';
 import { useCart } from '../hooks/useCart';
 import { useAuth } from '../hooks/useAuth';
@@ -255,6 +257,7 @@ export const ProductDetailPage: React.FC = () => {
       : ['https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800'];
 
   const currentImage = galleryImages[selectedImageIndex] || galleryImages[0];
+  const mainDisplayImage = getUploadUrl(currentImage, 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=800');
 
   const supportsHoverZoom = () =>
     typeof window !== 'undefined' &&
@@ -292,8 +295,26 @@ export const ProductDetailPage: React.FC = () => {
     return () => window.removeEventListener('keydown', handleEsc);
   }, [isLightboxOpen]);
 
+  useEffect(() => {
+    if (product) {
+      trackViewItem({
+        id: product.id,
+        title: product.title,
+        price: currentPrice,
+        category: product.category?.name,
+      });
+    }
+  }, [product?.id, currentPrice]);
+
   const handleAddToCart = () => {
     if (isOutOfStock) return;
+    trackAddToCart({
+      id: product.id,
+      title: product.title,
+      price: currentPrice,
+      category: product.category?.name,
+      quantity,
+    });
     addToCart(
       {
         ...product,
@@ -337,8 +358,8 @@ export const ProductDetailPage: React.FC = () => {
     addToast({
       type: added ? 'success' : 'info',
       message: added
-        ? `Added "${product.title}" to your Saved Items!`
-        : `Removed "${product.title}" from Saved Items.`,
+        ? `Added "${product.title}" to Wishlist! View saved items anytime from the Wishlist button in the header.`
+        : `Removed "${product.title}" from Wishlist.`,
     });
   };
 
@@ -470,6 +491,47 @@ export const ProductDetailPage: React.FC = () => {
 
   return (
     <div className="pdp-screen-container">
+      <SEO
+        title={`${product.title} - Buy Online at Best Price`}
+        description={product.description?.slice(0, 160) || `Buy ${product.title} online from AgriEra.`}
+        ogType="product"
+        ogImage={mainDisplayImage}
+        jsonLd={{
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: product.title,
+          image: [mainDisplayImage],
+          description: product.description || product.title,
+          sku: skuCode || product.id,
+          brand: {
+            '@type': 'Brand',
+            name: 'AgriEra',
+          },
+          offers: {
+            '@type': 'Offer',
+            url: `https://agriera.in/product/${product.slug || product.id}`,
+            priceCurrency: 'INR',
+            price: currentPrice,
+            priceValidUntil: '2026-12-31',
+            availability: isOutOfStock
+              ? 'https://schema.org/OutOfStock'
+              : 'https://schema.org/InStock',
+            seller: {
+              '@type': 'Organization',
+              name: 'AgriEra',
+            },
+          },
+          ...(product.numReviews > 0
+            ? {
+                aggregateRating: {
+                  '@type': 'AggregateRating',
+                  ratingValue: product.rating,
+                  reviewCount: product.numReviews,
+                },
+              }
+            : {}),
+        }}
+      />
       {/* Scrollable middle container - flex: 1; min-height: 0; overflow-y: auto */}
       <div className="pdp-scrollable-content" ref={scrollContainerRef}>
         <div className="pdp-wrapper animate-fade-in">

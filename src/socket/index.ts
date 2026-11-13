@@ -84,8 +84,22 @@ export const useSocketSync = () => {
     const handleBookingUpdated = (booking: any) => {
       queryClient.invalidateQueries({ queryKey: ['service-bookings'] });
       queryClient.invalidateQueries({ queryKey: ['service-booking-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['my-service-bookings'] });
       if (booking?.id) {
         queryClient.invalidateQueries({ queryKey: ['service-booking', booking.id] });
+      }
+      if (booking?.adminNotes && booking?.serviceSlug === 'crop-doctor') {
+        try {
+          const storedUser = JSON.parse(localStorage.getItem('formerbench_auth_user') || '{}');
+          if (storedUser?.id && storedUser.id === booking.userId && storedUser.role !== 'ADMIN') {
+            addToast({
+              type: 'success',
+              message: `Expert response received for ${booking.bookingReference}! View it in My Account → Crop Doctor Requests.`,
+            });
+          }
+        } catch {
+          // ignore localStorage parse errors
+        }
       }
       window.dispatchEvent(new CustomEvent('booking:updated', { detail: booking }));
     };

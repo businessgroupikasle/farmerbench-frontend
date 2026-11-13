@@ -1,9 +1,10 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CalendarDays, CheckCircle2, Droplets, Leaf, MapPin, Mountain, Sprout, Users } from 'lucide-react';
 import farmHero from '../assets/farm-dev-hero.jpg';
 import { serviceBookingService } from '../services/serviceBooking.service';
 import { useAuth } from '../hooks/useAuth';
 import { postalCodeService } from '../services/postalCode.service';
+import { getFullNameValidationError } from '../utils/validation';
 import './CropCalendarPage.css';
 
 const districts: Record<string, string[]> = {
@@ -38,6 +39,7 @@ const FormSelect: React.FC<SelectProps> = ({ icon, label, required, value, onCha
 export const CropCalendarPage: React.FC = () => {
   const { user } = useAuth();
   const [form, setForm] = useState(initialForm);
+  const [nameError, setNameError] = useState('');
 
   useEffect(() => {
     if (!user) return;
@@ -87,15 +89,30 @@ export const CropCalendarPage: React.FC = () => {
     return () => { active = false; };
   }, [form.pincode]);
 
-  const update = (field: Field, value: string) => setForm((current) => ({
-    ...current,
-    [field]: value,
-    ...(field === 'state' ? { district: '' } : {}),
-    ...(field === 'crop' ? { variety: '' } : {}),
-  }));
+  const update = (field: Field, value: string) => {
+    setForm((current) => ({
+      ...current,
+      [field]: value,
+      ...(field === 'state' ? { district: '' } : {}),
+      ...(field === 'crop' ? { variety: '' } : {}),
+    }));
+    if (field === 'name') {
+      if (!value.trim()) {
+        setNameError('');
+      } else {
+        setNameError(getFullNameValidationError(value) || '');
+      }
+    }
+  };
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
+    const fullNameValidation = getFullNameValidationError(form.name);
+    if (fullNameValidation) {
+      setNameError(fullNameValidation);
+      setError(fullNameValidation);
+      return;
+    }
     setSubmitting(true);
     setError('');
     try {
@@ -119,15 +136,44 @@ export const CropCalendarPage: React.FC = () => {
     <section className="crop-calendar-builder">
       <div className="crop-calendar-form-card">
         <header className="crop-calendar-form-header"><div><h2>Get Your Crop Calendar</h2><p>Fill in the details below to get a personalized crop calendar with important activities, timelines and expert recommendations.</p></div><div className="crop-calendar-form-art"><CalendarDays size={54} /><Leaf size={25} /></div></header>
-        {reference ? <div className="crop-calendar-success"><CheckCircle2 size={54} /><h3>Request Saved Successfully!</h3><p>Your crop calendar request is now available in the admin dashboard.</p><strong>Reference: {reference}</strong><button type="button" onClick={() => { setReference(''); setForm({ ...initialForm, name: user?.name || '', email: user?.email || '', phone: (user?.phone || '').replace(/\D/g, '').slice(-10) }); }}>Create Another Calendar</button></div> :
+        {reference ? <div className="crop-calendar-success"><CheckCircle2 size={54} /><h3>Request Saved Successfully!</h3><p>Your crop calendar request is now available in the admin dashboard.</p><strong>Reference: {reference}</strong><button type="button" onClick={() => { setReference(''); setNameError(''); setError(''); setForm({ ...initialForm, name: user?.name || '', email: user?.email || '', phone: (user?.phone || '').replace(/\D/g, '').slice(-10) }); }}>Create Another Calendar</button></div> :
         <form onSubmit={submit} className="crop-calendar-form">
-          <div className="crop-calendar-field"><div className="crop-calendar-label"><Users /><label>Full Name <em>*</em></label></div><input required type="text" value={form.name} onChange={(e) => update('name', e.target.value)} placeholder="Enter your full name" autoComplete="name" /></div>
+          <div className="crop-calendar-field">
+            <div className="crop-calendar-label"><Users /><label htmlFor="crop-calendar-name">Full Name <em>*</em></label></div>
+            <div>
+              <input
+                id="crop-calendar-name"
+                required
+                type="text"
+                aria-invalid={Boolean(nameError)}
+                value={form.name}
+                onChange={(e) => {
+                  const err = e.target.value.trim() ? getFullNameValidationError(e.target.value) || '' : '';
+                  e.currentTarget.setCustomValidity(err);
+                  update('name', e.target.value);
+                }}
+                onBlur={(e) => {
+                  const err = getFullNameValidationError(e.target.value) || '';
+                  e.currentTarget.setCustomValidity(err);
+                  setNameError(err);
+                }}
+                onInvalid={(e) => {
+                  const err = getFullNameValidationError(e.currentTarget.value) || 'Please enter your full name';
+                  e.currentTarget.setCustomValidity(err);
+                  setNameError(err);
+                }}
+                placeholder="Enter your full name"
+                autoComplete="name"
+              />
+              {nameError && <small className="crop-calendar-postal-status error" role="alert">{nameError}</small>}
+            </div>
+          </div>
           <div className="crop-calendar-field"><div className="crop-calendar-label"><Leaf /><label>Email Address <em>*</em></label></div><input required type="email" value={form.email} onChange={(e) => update('email', e.target.value)} placeholder="Enter your email address" autoComplete="email" /></div>
           <div className="crop-calendar-field"><div className="crop-calendar-label"><Users /><label>Mobile Number <em>*</em></label></div><input required type="tel" inputMode="numeric" pattern="[0-9]{10}" maxLength={10} value={form.phone} onChange={(e) => update('phone', e.target.value.replace(/\D/g, ''))} placeholder="Enter 10-digit mobile number" autoComplete="tel" /></div>
           <div className="crop-calendar-field"><div className="crop-calendar-label"><MapPin /><label>Pincode <em>*</em></label></div><div><input required type="text" inputMode="numeric" pattern="[0-9]{6}" maxLength={6} value={form.pincode} onChange={(e) => update('pincode', e.target.value.replace(/\D/g, ''))} placeholder="Enter 6-digit pincode" autoComplete="postal-code" />{postalStatus === 'loading' && <small className="crop-calendar-postal-status">Finding location...</small>}{postalStatus === 'error' && <small className="crop-calendar-postal-status error">Pincode not found. Please enter a valid Indian pincode.</small>}</div></div>
           <div className="crop-calendar-field"><div className="crop-calendar-label"><MapPin /><label>State <em>*</em></label></div><input required readOnly value={form.state} placeholder="Auto-filled from pincode" className="crop-calendar-readonly" /></div>
           <div className="crop-calendar-field"><div className="crop-calendar-label"><Users /><label>District <em>*</em></label></div><input required readOnly value={form.district} placeholder="Auto-filled from pincode" className="crop-calendar-readonly" /></div>
-<div className="crop-calendar-field"><div className="crop-calendar-label"><MapPin /><label>City <em>*</em></label></div><input required readOnly value={form.city} placeholder="Auto-filled from pincode" className="crop-calendar-readonly" /></div>
+          <div className="crop-calendar-field"><div className="crop-calendar-label"><MapPin /><label>City <em>*</em></label></div><input required readOnly value={form.city} placeholder="Auto-filled from pincode" className="crop-calendar-readonly" /></div>
           <FormSelect icon={<MapPin />} label="Post Office" required value={form.postOffice} onChange={(value) => update('postOffice', value)} placeholder="Select Post Office" options={postOfficeOptions} disabled={postalStatus !== 'found' || postOfficeOptions.length === 0} />
           <div className="crop-calendar-field"><div className="crop-calendar-label"><MapPin /><label>Your Location Type <em>*</em></label></div><div className="crop-calendar-radio-group">{['Rural', 'Urban'].map((type) => <label key={type}><input type="radio" name="locationType" checked={form.locationType === type} onChange={() => update('locationType', type)} /> {type}</label>)}</div></div>
           <FormSelect icon={<Sprout />} label="Select Crop" required value={form.crop} onChange={(v) => update('crop', v)} placeholder="Select Crop" options={crops} />
@@ -143,13 +189,3 @@ export const CropCalendarPage: React.FC = () => {
   </div>;
 };
 export default CropCalendarPage;
-
-
-
-
-
-
-
-
-
-

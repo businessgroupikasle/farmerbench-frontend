@@ -9,6 +9,7 @@ import { useCompareStore } from '../../store/compareStore';
 import { useUIStore } from '../../store/uiStore';
 import { getUploadUrl } from '../../utils/image';
 import { formatPrice, getProductPricing } from '../../utils/currency';
+import { trackAddToCart } from '../../utils/analytics';
 
 interface ProductCardProps {
   product: Product;
@@ -29,10 +30,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const isOutOfStock = product.stock === 0;
   const isWishlisted = isInWishlist(product.id);
   const isCompared = isInCompare(product.id);
-  const displayRating = product.rating && product.rating > 0 ? product.rating : 4.6;
-  const displayReviews = (product.numReviews && product.numReviews > 0)
-    ? product.numReviews
-    : ((product.reviews && product.reviews.length > 0) ? product.reviews.length : 18);
+  const displayRating = Number(product.rating || 0);
+  const displayReviews = Number(
+    product.numReviews !== undefined && product.numReviews !== null
+      ? product.numReviews
+      : (product.reviews?.length ?? 0)
+  );
 
   // Badge derivation based on real product properties
   const isOrganic = Boolean(
@@ -48,6 +51,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     e.preventDefault();
     e.stopPropagation();
     if (!isOutOfStock) {
+      trackAddToCart({
+        id: product.id,
+        title: product.title,
+        price: currentPrice,
+        category: product.category?.name,
+        quantity: 1,
+      });
       addToCart(product, 1);
     }
   };
@@ -56,6 +66,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     e.preventDefault();
     e.stopPropagation();
     if (!isOutOfStock) {
+      trackAddToCart({
+        id: product.id,
+        title: product.title,
+        price: currentPrice,
+        category: product.category?.name,
+        quantity: 1,
+      });
       const canCheckout = addToCart(product, 1);
       if (canCheckout) navigate('/checkout');
     }
@@ -67,7 +84,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     const added = toggleWishlist(product);
     addToast({
       type: added ? 'success' : 'info',
-      message: added ? `${product.title} added to wishlist` : `${product.title} removed from wishlist`,
+      message: added
+        ? `${product.title} added to wishlist! View saved items anytime from the Wishlist button in the header.`
+        : `${product.title} removed from wishlist`,
     });
   };
 
@@ -219,7 +238,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <div className="fb-card-rating-row" title={`${displayRating.toFixed(1)} out of 5 stars (${displayReviews} reviews)`}>
           <div className="fb-card-stars-wrap">
             {[1, 2, 3, 4, 5].map((star) => {
-              const isFilled = star <= Math.round(displayRating);
+              const isFilled = displayRating > 0 && star <= Math.round(displayRating);
               return (
                 <Star
                   key={star}
@@ -234,7 +253,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             })}
           </div>
           <span className="fb-card-rating-value">{displayRating.toFixed(1)}</span>
-          <span className="fb-card-reviews-count">({displayReviews})</span>
+          <span className="fb-card-reviews-count">
+            {displayReviews > 0 ? `(${displayReviews})` : '(No Reviews)'}
+          </span>
         </div>
 
         {/* Bottom Pricing & CTA Area */}

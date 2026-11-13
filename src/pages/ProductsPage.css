@@ -276,6 +276,51 @@
   cursor: pointer;
 }
 
+/* Catalog Wishlist Action Button */
+.fb-catalog-wishlist-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background-color: #ffffff;
+  border: 1px solid #d5e2d7;
+  border-radius: 10px;
+  padding: 0.45rem 0.85rem;
+  color: #1f3327;
+  font-size: 0.825rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.fb-catalog-wishlist-btn:hover {
+  background-color: #fef2f2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+.fb-catalog-wishlist-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #dc2626;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  line-height: 1;
+}
+
+@media (max-width: 640px) {
+  .fb-catalog-wishlist-btn {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.78rem;
+  }
+}
+
 /* Mobile Filter Button */
 .fb-mobile-filter-btn {
   display: none;

@@ -35,7 +35,7 @@
   opacity: 0.85;
   z-index: 1;
   background-image: radial-gradient(circle at 10% 20%, rgba(34, 197, 94, 0.15) 0%, transparent 45%),
-                    radial-gradient(circle at 5% 60%, rgba(22, 101, 52, 0.12) 0%, transparent 40%);
+    radial-gradient(circle at 5% 60%, rgba(22, 101, 52, 0.12) 0%, transparent 40%);
 }
 
 .crop-doctor-hero-container {
@@ -278,8 +278,13 @@
 }
 
 @keyframes floatGentle {
-  from { transform: translateY(0px); }
-  to { transform: translateY(-6px); }
+  from {
+    transform: translateY(0px);
+  }
+
+  to {
+    transform: translateY(-6px);
+  }
 }
 
 .crop-doctor-floating-icon {
@@ -921,7 +926,7 @@
   padding: 0.35rem 0.85rem;
   border-radius: 6px;
   margin: 0 0.35rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .crop-doctor-dropzone-limit {
@@ -1292,6 +1297,7 @@
    Crop Doctor Mobile Compact Mode (<= 900px, <= 768px, <= 480px)
    ========================================================================== */
 @media (max-width: 900px) {
+
   /* 0. Mobile Page & Viewport Containment */
   .crop-doctor-page {
     overflow-x: clip !important;
@@ -2052,8 +2058,13 @@
 }
 
 @keyframes cdSpin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .crop-doctor-postal-badge {
@@ -2081,9 +2092,20 @@
 }
 
 @keyframes cdDotPulse {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); }
-  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(22, 163, 74, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7);
+  }
+
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(22, 163, 74, 0);
+  }
+
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0);
+  }
 }
 
 .crop-doctor-postal-text {
@@ -2312,8 +2334,15 @@
 }
 
 @keyframes cdSlideDown {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-slide-up {
@@ -2321,8 +2350,15 @@
 }
 
 @keyframes cdSlideUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in {
@@ -2330,8 +2366,13 @@
 }
 
 @keyframes cdFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .animate-zoom-in {
@@ -2339,8 +2380,15 @@
 }
 
 @keyframes cdZoomIn {
-  from { opacity: 0; transform: scale(0.92); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 .animate-pop {
@@ -2348,8 +2396,15 @@
 }
 
 @keyframes cdPop {
-  0% { transform: scale(0.8); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .animate-scale-in {
@@ -2357,8 +2412,15 @@
 }
 
 @keyframes cdScaleIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* Category cards active glow and hover lift */
@@ -2395,8 +2457,13 @@
 }
 
 @keyframes cdPillGlow {
-  from { box-shadow: 0 2px 6px rgba(15, 71, 38, 0.08); }
-  to { box-shadow: 0 4px 12px rgba(15, 71, 38, 0.2); }
+  from {
+    box-shadow: 0 2px 6px rgba(15, 71, 38, 0.08);
+  }
+
+  to {
+    box-shadow: 0 4px 12px rgba(15, 71, 38, 0.2);
+  }
 }
 
 /* Floating certification badge floating animation */
@@ -2405,8 +2472,13 @@
 }
 
 @keyframes cdFloatBadge {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-8px); }
+  0% {
+    transform: translateY(0);
+  }
+
+  100% {
+    transform: translateY(-8px);
+  }
 }
 
 /* Workflow step icons hover pulse */
@@ -2423,18 +2495,65 @@
 /* Mobile/tablet: the fixed header search bar (~62px) sits above this page's first
    section, so offset the process bar to keep Steps 1-4 fully visible */
 @media (max-width: 980px) {
-  .crop-doctor-page > .crop-doctor-workflow-bar {
+  .crop-doctor-page>.crop-doctor-workflow-bar {
     padding-top: calc(0.85rem + 62px) !important;
   }
 }
 
 /* Uploaded photo previews (with remove) */
-.crop-doctor-photo-previews { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 0.6rem; margin: 0.85rem 0 0; padding: 0; list-style: none; }
-.crop-doctor-photo-preview { position: relative; display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; }
-.crop-doctor-photo-preview img { width: 100%; aspect-ratio: 1 / 1; object-fit: cover; border: 1px solid #dce8dd; border-radius: 10px; background: #f4f8f5; }
-.crop-doctor-photo-preview span { overflow: hidden; color: #52645a; font-size: 0.68rem; text-overflow: ellipsis; white-space: nowrap; }
-.crop-doctor-photo-remove { position: absolute; top: 4px; right: 4px; display: grid; width: 22px; height: 22px; place-items: center; padding: 0; border: 0; border-radius: 50%; background: rgba(15, 41, 27, 0.78); color: #fff; cursor: pointer; }
-.crop-doctor-photo-remove:hover { background: #dc2626; }
+.crop-doctor-photo-previews {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 0.6rem;
+  margin: 0.85rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.crop-doctor-photo-preview {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.crop-doctor-photo-preview img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border: 1px solid #dce8dd;
+  border-radius: 10px;
+  background: #f4f8f5;
+}
+
+.crop-doctor-photo-preview span {
+  overflow: hidden;
+  color: #52645a;
+  font-size: 0.68rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.crop-doctor-photo-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(15, 41, 27, 0.78);
+  color: #fff;
+  cursor: pointer;
+}
+
+.crop-doctor-photo-remove:hover {
+  background: #dc2626;
+}
 
 /* Fix #14: Ensure all 4 consultation steps & headings are completely visible without ellipsis cropping */
 .crop-doctor-step-heading {
@@ -2491,4 +2610,60 @@
   color: #dc2626;
   font-size: 0.78rem;
   font-weight: 600;
+}
+
+#diagnosis-form-section {
+  scroll-margin-top: 90px;
+}
+
+@media (max-width: 980px) {
+  #diagnosis-form-section {
+    scroll-margin-top: 130px;
+  }
+}
+
+.crop-doctor-field-input[aria-invalid="true"] {
+  border-color: #dc2626 !important;
+  background-color: #fef2f2 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12) !important;
+}
+
+.crop-doctor-dropzone-box.is-disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.crop-doctor-dropzone-box.is-disabled:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.crop-doctor-photo-error {
+  margin: -0.5rem 0 1rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 8px;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.crop-doctor-response-hint {
+  margin-top: 0.55rem;
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  color: #166534;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.crop-doctor-response-hint a {
+  color: #0f4726;
+  font-weight: 700;
+  text-decoration: underline;
 }

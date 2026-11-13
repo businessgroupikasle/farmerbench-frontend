@@ -9,6 +9,8 @@ import { paymentService } from '../services/payment.service';
 import { AppliedCoupon, couponService } from '../services/coupon.service';
 import { postalCodeService } from '../services/postalCode.service';
 import { getCanonicalVariantSelection } from '../utils/productVariant';
+import { getFullNameValidationError } from '../utils/validation';
+import { trackBeginCheckout, trackPurchase } from '../utils/analytics';
 import { ShippingAddress, PaymentMethod } from '@formerbench/shared';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -129,6 +131,65 @@ export const CheckoutPage: React.FC = () => {
   const [pincode, setPincode] = useState(checkoutDraft.pincode || '');
   const [postalStatus, setPostalStatus] = useState('');
   const [orderNotes, setOrderNotes] = useState(checkoutDraft.orderNotes || '');
+  const [fieldErrors, setFieldErrors] = useState<
+    Partial<Record<'fullName' | 'phone' | 'addressLine1' | 'pincode' | 'city' | 'district' | 'state', string>>
+  >({});
+
+  const clearFieldError = (
+    field: 'fullName' | 'phone' | 'addressLine1' | 'pincode' | 'city' | 'district' | 'state'
+  ) => {
+    setFieldErrors((prev) => {
+      if (!prev[field]) return prev;
+      const next = { ...prev };
+      delete next[field];
+      return next;
+    });
+  };
+
+  const validateDeliveryStep1 = (): boolean => {
+    const errors: Partial<
+      Record<'fullName' | 'phone' | 'addressLine1' | 'pincode' | 'city' | 'district' | 'state', string>
+    > = {};
+
+    const nameErr = getFullNameValidationError(fullName);
+    if (nameErr) errors.fullName = nameErr;
+
+    const cleanPhone = normalizeIndianMobile(phone);
+    if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
+      const msg = 'Enter a valid 10-digit Indian mobile number starting with 6-9.';
+      errors.phone = msg;
+      setPhoneError(msg);
+    }
+
+    if (!addressLine1.trim()) {
+      errors.addressLine1 = 'Please enter Address Line 1 (House/Building/Street).';
+    }
+
+    if (!/^\d{6}$/.test(pincode.trim())) {
+      errors.pincode = 'Please enter a valid 6-digit Pincode.';
+    }
+
+    if (!city.trim()) {
+      errors.city = 'Please enter City / Town.';
+    }
+
+    if (!district.trim()) {
+      errors.district = 'Please enter District.';
+    }
+
+    if (!state.trim()) {
+      errors.state = 'Please enter State.';
+    }
+
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      setErrorMsg('Please complete all mandatory delivery address fields before continuing to Payment.');
+      return false;
+    }
+
+    setErrorMsg(null);
+    return true;
+  };
 
   // Payment Method
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('RAZORPAY');
@@ -176,6 +237,20 @@ export const CheckoutPage: React.FC = () => {
   }, [step, paymentMethod]);
 
   useEffect(() => {
+    if (items.length > 0) {
+      trackBeginCheckout(
+        items.map((it) => ({
+          id: it.productId,
+          title: it.product?.title || 'Product',
+          price: it.price,
+          quantity: it.quantity,
+        })),
+        grandTotal
+      );
+    }
+  }, []);
+
+  useEffect(() => {
     if (user?.phone && !phone) setPhone(normalizeIndianMobile(user.phone));
   }, [user?.phone, phone]);
 
@@ -210,6 +285,7 @@ export const CheckoutPage: React.FC = () => {
       // 1. Separate District
       const dist = place.district ? place.district.trim() : '';
       setDistrict(dist);
+      if (dist) clearFieldError('district');
 
       // 2. Separate City / Town
       const cleanPostOffice = place.postOffice ? place.postOffice.replace(/\s+(B\.O|S\.O|H\.O)$/i, '').trim() : '';
@@ -224,6 +300,7 @@ export const CheckoutPage: React.FC = () => {
           ? place.state.split(' ').map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')
           : place.state;
         setState(formattedState);
+        clearFieldError('state');
       }
 
       // Every post office returned for this PIN becomes a selectable place.
@@ -235,7 +312,9 @@ export const CheckoutPage: React.FC = () => {
         });
       if (!allSuggestions.length && bestCity) allSuggestions.push(bestCity);
       }
-      setCity(allSuggestions[0] || bestCity);
+      const resolvedCity = allSuggestions[0] || bestCity;
+      setCity(resolvedCity);
+      if (resolvedCity) clearFieldError('city');
       setAvailableCities(allSuggestions);
       setPostalStatus(`✓ ${dist || bestCity}, ${place.state}`);
     }).catch((error) => {
@@ -277,40 +356,22 @@ export const CheckoutPage: React.FC = () => {
 
   const handleAddressSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setErrorMsg(null);
-
-    if (!fullName.trim()) {
-      setErrorMsg('Please enter your full name');
-      return;
-    }
-    const cleanPhone = normalizeIndianMobile(phone);
-    if (!/^[6-9]\d{9}$/.test(cleanPhone)) {
-      setPhoneError('Enter a valid 10-digit Indian mobile number starting with 6-9.');
-      setErrorMsg('Please enter a valid 10-digit mobile number');
-      return;
-    }
-    if (!addressLine1.trim()) {
-      setErrorMsg('Please enter Address Line 1 (House/Building/Street)');
-      return;
-    }
-    if (!city.trim()) {
-      setErrorMsg('Please enter City / Town');
-      return;
-    }
-    if (!district.trim()) {
-      setErrorMsg('Please enter District');
-      return;
-    }
-    if (!state.trim()) {
-      setErrorMsg('Please enter State');
-      return;
-    }
-    if (!pincode.trim() || pincode.trim().length < 6) {
-      setErrorMsg('Please enter a valid 6-digit Pincode');
+    if (!validateDeliveryStep1()) {
+      addToast({ type: 'error', message: 'Please fill in all mandatory delivery address fields.' });
       return;
     }
 
     // Advance to Payment Step
+    setStep(2);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleTryAdvanceToPayment = () => {
+    if (step === 2) return;
+    if (!validateDeliveryStep1()) {
+      addToast({ type: 'error', message: 'Complete all mandatory delivery fields in Step 1 first.' });
+      return;
+    }
     setStep(2);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -424,6 +485,19 @@ export const CheckoutPage: React.FC = () => {
               queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
               queryClient.invalidateQueries({ queryKey: ['products'] });
 
+              trackPurchase({
+                id: createdOrder.id,
+                totalPrice: createdOrder.totalPrice || grandTotal,
+                shippingPrice: deliveryFee,
+                couponCode: coupon?.code,
+                items: items.map((it) => ({
+                  productId: it.productId,
+                  title: it.product?.title || 'Product',
+                  price: it.price,
+                  quantity: it.quantity,
+                })),
+              });
+
               addToast({ type: 'success', message: 'Payment successful! Order confirmed.' });
               navigate(`/order-confirmation/${createdOrder.id}`);
             } catch (verifyErr: any) {
@@ -475,6 +549,20 @@ export const CheckoutPage: React.FC = () => {
         queryClient.invalidateQueries({ queryKey: ['orders'] });
         queryClient.invalidateQueries({ queryKey: ['cart'] });
         queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
+
+        trackPurchase({
+          id: createdOrder.id,
+          totalPrice: createdOrder.totalPrice || grandTotal,
+          shippingPrice: deliveryFee,
+          couponCode: coupon?.code,
+          items: items.map((it) => ({
+            productId: it.productId,
+            title: it.product?.title || 'Product',
+            price: it.price,
+            quantity: it.quantity,
+          })),
+        });
+
         addToast({ type: 'success', message: 'Order placed successfully with Cash on Delivery!' });
         navigate(`/order-confirmation/${createdOrder.id}`);
       }
@@ -514,20 +602,28 @@ export const CheckoutPage: React.FC = () => {
           <div className="checkout-step-line done" />
 
           {/* Step 2: Delivery */}
-          <div className={`checkout-step ${step >= 1 ? (step > 1 ? 'done' : 'active') : ''}`}>
+          <button
+            type="button"
+            onClick={() => setStep(1)}
+            className={`checkout-step checkout-step-btn ${step >= 1 ? (step > 1 ? 'done' : 'active') : ''}`}
+          >
             <div className="checkout-step-circle">
               {step > 1 ? <Check size={16} strokeWidth={3} /> : '2'}
             </div>
             <span className="checkout-step-label">Delivery</span>
-          </div>
+          </button>
 
           <div className={`checkout-step-line ${step > 1 ? 'done' : ''}`} />
 
           {/* Step 3: Payment */}
-          <div className={`checkout-step ${step === 2 ? 'active' : ''}`}>
+          <button
+            type="button"
+            onClick={handleTryAdvanceToPayment}
+            className={`checkout-step checkout-step-btn ${step === 2 ? 'active' : ''}`}
+          >
             <div className="checkout-step-circle">3</div>
             <span className="checkout-step-label">Payment</span>
-          </div>
+          </button>
         </div>
       </div>
 
@@ -570,7 +666,7 @@ export const CheckoutPage: React.FC = () => {
                 </div>
               </div>
 
-              <form onSubmit={handleAddressSubmit} className="checkout-form">
+              <form onSubmit={handleAddressSubmit} className="checkout-form" noValidate>
                 {/* Full Name & Phone */}
                 <div className="checkout-form-row-2">
                   <div className="checkout-field">
@@ -578,11 +674,20 @@ export const CheckoutPage: React.FC = () => {
                     <input
                       type="text"
                       required
+                      aria-invalid={Boolean(fieldErrors.fullName)}
                       value={fullName}
-                      onChange={(e) => setFullName(e.target.value)}
+                      onChange={(e) => {
+                        setFullName(e.target.value);
+                        clearFieldError('fullName');
+                      }}
                       placeholder="e.g. Ponraj Krishnan"
-                      className="checkout-input"
+                      className={`checkout-input ${fieldErrors.fullName ? 'checkout-input-error' : ''}`}
                     />
+                    {fieldErrors.fullName && (
+                      <span className="checkout-field-error" role="alert">
+                        <AlertCircle size={13} /> {fieldErrors.fullName}
+                      </span>
+                    )}
                   </div>
                   <div className="checkout-field">
                     <label className="checkout-label">Mobile Number *</label>
@@ -592,13 +697,28 @@ export const CheckoutPage: React.FC = () => {
                       inputMode="numeric"
                       autoComplete="tel"
                       maxLength={10}
+                      aria-invalid={Boolean(phoneError || fieldErrors.phone)}
                       value={phone}
-                      onChange={(e) => { setPhone(e.target.value.replace(/\D/g, '').slice(0, 10)); setPhoneError(''); }}
-                      onBlur={() => setPhoneError(phone && !/^[6-9]\d{9}$/.test(phone) ? 'Enter a valid 10-digit Indian mobile number starting with 6-9.' : '')}
+                      onChange={(e) => {
+                        setPhone(e.target.value.replace(/\D/g, '').slice(0, 10));
+                        setPhoneError('');
+                        clearFieldError('phone');
+                      }}
+                      onBlur={() =>
+                        setPhoneError(
+                          phone && !/^[6-9]\d{9}$/.test(phone)
+                            ? 'Enter a valid 10-digit Indian mobile number starting with 6-9.'
+                            : ''
+                        )
+                      }
                       placeholder="10-digit mobile number"
-                      className={`checkout-input ${phoneError ? 'checkout-input-error' : ''}`}
+                      className={`checkout-input ${phoneError || fieldErrors.phone ? 'checkout-input-error' : ''}`}
                     />
-                    {phoneError && <span className="checkout-field-error"><AlertCircle size={13} /> {phoneError}</span>}
+                    {(phoneError || fieldErrors.phone) && (
+                      <span className="checkout-field-error" role="alert">
+                        <AlertCircle size={13} /> {phoneError || fieldErrors.phone}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -608,11 +728,20 @@ export const CheckoutPage: React.FC = () => {
                   <input
                     type="text"
                     required
+                    aria-invalid={Boolean(fieldErrors.addressLine1)}
                     value={addressLine1}
-                    onChange={(e) => setAddressLine1(e.target.value)}
+                    onChange={(e) => {
+                      setAddressLine1(e.target.value);
+                      clearFieldError('addressLine1');
+                    }}
                     placeholder="e.g. No. 42, Green Valley Farms, Trichy Main Road"
-                    className="checkout-input"
+                    className={`checkout-input ${fieldErrors.addressLine1 ? 'checkout-input-error' : ''}`}
                   />
+                  {fieldErrors.addressLine1 && (
+                    <span className="checkout-field-error" role="alert">
+                      <AlertCircle size={13} /> {fieldErrors.addressLine1}
+                    </span>
+                  )}
                 </div>
 
                 {/* Address Line 2 */}
@@ -635,12 +764,22 @@ export const CheckoutPage: React.FC = () => {
                     <input
                       type="text"
                       required
+                      inputMode="numeric"
                       maxLength={6}
+                      aria-invalid={Boolean(fieldErrors.pincode)}
                       value={pincode}
-                      onChange={(e) => setPincode(e.target.value.replace(/[^0-9]/g, ''))}
+                      onChange={(e) => {
+                        setPincode(e.target.value.replace(/[^0-9]/g, ''));
+                        clearFieldError('pincode');
+                      }}
                       placeholder="e.g. 613001"
-                      className="checkout-input"
+                      className={`checkout-input ${fieldErrors.pincode ? 'checkout-input-error' : ''}`}
                     />
+                    {fieldErrors.pincode && (
+                      <span className="checkout-field-error" role="alert">
+                        <AlertCircle size={13} /> {fieldErrors.pincode}
+                      </span>
+                    )}
                     {postalStatus && (
                       <small style={{ color: postalStatus.toLowerCase().includes('not found') ? '#b91c1c' : '#15803d', fontSize: '0.75rem', marginTop: '0.2rem', fontWeight: 600 }}>
                         {postalStatus}
@@ -652,18 +791,36 @@ export const CheckoutPage: React.FC = () => {
                   <div className="checkout-field">
                     <label className="checkout-label">City / Town *</label>
                     {availableCities.length > 0 ? (
-                      <select required value={city} onChange={(e) => setCity(e.target.value)} className="checkout-select checkout-city-select">
+                      <select
+                        required
+                        aria-invalid={Boolean(fieldErrors.city)}
+                        value={city}
+                        onChange={(e) => {
+                          setCity(e.target.value);
+                          clearFieldError('city');
+                        }}
+                        className={`checkout-select checkout-city-select ${fieldErrors.city ? 'checkout-input-error' : ''}`}
+                      >
                         {availableCities.map((place) => <option key={place} value={place}>{place}</option>)}
                       </select>
                     ) : (
                       <input
                         type="text"
                         required
+                        aria-invalid={Boolean(fieldErrors.city)}
                         value={city}
-                        onChange={(e) => setCity(e.target.value)}
+                        onChange={(e) => {
+                          setCity(e.target.value);
+                          clearFieldError('city');
+                        }}
                         placeholder={pincode.length === 6 ? 'Finding places...' : 'Enter pincode first'}
-                        className="checkout-input"
+                        className={`checkout-input ${fieldErrors.city ? 'checkout-input-error' : ''}`}
                       />
+                    )}
+                    {fieldErrors.city && (
+                      <span className="checkout-field-error" role="alert">
+                        <AlertCircle size={13} /> {fieldErrors.city}
+                      </span>
                     )}
                     {availableCities.length > 1 && (
                       <small className="checkout-place-hint">{availableCities.length} places available for this pincode</small>
@@ -676,11 +833,20 @@ export const CheckoutPage: React.FC = () => {
                     <input
                       type="text"
                       required
+                      aria-invalid={Boolean(fieldErrors.district)}
                       value={district}
-                      onChange={(e) => setDistrict(e.target.value)}
+                      onChange={(e) => {
+                        setDistrict(e.target.value);
+                        clearFieldError('district');
+                      }}
                       placeholder="e.g. Coimbatore"
-                      className="checkout-input"
+                      className={`checkout-input ${fieldErrors.district ? 'checkout-input-error' : ''}`}
                     />
+                    {fieldErrors.district && (
+                      <span className="checkout-field-error" role="alert">
+                        <AlertCircle size={13} /> {fieldErrors.district}
+                      </span>
+                    )}
                   </div>
 
                   {/* 4. State */}
@@ -689,12 +855,21 @@ export const CheckoutPage: React.FC = () => {
                     <input
                       type="text"
                       required
+                      aria-invalid={Boolean(fieldErrors.state)}
                       list="checkout-state-list"
                       value={state}
-                      onChange={(e) => setState(e.target.value)}
+                      onChange={(e) => {
+                        setState(e.target.value);
+                        clearFieldError('state');
+                      }}
                       placeholder="e.g. Tamil Nadu"
-                      className="checkout-input"
+                      className={`checkout-input ${fieldErrors.state ? 'checkout-input-error' : ''}`}
                     />
+                    {fieldErrors.state && (
+                      <span className="checkout-field-error" role="alert">
+                        <AlertCircle size={13} /> {fieldErrors.state}
+                      </span>
+                    )}
                     <datalist id="checkout-state-list">
                       <option value="Tamil Nadu" />
                       <option value="Kerala" />

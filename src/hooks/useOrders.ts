@@ -74,10 +74,55 @@ export const useOrderMutations = () => {
     },
   });
 
+  const cancelOrder = useMutation({
+    mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
+      orderService.cancelOrder(id, reason),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      addToast({ type: 'success', message: res.message || 'Order cancelled successfully' });
+    },
+    onError: (error: Error) => {
+      addToast({ type: 'error', message: error.message });
+    },
+  });
+
+  const requestExchange = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: { reason: string; details?: string; itemIds?: string[] } }) =>
+      orderService.requestExchange(id, data),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      queryClient.invalidateQueries({ queryKey: ['my-service-bookings'] });
+      addToast({ type: 'success', message: res.message || 'Exchange request submitted successfully' });
+    },
+    onError: (error: Error) => {
+      addToast({ type: 'error', message: error.message });
+    },
+  });
+
+  const processRefund = useMutation({
+    mutationFn: (id: string) => orderService.processRefund(id),
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'orders'] });
+      queryClient.invalidateQueries({ queryKey: ['orders'] });
+      addToast({ type: 'success', message: res.message || 'Refund processed successfully' });
+    },
+    onError: (error: Error) => {
+      addToast({ type: 'error', message: error.message });
+    },
+  });
+
   return {
     createOrder: createOrder.mutateAsync,
     isCreatingOrder: createOrder.isPending,
     updateOrderStatus: updateOrderStatus.mutateAsync,
     isUpdatingStatus: updateOrderStatus.isPending,
+    cancelOrder: cancelOrder.mutateAsync,
+    isCancelling: cancelOrder.isPending,
+    requestExchange: requestExchange.mutateAsync,
+    isRequestingExchange: requestExchange.isPending,
+    processRefund: processRefund.mutateAsync,
+    isProcessingRefund: processRefund.isPending,
   };
 };

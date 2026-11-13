@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { useOrders } from '../hooks/useOrders';
+import { useOrders, useOrderMutations } from '../hooks/useOrders';
 import { useProducts, useProductMutations } from '../hooks/useProducts';
 import { useCart } from '../hooks/useCart';
 import { useWishlistStore } from '../store/wishlistStore';
@@ -35,7 +35,7 @@ import {
 
 // Styling
 import './DashboardPage.css';
-import { Key, Package, Plus } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, Key, Package, Plus, RotateCcw, X } from 'lucide-react';
 import { LogoutModal } from '../components/common/LogoutModal';
 
 export const DashboardPage: React.FC = () => {
@@ -45,9 +45,11 @@ export const DashboardPage: React.FC = () => {
   // Auth & Profile
   const { user, isAuthenticated, updateProfile, changePassword, logout } = useAuth();
   const { data: rawOrders = [], isLoading: isOrdersLoading } = useOrders();
+  const { cancelOrder, requestExchange } = useOrderMutations();
   const orders = (rawOrders || []).filter((o: any) => {
-    if (o.paymentMethod === 'RAZORPAY' && o.paymentStatus !== 'PAID') return false;
-    if (o.orderStatus === 'CANCELLED') return false;
+    // Only exclude abandoned Razorpay checkout attempts that were never paid
+    if (o.paymentMethod === 'RAZORPAY' && o.paymentStatus === 'PENDING' && o.orderStatus === 'PENDING') return false;
+    if (o.paymentMethod === 'RAZORPAY' && o.paymentStatus === 'FAILED') return false;
     return true;
   });
   const { data: productsData } = useProducts({ limit: 12 });
@@ -70,6 +72,16 @@ export const DashboardPage: React.FC = () => {
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  // Cancellation & Exchange Modal States
+  const [cancelModalOrder, setCancelModalOrder] = useState<any | null>(null);
+  const [cancelReason, setCancelReason] = useState('Ordered by mistake');
+  const [isSubmittingCancel, setIsSubmittingCancel] = useState(false);
+
+  const [exchangeModalOrder, setExchangeModalOrder] = useState<any | null>(null);
+  const [exchangeReason, setExchangeReason] = useState('Damaged during transit / packaging broken');
+  const [exchangeDetails, setExchangeDetails] = useState('');
+  const [isSubmittingExchange, setIsSubmittingExchange] = useState(false);
 
   // Profile Form States (for Profile & Security Tab)
   const [profileName, setProfileName] = useState(user?.name || '');
@@ -422,16 +434,53 @@ export const DashboardPage: React.FC = () => {
                             })}
                           </span>
                         </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
                           <span
                             className={
                               ord.orderStatus === 'DELIVERED'
                                 ? 'fb-status-pill-green'
+                                : ord.orderStatus === 'CANCELLED'
+                                ? 'fb-status-pill-gray'
                                 : 'fb-status-pill-blue'
+                            }
+                            style={
+                              ord.orderStatus === 'CANCELLED'
+                                ? { backgroundColor: '#FEE2E2', color: '#991B1B' }
+                                : undefined
                             }
                           >
                             {ord.orderStatus}
                           </span>
+
+                          {/* Customer Cancel Button for Eligible Orders */}
+                          {(ord.orderStatus === 'PENDING' || ord.orderStatus === 'PROCESSING') && (
+                            <button
+                              className="fb-btn-outline"
+                              style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', color: '#DC2626', borderColor: '#FCA5A5' }}
+                              onClick={() => {
+                                setCancelModalOrder(ord);
+                                setCancelReason('Ordered by mistake');
+                              }}
+                            >
+                              Cancel Order
+                            </button>
+                          )}
+
+                          {/* Customer Product Exchange Button for Delivered Orders */}
+                          {ord.orderStatus === 'DELIVERED' && !(ord as any).exchangeRequest && (
+                            <button
+                              className="fb-btn-outline"
+                              style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem', color: '#0F4726', borderColor: '#86EFAC' }}
+                              onClick={() => {
+                                setExchangeModalOrder(ord);
+                                setExchangeReason('Damaged during transit / packaging broken');
+                                setExchangeDetails('');
+                              }}
+                            >
+                              Request Exchange
+                            </button>
+                          )}
+
                           <button
                             className="fb-btn-outline"
                             style={{ padding: '0.35rem 0.75rem', fontSize: '0.8rem' }}
@@ -446,7 +495,7 @@ export const DashboardPage: React.FC = () => {
                       </div>
 
                       <div style={{ padding: '0.75rem 0', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        {ord.items.map((it) => (
+                        {ord.items.map((it: any) => (
                           <div
                             key={it.id}
                             style={{
@@ -481,6 +530,94 @@ export const DashboardPage: React.FC = () => {
                           Total: ₹{ord.totalPrice.toFixed(2)}
                         </span>
                       </div>
+
+                      {/* Product Exchange Status Banner */}
+                      {(ord as any).exchangeRequest && (
+                        <div
+                          style={{
+                            marginTop: '0.65rem',
+                            padding: '0.6rem 0.85rem',
+                            backgroundColor: '#FEF3C7',
+                            border: '1px solid #FCD34D',
+                            borderRadius: '8px',
+                            fontSize: '0.82rem',
+                            color: '#92400E',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <RotateCcw size={16} />
+                            <span>
+                              <strong>Exchange Requested:</strong> {(ord as any).exchangeRequest.reason}
+                            </span>
+                          </div>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 700, backgroundColor: '#FDE68A', padding: '2px 8px', borderRadius: '4px' }}>
+                            Ref: {(ord as any).exchangeRequest.bookingReference}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Cancellation & Refund Status Banner */}
+                      {ord.orderStatus === 'CANCELLED' && (
+                        <div style={{ marginTop: '0.65rem' }}>
+                          {ord.paymentMethod === 'RAZORPAY' ? (
+                            ord.paymentStatus === 'REFUNDED' ? (
+                              <div
+                                style={{
+                                  padding: '0.6rem 0.85rem',
+                                  backgroundColor: '#F0FDF4',
+                                  border: '1px solid #BBF7D0',
+                                  borderRadius: '8px',
+                                  fontSize: '0.82rem',
+                                  color: '#166534',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '0.5rem',
+                                }}
+                              >
+                                <CheckCircle size={16} color="#16A34A" />
+                                <span>
+                                  <strong>Refund Processed:</strong> A full refund of ₹{ord.totalPrice.toFixed(2)} has been processed to your original payment method.
+                                </span>
+                              </div>
+                            ) : (
+                              <div
+                                style={{
+                                  padding: '0.6rem 0.85rem',
+                                  backgroundColor: '#EFF6FF',
+                                  border: '1px solid #BFDBFE',
+                                  borderRadius: '8px',
+                                  fontSize: '0.82rem',
+                                  color: '#1E40AF',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '0.5rem',
+                                }}
+                              >
+                                <Clock size={16} color="#2563EB" />
+                                <span>
+                                  <strong>Refund Status:</strong> Order cancelled. Applicable refund of ₹{ord.totalPrice.toFixed(2)} is being processed to your original payment method.
+                                </span>
+                              </div>
+                            )
+                          ) : (
+                            <div
+                              style={{
+                                padding: '0.45rem 0.75rem',
+                                backgroundColor: '#F8FAFC',
+                                border: '1px solid #E2E8F0',
+                                borderRadius: '8px',
+                                fontSize: '0.8rem',
+                                color: '#64748B',
+                              }}
+                            >
+                              This Cash on Delivery order was cancelled before dispatch. No payment was collected.
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -752,7 +889,155 @@ export const DashboardPage: React.FC = () => {
         onClose={() => setIsInvoiceModalOpen(false)}
         order={selectedOrder || primaryActiveOrder}
       />
-          {/* Logout Confirmation Modal */}
+          {/* Cancel Order Modal */}
+      {cancelModalOrder && (
+        <div className="fb-modal-overlay" onClick={() => setCancelModalOrder(null)}>
+          <div className="fb-modal-card" style={{ maxWidth: '480px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="fb-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.25rem', borderBottom: '1px solid #E2E8F0' }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#991B1B', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <AlertCircle size={20} color="#DC2626" /> Cancel Order
+              </h3>
+              <button onClick={() => setCancelModalOrder(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }} aria-label="Close">
+                <X size={20} />
+              </button>
+            </div>
+            <div style={{ padding: '1.25rem' }}>
+              <p style={{ margin: '0 0 1rem 0', fontSize: '0.9rem', color: '#334155' }}>
+                Are you sure you want to cancel Order <strong>#GL-{cancelModalOrder.id.slice(0, 8).toUpperCase()}</strong>?
+              </p>
+              {cancelModalOrder.paymentMethod === 'RAZORPAY' && cancelModalOrder.paymentStatus === 'PAID' && (
+                <div style={{ padding: '0.75rem', backgroundColor: '#EFF6FF', borderRadius: '8px', border: '1px solid #BFDBFE', fontSize: '0.85rem', color: '#1E40AF', marginBottom: '1rem' }}>
+                  💳 <strong>Prepaid Order Refund:</strong> Your payment of <strong>₹{cancelModalOrder.totalPrice.toFixed(2)}</strong> will be refunded to your original payment method.
+                </div>
+              )}
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.35rem', color: '#1E293B' }}>
+                Reason for cancellation:
+              </label>
+              <select
+                className="fb-form-input"
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                style={{ width: '100%', marginBottom: '1.25rem' }}
+              >
+                <option value="Ordered by mistake">Ordered by mistake</option>
+                <option value="Expected earlier delivery">Expected earlier delivery</option>
+                <option value="Found a better price or alternative">Found a better price or alternative</option>
+                <option value="Need to change delivery address or items">Need to change delivery address or items</option>
+                <option value="Other reason">Other reason</option>
+              </select>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  className="fb-btn-outline"
+                  onClick={() => setCancelModalOrder(null)}
+                  disabled={isSubmittingCancel}
+                >
+                  Keep Order
+                </button>
+                <button
+                  type="button"
+                  className="fb-btn-primary-dark"
+                  style={{ backgroundColor: '#DC2626', borderColor: '#DC2626' }}
+                  disabled={isSubmittingCancel}
+                  onClick={async () => {
+                    setIsSubmittingCancel(true);
+                    try {
+                      await cancelOrder({ id: cancelModalOrder.id, reason: cancelReason });
+                      setCancelModalOrder(null);
+                    } finally {
+                      setIsSubmittingCancel(false);
+                    }
+                  }}
+                >
+                  {isSubmittingCancel ? 'Cancelling...' : 'Confirm Cancellation'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Product Exchange Modal */}
+      {exchangeModalOrder && (
+        <div className="fb-modal-overlay" onClick={() => setExchangeModalOrder(null)}>
+          <div className="fb-modal-card" style={{ maxWidth: '520px' }} onClick={(e) => e.stopPropagation()}>
+            <div className="fb-modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.25rem', borderBottom: '1px solid #E2E8F0' }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0F4726', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <RotateCcw size={20} color="#15803D" /> Request Product Exchange
+              </h3>
+              <button onClick={() => setExchangeModalOrder(null)} style={{ background: 'none', border: 'none', cursor: 'pointer' }} aria-label="Close">
+                <X size={20} />
+              </button>
+            </div>
+            <div style={{ padding: '1.25rem' }}>
+              <p style={{ margin: '0 0 1rem 0', fontSize: '0.88rem', color: '#475569' }}>
+                Select the issue with your items for Order <strong>#GL-{exchangeModalOrder.id.slice(0, 8).toUpperCase()}</strong>. We will arrange a free doorstep replacement.
+              </p>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.35rem', color: '#1E293B' }}>
+                Reason for exchange: <span style={{ color: '#DC2626' }}>*</span>
+              </label>
+              <select
+                className="fb-form-input"
+                value={exchangeReason}
+                onChange={(e) => setExchangeReason(e.target.value)}
+                style={{ width: '100%', marginBottom: '1rem' }}
+              >
+                <option value="Damaged during transit / packaging broken">Damaged during transit / packaging broken</option>
+                <option value="Defective or substandard product quality">Defective or substandard product quality</option>
+                <option value="Incorrect product or variant received">Incorrect product or variant received</option>
+                <option value="Expired or near-expiry product">Expired or near-expiry product</option>
+                <option value="Missing seals or leaked liquid">Missing seals or leaked liquid</option>
+                <option value="Other product issue">Other product issue</option>
+              </select>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.35rem', color: '#1E293B' }}>
+                Description of issue:
+              </label>
+              <textarea
+                className="fb-form-input"
+                rows={3}
+                placeholder="Please describe what is damaged, defective, or incorrect..."
+                value={exchangeDetails}
+                onChange={(e) => setExchangeDetails(e.target.value)}
+                style={{ width: '100%', marginBottom: '1.25rem' }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  className="fb-btn-outline"
+                  onClick={() => setExchangeModalOrder(null)}
+                  disabled={isSubmittingExchange}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="fb-btn-primary-dark"
+                  disabled={isSubmittingExchange || !exchangeReason.trim()}
+                  onClick={async () => {
+                    setIsSubmittingExchange(true);
+                    try {
+                      await requestExchange({
+                        id: exchangeModalOrder.id,
+                        data: {
+                          reason: exchangeReason.trim(),
+                          details: exchangeDetails.trim(),
+                        },
+                      });
+                      setExchangeModalOrder(null);
+                    } finally {
+                      setIsSubmittingExchange(false);
+                    }
+                  }}
+                >
+                  {isSubmittingExchange ? 'Submitting...' : 'Submit Exchange Request'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Logout Confirmation Modal */}
       <LogoutModal
         isOpen={isLogoutModalOpen}
         onClose={() => setIsLogoutModalOpen(false)}

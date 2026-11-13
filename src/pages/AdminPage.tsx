@@ -1,4 +1,5 @@
 import { BookingDetailsModal } from '../components/admin/BookingDetailsModal';
+import { CreateCouponModal } from '../components/admin/CreateCouponModal';
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
@@ -42,6 +43,7 @@ import {
   RefreshCw,
   MapPin,
   Phone,
+  MessageCircle,
   Send,
   LogOut,
   Truck,
@@ -67,6 +69,7 @@ import { useSubcategories, useSubcategoryMutations } from '../hooks/useSubcatego
 import { useUIStore } from '../store/uiStore';
 import { getUploadUrl } from '../utils/image';
 import { uploadService } from '../services/upload.service';
+import { triggerPrintInvoice } from '../utils/invoicePrint';
 import './AdminPage.css';
 
 // Assets
@@ -94,6 +97,30 @@ const parseCropDoctorDetails = (message?: string | null): Record<string, any> =>
   } catch {
     return { symptoms: message };
   }
+};
+
+const formatDateDDMMYYYY = (value?: string | Date | null, fallback = 'No expiry'): string => {
+  if (!value) return fallback;
+  if (typeof value === 'string') {
+    const isoDateOnly = value.match(/^(\d{4})-(\d{2})-(\d{2})(?:$|[T\s]00:00:00(?:\.\d+)?Z?$)/);
+    if (isoDateOnly) {
+      return `${isoDateOnly[3]}/${isoDateOnly[2]}/${isoDateOnly[1]}`;
+    }
+  }
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return fallback;
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+};
+
+const toWhatsAppDigits = (rawPhone?: string | null): string => {
+  const digits = String(rawPhone || '').replace(/\D/g, '');
+  if (!digits) return '';
+  if (digits.length === 10) return `91${digits}`;
+  if (digits.length === 11 && digits.startsWith('0')) return `91${digits.slice(1)}`;
+  return digits;
 };
 const parseBulkOrderMessage = (message?: string | null): Record<string, any> | null => {
   if (!message) return null;
@@ -918,7 +945,7 @@ export const AdminPage: React.FC = () => {
 
   // 1. Orders (Live Database Orders)
   const { data: adminOrdersData, refetch: refetchOrders } = useAdminOrders({ limit: 100 });
-  const { updateOrderStatus } = useOrderMutations();
+  const { updateOrderStatus, processRefund } = useOrderMutations();
 
   const orders = (adminOrdersData?.orders || [])
     .map((o: any) => ({
@@ -929,7 +956,9 @@ export const AdminPage: React.FC = () => {
       email: o.user?.email || 'N/A',
       products: (o.items?.length || 1) + ' items (' + (o.items?.map((it: any) => it.title).join(', ') || 'Agricultural inputs') + ')',
       amount: '₹' + (o.totalPrice || o.itemsPrice || 0).toLocaleString('en-IN'),
-      payment: o.paymentStatus === 'PAID' ? 'Paid' : o.paymentStatus === 'FAILED' ? 'Failed' : o.paymentMethod === 'CASH_ON_DELIVERY' ? 'COD' : 'Pending',
+      paymentMethod: o.paymentMethod,
+      paymentStatus: o.paymentStatus,
+      payment: o.paymentStatus === 'PAID' ? 'Paid' : o.paymentStatus === 'REFUNDED' ? 'Refunded' : o.paymentStatus === 'FAILED' ? 'Failed' : o.paymentMethod === 'CASH_ON_DELIVERY' ? 'COD' : 'Pending',
       paymentClass: (o.paymentStatus || 'pending').toLowerCase(),
       status: o.orderStatus ? (o.orderStatus.charAt(0) + o.orderStatus.slice(1).toLowerCase()) : 'Pending',
       statusClass: (o.orderStatus || 'pending').toLowerCase(),
@@ -1188,19 +1217,38 @@ export const AdminPage: React.FC = () => {
     .filter((booking) => booking.serviceSlug === 'crop-doctor')
     .map((booking) => {
       const details = parseCropDoctorDetails(booking.message);
-      const severity = details.problemSeverity || 'Not specified';
+      const rawDetailsObj = (booking.details as Record<string, any> | null) || {};
+      const severity = details.problemSeverity || rawDetailsObj.problemSeverity || 'Not specified';
+      const responseMethod = String(
+        rawDetailsObj.responseMethod ||
+          details.preferredResponseMethod ||
+          details.responseMethod ||
+          'WhatsApp'
+      );
+      const preferredLanguage = String(
+        rawDetailsObj.preferredLanguage || details.preferredLanguage || 'English'
+      );
+      const bestTimeToContact = String(
+        rawDetailsObj.bestTimeToContact || details.bestTimeToContact || 'Anytime'
+      );
       return {
         id: booking.id,
         booking,
+        bookingReference: booking.bookingReference,
         image: cropDoctorHeroImg,
         severity,
         severityClass: severity === 'Severe' ? 'cancelled' : severity === 'Moderate' ? 'pending' : 'paid',
-        time: new Date(booking.createdAt).toLocaleDateString('en-IN'),
+        time: formatDateDDMMYYYY(booking.createdAt),
         title: (details.cropName || booking.cropType || 'Crop') + ' - ' + (details.problemCategory || 'Health Diagnosis'),
         crop: details.cropVariety || booking.cropType || 'Crop not specified',
         notes: details.symptoms || booking.message || 'No observations provided.',
         prescription: booking.adminNotes || 'Awaiting agronomist diagnosis and prescription.',
         author: booking.name,
+        phone: booking.phone,
+        whatsappDigits: toWhatsAppDigits(booking.phone),
+        responseMethod,
+        preferredLanguage,
+        bestTimeToContact,
         location: cleanLocation(booking.location),
       };
     });
@@ -1639,7 +1687,11 @@ export const AdminPage: React.FC = () => {
       localStorage.setItem('formerbench_store_settings', JSON.stringify(normalizedSettings));
       window.dispatchEvent(new CustomEvent('store-settings:updated', { detail: normalizedSettings }));
       setSettingsLastSaved(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
-      showToast(`Settings saved. Standard delivery charge is now ₹${response.data.standardShippingFee.toFixed(2)}.`);
+      if (response.data.maintenanceMode) {
+        showToast('Settings saved successfully. Storefront Maintenance Mode is now enabled.');
+      } else {
+        showToast('Settings saved successfully.');
+      }
     } catch (err: any) {
       showToast('Failed to save settings: ' + err.message);
     }
@@ -1959,6 +2011,24 @@ export const AdminPage: React.FC = () => {
     } catch (err: any) {
       showToast('Failed to update order status');
     }
+  };
+
+  const handleProcessRefund = (targetId: string, displayId: string, amount: string) => {
+    openConfirmModal({
+      title: 'Process Customer Refund',
+      message: `Are you sure you want to process the refund of ${amount} for order ${displayId}? This will update the payment status to REFUNDED and track the refund.`,
+      confirmText: 'Process Refund',
+      type: 'warning',
+      onConfirm: async () => {
+        try {
+          await processRefund(targetId);
+          refetchOrders();
+          showToast(`Refund processed successfully for order ${displayId}.`);
+        } catch (err: any) {
+          showToast(err.message || 'Failed to process refund');
+        }
+      },
+    });
   };
 
   const handleUpdateStock = async (prodId: string, delta: number) => {
@@ -3255,7 +3325,7 @@ export const AdminPage: React.FC = () => {
                       <thead><tr><th>Request</th><th>Customer</th><th>Product Details</th><th>Quantity</th><th>Delivery Location</th><th>Status</th><th>Action</th></tr></thead>
                       <tbody>{bulkOrderRequests.map((request) => (
                         <tr key={request.id}>
-                          <td><strong>#{request.id.slice(-8).toUpperCase()}</strong><div className="admin-bulk-order-date">{new Date(request.createdAt).toLocaleDateString('en-IN')}</div></td>
+                          <td><strong>#{request.id.slice(-8).toUpperCase()}</strong><div className="admin-bulk-order-date">{formatDateDDMMYYYY(request.createdAt, '—')}</div></td>
                           <td><strong>{request.name}</strong><div>{request.phone}</div><small>{request.email}</small></td>
                           <td><strong>{request.details.productTitle}</strong><div>{request.details.packSize}</div><small>SKU: {request.details.sku}</small></td>
                           <td><span className="admin-bulk-order-qty">{request.details.requiredQuantity}</span></td>
@@ -3325,6 +3395,22 @@ export const AdminPage: React.FC = () => {
                         <td style={{ fontWeight: 800, fontSize: '0.9rem', color: '#0F291B' }}>{ord.amount}</td>
                         <td>
                           <span className={`admin-status-badge ${ord.paymentClass}`}>{ord.payment}</span>
+                          {ord.status === 'Cancelled' && ord.paymentMethod === 'RAZORPAY' && ord.paymentStatus !== 'REFUNDED' && (
+                            <span
+                              className="admin-status-badge pending"
+                              style={{ display: 'block', marginTop: '4px', fontSize: '0.68rem', backgroundColor: '#FEF2F2', color: '#DC2626' }}
+                            >
+                              Refund Pending
+                            </span>
+                          )}
+                          {ord.paymentStatus === 'REFUNDED' && (
+                            <span
+                              className="admin-status-badge paid"
+                              style={{ display: 'block', marginTop: '4px', fontSize: '0.68rem', backgroundColor: '#F0FDF4', color: '#166534' }}
+                            >
+                              Refunded
+                            </span>
+                          )}
                         </td>
                         <td>
                           <select
@@ -3345,13 +3431,29 @@ export const AdminPage: React.FC = () => {
                           </select>
                         </td>
                         <td style={{ color: '#64748B', fontSize: '0.78rem' }}>{ord.date}</td>
-                        <td style={{ textAlign: 'center' }}>
+                        <td style={{ textAlign: 'center', whiteSpace: 'nowrap' }}>
                           <button
                             className="admin-mini-btn"
                             onClick={() => { setSelectedOrder(ord); setIsInvoiceModalOpen(true); }}
                           >
                             <Eye size={13} /> View Invoice
                           </button>
+                          {ord.status === 'Cancelled' && ord.paymentMethod === 'RAZORPAY' && ord.paymentStatus !== 'REFUNDED' && (
+                            <button
+                              className="admin-mini-btn"
+                              style={{
+                                marginLeft: '6px',
+                                backgroundColor: '#DC2626',
+                                color: '#FFFFFF',
+                                border: 'none',
+                                fontWeight: 700,
+                              }}
+                              onClick={() => handleProcessRefund(ord.realId, ord.id, ord.amount)}
+                              title="Process Refund for Cancelled Order"
+                            >
+                              Process Refund
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -3858,7 +3960,7 @@ export const AdminPage: React.FC = () => {
                         <td style={{ fontWeight: 800, color: '#16A34A' }}>{coup.discountType === 'PERCENTAGE' ? `${coup.discountValue}% OFF` : `₹${coup.discountValue} OFF`}</td>
                         <td style={{ color: '#475569' }}>₹{coup.minimumSpend}</td>
                         <td style={{ fontWeight: 600 }}>{coup.usageCount} / {coup.usageLimit || '∞'}</td>
-                        <td style={{ color: '#64748B' }}>{coup.validUntil ? new Date(coup.validUntil).toLocaleDateString() : 'No expiry'}</td>
+                        <td style={{ color: '#64748B' }}>{formatDateDDMMYYYY(coup.validUntil, 'No expiry')}</td>
                         <td>
                           <span className="admin-status-badge active-badge">{coup.active ? 'Active' : 'Inactive'}</span>
                         </td>
@@ -4330,30 +4432,65 @@ export const AdminPage: React.FC = () => {
                       </div>
                     </div>
 
-                    <div className="admin-crop-health-observation" style={{ fontSize: '0.8rem', color: '#475569', backgroundColor: '#F8FAFC', padding: '0.65rem', borderRadius: '8px', marginBottom: '0.85rem' }}>
+                    <div className="admin-crop-health-observation" style={{ fontSize: '0.8rem', color: '#475569', backgroundColor: '#F8FAFC', padding: '0.65rem', borderRadius: '8px', marginBottom: '0.75rem' }}>
                       <strong>Farmer Observations:</strong> {cd.notes}
+                    </div>
+
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.45rem', alignItems: 'center', marginBottom: '0.75rem', fontSize: '0.74rem' }}>
+                      <span className="admin-status-badge active-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                        {cd.responseMethod === 'Phone Call' ? <Phone size={11} /> : cd.responseMethod === 'WhatsApp' ? <MessageCircle size={11} /> : <Send size={11} />}
+                        Preferred: {cd.responseMethod}
+                      </span>
+                      <span style={{ color: '#475569', fontWeight: 600 }}>📞 {cd.phone}</span>
+                      <span style={{ color: '#64748B' }}>({cd.preferredLanguage}, {cd.bestTimeToContact})</span>
                     </div>
 
                     <div className="admin-crop-health-prescription" style={{ fontSize: '0.8rem', color: '#0F4726', backgroundColor: '#E8F5E9', padding: '0.65rem', borderRadius: '8px', marginBottom: '1rem', fontWeight: 600 }}>
                       {cd.prescription}
                     </div>
 
-                    <div className="admin-crop-health-footer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '0.5rem', borderTop: '1px solid #F1F5F9' }}>
+                    <div className="admin-crop-health-footer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid #F1F5F9' }}>
                       <div style={{ fontSize: '0.75rem', color: '#64748B' }}>
                         Reported by: <strong>{cd.author}</strong> ({cd.location})
                       </div>
-                      <button className="admin-quick-btn" onClick={() => setDetailsBooking(cd.booking)}>View Details</button>
-                      <button
-                        className="admin-primary-btn"
-                        style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}
-                        onClick={() => {
-                          setSelectedCropItem(cd);
-                          setCropPrescription(cd.booking.adminNotes || '');
-                          setIsCropReplyModalOpen(true);
-                        }}
-                      >
-                        <Send size={12} /> Prescribe / Reply
-                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.4rem' }}>
+                        {cd.phone && (
+                          <a
+                            href={`tel:${cd.whatsappDigits ? `+${cd.whatsappDigits}` : cd.phone}`}
+                            className="admin-quick-btn"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', textDecoration: 'none' }}
+                            title={`Call farmer on ${cd.phone}`}
+                          >
+                            <Phone size={12} /> Call
+                          </a>
+                        )}
+                        {cd.whatsappDigits && (
+                          <a
+                            href={`https://wa.me/${cd.whatsappDigits}?text=${encodeURIComponent(
+                              `Hello ${cd.author}, this is AgriEra Crop Doctor regarding your request ${cd.bookingReference} (${cd.title}).`
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="admin-quick-btn"
+                            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', textDecoration: 'none', color: '#15803D', borderColor: '#BBF7D0' }}
+                            title={`Message farmer via WhatsApp on ${cd.phone}`}
+                          >
+                            <MessageCircle size={12} /> WhatsApp
+                          </a>
+                        )}
+                        <button className="admin-quick-btn" onClick={() => setDetailsBooking(cd.booking)}>View Details</button>
+                        <button
+                          className="admin-primary-btn"
+                          style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem' }}
+                          onClick={() => {
+                            setSelectedCropItem(cd);
+                            setCropPrescription(cd.booking.adminNotes || '');
+                            setIsCropReplyModalOpen(true);
+                          }}
+                        >
+                          <Send size={12} /> Prescribe / Reply
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -4364,7 +4501,7 @@ export const AdminPage: React.FC = () => {
           {activeNav === 'Crop Calendar Requests' && (
             <div className="admin-card">
               <div className="admin-card-header"><div><h2 className="admin-welcome-title" style={{ fontSize: '1.4rem' }}>Crop Calendar Requests</h2><p className="admin-welcome-sub">Location, crop, season, soil and irrigation details submitted by farmers.</p></div></div>
-              {cropCalendarRequests.length === 0 ? <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B' }}><CalendarDays size={42} /><h3>No Crop Calendar Requests</h3><p>New submissions will appear here automatically.</p></div> : <div className="admin-table-wrap admin-crop-calendar-table-wrap"><table className="admin-data-table admin-crop-calendar-table"><thead><tr><th>Reference</th><th>Farmer Details</th><th>Location</th><th>Crop</th><th>Season</th><th>Farm Details</th><th>Submitted</th><th>Status</th><th>Action</th></tr></thead><tbody>{cropCalendarRequests.map(({ booking, details }) => <tr key={booking.id}><td><strong>{booking.bookingReference}</strong><div style={{ fontSize: '.72rem', color: '#64748B' }}>{details.locationType || '-'}</div></td><td><strong>{booking.name}</strong><div style={{ fontSize: '.75rem', color: '#64748B' }}>{booking.phone}</div><div style={{ fontSize: '.72rem', color: '#64748B' }}>{booking.email || '-'}</div></td><td><strong>{details.district || '-'}</strong><div style={{ fontSize: '.75rem', color: '#64748B' }}>{details.state || '-'}</div><div style={{ fontSize: '.72rem', color: '#64748B' }}>City: {details.city || '-'}<br />Post: {details.postOffice || '-'}</div></td><td><strong style={{ color: '#166534' }}>{details.crop || booking.cropType || '-'}</strong><div style={{ fontSize: '.75rem' }}>{details.variety || 'Variety not specified'}</div></td><td>{details.season || '-'}</td><td><div>Soil: {details.soilType || '-'}</div><div>Irrigation: {details.irrigationType || '-'}</div></td><td>{new Date(booking.createdAt).toLocaleDateString('en-IN')}</td><td><span className={`admin-status-badge ${booking.status === 'COMPLETED' ? 'paid' : booking.status === 'CANCELLED' ? 'cancelled' : 'pending'}`}>{booking.status.replace('_', ' ')}</span></td><td><button className="admin-primary-btn" style={{ padding: '.4rem .7rem', fontSize: '.75rem' }} onClick={() => { setSelectedBookingForUpdate(booking); setAssignBookingId(booking.id); setStatusModalStatus(booking.status); setStatusModalNotes(booking.adminNotes || ''); setStatusModalExpert(''); setIsAssignModalOpen(true); }}>Update Status</button></td></tr>)}</tbody></table></div>}
+              {cropCalendarRequests.length === 0 ? <div style={{ padding: '3rem', textAlign: 'center', color: '#64748B' }}><CalendarDays size={42} /><h3>No Crop Calendar Requests</h3><p>New submissions will appear here automatically.</p></div> : <div className="admin-table-wrap admin-crop-calendar-table-wrap"><table className="admin-data-table admin-crop-calendar-table"><thead><tr><th>Reference</th><th>Farmer Details</th><th>Location</th><th>Crop</th><th>Season</th><th>Farm Details</th><th>Submitted</th><th>Status</th><th>Action</th></tr></thead><tbody>{cropCalendarRequests.map(({ booking, details }) => <tr key={booking.id}><td><strong>{booking.bookingReference}</strong><div style={{ fontSize: '.72rem', color: '#64748B' }}>{details.locationType || '-'}</div></td><td><strong>{booking.name}</strong><div style={{ fontSize: '.75rem', color: '#64748B' }}>{booking.phone}</div><div style={{ fontSize: '.72rem', color: '#64748B' }}>{booking.email || '-'}</div></td><td><strong>{details.district || '-'}</strong><div style={{ fontSize: '.75rem', color: '#64748B' }}>{details.state || '-'}</div><div style={{ fontSize: '.72rem', color: '#64748B' }}>City: {details.city || '-'}<br />Post: {details.postOffice || '-'}</div></td><td><strong style={{ color: '#166534' }}>{details.crop || booking.cropType || '-'}</strong><div style={{ fontSize: '.75rem' }}>{details.variety || 'Variety not specified'}</div></td><td>{details.season || '-'}</td><td><div>Soil: {details.soilType || '-'}</div><div>Irrigation: {details.irrigationType || '-'}</div></td><td>{formatDateDDMMYYYY(booking.createdAt, '—')}</td><td><span className={`admin-status-badge ${booking.status === 'COMPLETED' ? 'paid' : booking.status === 'CANCELLED' ? 'cancelled' : 'pending'}`}>{booking.status.replace('_', ' ')}</span></td><td><button className="admin-primary-btn" style={{ padding: '.4rem .7rem', fontSize: '.75rem' }} onClick={() => { setSelectedBookingForUpdate(booking); setAssignBookingId(booking.id); setStatusModalStatus(booking.status); setStatusModalNotes(booking.adminNotes || ''); setStatusModalExpert(''); setIsAssignModalOpen(true); }}>Update Status</button></td></tr>)}</tbody></table></div>}
             </div>
           )}
           {/* ================================================================
@@ -4479,7 +4616,7 @@ export const AdminPage: React.FC = () => {
                       <span className="admin-review-mobile-label">Rating</span>
                       <div style={{ color: '#F59E0B', fontSize: '0.85rem', marginBottom: '0.2rem' }}>{'★'.repeat(rev.rating)}{'☆'.repeat(5 - rev.rating)}</div>
                       <div style={{ fontSize: '0.72rem', color: '#475569', fontWeight: 600 }}>{rev.rating}/5 rating</div>
-                      <div style={{ fontSize: '0.68rem', color: '#64748B' }}>{new Date(rev.createdAt).toLocaleDateString('en-IN')}</div>
+                      <div style={{ fontSize: '0.68rem', color: '#64748B' }}>{formatDateDDMMYYYY(rev.createdAt, '—')}</div>
                     </div>
 
                     {/* Field Photos */}
@@ -4553,7 +4690,7 @@ export const AdminPage: React.FC = () => {
                     <div style={{ fontWeight: contact.isRead ? 500 : 700, color: '#1F2937' }}>
                       {contact.name}
                       <div style={{ fontSize: '0.7rem', color: '#6B7280', fontWeight: 500, marginTop: '0.2rem' }}>
-                        {new Date(contact.createdAt).toLocaleDateString('en-IN')}
+                        {formatDateDDMMYYYY(contact.createdAt, '—')}
                       </div>
                     </div>
 
@@ -5265,7 +5402,7 @@ export const AdminPage: React.FC = () => {
                                 const nextSettings = { ...storeSettings, maintenanceMode: response.data.maintenanceMode ?? false };
                                 setStoreSettings(nextSettings);
                                 window.dispatchEvent(new CustomEvent('store-settings:updated', { detail: nextSettings }));
-                                showToast(enabled ? 'Maintenance mode enabled for customers.' : 'Maintenance mode disabled.');
+                                showToast(enabled ? 'Settings saved successfully. Storefront Maintenance Mode is now enabled.' : 'Storefront Maintenance Mode is now disabled.');
                               } catch (error: any) { showToast(error.message); }
                               finally { setIsSavingMaintenance(false); }
                             }}
@@ -6861,8 +6998,8 @@ export const AdminPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {
+                  triggerPrintInvoice(selectedOrder);
                   showToast(`Invoice for ${selectedOrder.id} is ready to print.`);
-                  setIsInvoiceModalOpen(false);
                 }}
                 className="admin-primary-btn"
               >
@@ -6900,11 +7037,43 @@ export const AdminPage: React.FC = () => {
               }}
             >
               <div className="admin-modal-body">
-                <div style={{ fontSize: '0.85rem', fontWeight: 700 }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.65rem' }}>
                   Case: {selectedCropItem.title} ({selectedCropItem.crop})
                 </div>
+                <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '0.65rem 0.85rem', marginBottom: '0.85rem', fontSize: '0.8rem', display: 'flex', flexWrap: 'wrap', gap: '0.6rem', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div>
+                    <strong>{selectedCropItem.author}</strong> • <span>{selectedCropItem.phone}</span>
+                    <div style={{ color: '#475569', marginTop: '0.2rem' }}>
+                      Preferred Method: <strong>{selectedCropItem.responseMethod}</strong> ({selectedCropItem.preferredLanguage}, {selectedCropItem.bestTimeToContact})
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                    {selectedCropItem.phone && (
+                      <a
+                        href={`tel:${selectedCropItem.whatsappDigits ? `+${selectedCropItem.whatsappDigits}` : selectedCropItem.phone}`}
+                        className="admin-quick-btn"
+                        style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
+                      >
+                        <Phone size={12} /> Call Farmer
+                      </a>
+                    )}
+                    {selectedCropItem.whatsappDigits && (
+                      <a
+                        href={`https://wa.me/${selectedCropItem.whatsappDigits}?text=${encodeURIComponent(
+                          `Hello ${selectedCropItem.author}, AgriEra Crop Doctor diagnosis for ${selectedCropItem.bookingReference || selectedCropItem.title}:\n${cropPrescription.trim() || 'Please check your AgriEra account for treatment details.'}`
+                        )}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="admin-quick-btn"
+                        style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.3rem', color: '#15803D', borderColor: '#BBF7D0' }}
+                      >
+                        <MessageCircle size={12} /> Send on WhatsApp
+                      </a>
+                    )}
+                  </div>
+                </div>
                 <div className="admin-form-group">
-                  <label className="admin-form-label">Agronomic Treatment & Bio-Products Formulation</label>
+                  <label className="admin-form-label">Agronomic Treatment & Bio-Products Formulation (saved as In-App Response)</label>
                   <textarea
                     rows={4}
                     required
@@ -6919,7 +7088,7 @@ export const AdminPage: React.FC = () => {
                   Cancel
                 </button>
                 <button type="submit" className="admin-primary-btn">
-                  <Send size={14} /> Send to Farmer
+                  <Send size={14} /> Send In-App & Save
                 </button>
               </div>
             </form>
@@ -7184,82 +7353,12 @@ export const AdminPage: React.FC = () => {
 
       {/* Modal: Create Coupon */}
       {isCouponModalOpen && (
-        <div className="admin-modal-overlay" onClick={() => setIsCouponModalOpen(false)}>
-          <div className="admin-modal-card admin-coupon-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="admin-modal-header">
-              <h3 className="admin-modal-title">Create Discount Coupon</h3>
-              <button onClick={() => setIsCouponModalOpen(false)} className="admin-modal-close-btn">
-                <X size={20} />
-              </button>
-            </div>
-            <form
-              onSubmit={async (e: any) => {
-                e.preventDefault();
-                const code = e.target.coupCode.value.toUpperCase();
-                try {
-                  const response = await adminService.createCoupon({
-                    code,
-                    discountType: e.target.coupType.value,
-                    discountValue: Number(e.target.coupDisc.value),
-                    minimumSpend: Number(e.target.coupMin.value) || 0,
-                    usageLimit: Number(e.target.coupLimit.value) || null,
-                    validUntil: e.target.coupExpiry.value || null,
-                    showOnHomepage: e.target.coupHomepage.checked,
-                  });
-                  if (!response.success || !response.data) throw new Error(response.message || 'Failed to create coupon');
-                  setCoupons([response.data, ...coupons]);
-                  setIsCouponModalOpen(false);
-                  showToast(`Coupon ${code} created & active!`);
-                } catch (error: any) { showToast(error.message || 'Failed to create coupon'); }
-              }}
-            >
-              <div className="admin-modal-body">
-                <div className="admin-form-group">
-                  <label className="admin-form-label">Coupon Code</label>
-                  <input name="coupCode" required placeholder="e.g. MONSOON25" className="admin-form-input" style={{ textTransform: 'uppercase' }} />
-                </div>
-                <div className="admin-form-group">
-                  <label className="admin-form-label">Discount Type</label>
-                  <select name="coupType" className="admin-form-select" defaultValue="PERCENTAGE">
-                    <option value="PERCENTAGE">Percentage (%)</option>
-                    <option value="FIXED">Fixed Amount (₹)</option>
-                  </select>
-                </div>
-                <div className="admin-form-group">
-                  <label className="admin-form-label">Discount Value</label>
-                  <input name="coupDisc" required type="number" min="1" step="0.01" placeholder="25" className="admin-form-input" />
-                </div>
-                <div className="admin-form-group">
-                  <label className="admin-form-label">Minimum Spend (₹)</label>
-                  <input name="coupMin" type="number" min="0" step="0.01" defaultValue="0" className="admin-form-input" />
-                </div>
-                <div className="admin-form-group">
-                  <label className="admin-form-label">Usage Limit (optional)</label>
-                  <input name="coupLimit" type="number" min="1" placeholder="500" className="admin-form-input" />
-                </div>
-                <div className="admin-form-group">
-                  <label className="admin-form-label">Valid Until (optional)</label>
-                  <input name="coupExpiry" type="date" className="admin-form-input" />
-                </div>
-                <label className="admin-form-group" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '.65rem', cursor: 'pointer' }}>
-                  <input name="coupHomepage" type="checkbox" />
-                  <span>
-                    <strong>Show on homepage</strong>
-                    <small style={{ display: 'block', color: '#64748B', marginTop: '.15rem' }}>Feature this coupon in the homepage offer banner.</small>
-                  </span>
-                </label>
-              </div>
-              <div className="admin-modal-footer">
-                <button type="button" onClick={() => setIsCouponModalOpen(false)} className="admin-quick-btn">
-                  Cancel
-                </button>
-                <button type="submit" className="admin-primary-btn">
-                  Create Coupon
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <CreateCouponModal
+          isOpen={isCouponModalOpen}
+          onClose={() => setIsCouponModalOpen(false)}
+          onCouponCreated={(newCoupon) => setCoupons([newCoupon, ...coupons])}
+          showToast={showToast}
+        />
       )}
 
       <BookingDetailsModal booking={detailsBooking} onClose={() => setDetailsBooking(null)} />

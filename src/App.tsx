@@ -16,6 +16,7 @@ import { useThemeStore } from './store/themeStore';
 import { LanguageProvider } from './context/LanguageContext';
 import { useAuth } from './hooks/useAuth';
 import { AlertTriangle, Clock3, Sprout } from 'lucide-react';
+import { trackPageView, initGA } from './utils/analytics';
 
 // Keep the landing page in the initial bundle; load secondary pages on demand.
 import { HomePage } from './pages/HomePage';
@@ -108,6 +109,14 @@ const AppContent: React.FC = () => {
     window.addEventListener('store-settings:updated', refresh);
     return () => window.removeEventListener('store-settings:updated', refresh);
   }, []);
+
+  useEffect(() => {
+    initGA();
+  }, []);
+
+  useEffect(() => {
+    trackPageView(location.pathname + location.search);
+  }, [location.pathname, location.search]);
   const isAuthPage = ['/login', '/signin', '/signup', '/register'].some((path) =>
     location.pathname.startsWith(path)
   );

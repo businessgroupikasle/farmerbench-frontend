@@ -14,6 +14,7 @@ import {
   Printer,
 } from 'lucide-react';
 import { Order, User } from '@formerbench/shared';
+import { triggerPrintInvoice } from '../../utils/invoicePrint';
 import doctorAvatar from '../../assets/farm-consult-about.jpg';
 import tomatoImg from '../../assets/burnt-leaves.jpg';
 
@@ -715,7 +716,11 @@ export const InvoiceModal: React.FC<InvoiceModalProps> = ({
         ];
 
   const handlePrint = () => {
-    window.print();
+    if (order) {
+      triggerPrintInvoice(order as any);
+    } else {
+      window.print();
+    }
   };
 
   return (
