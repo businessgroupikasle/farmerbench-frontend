@@ -65,6 +65,7 @@ function spa404Plugin() {
     if (
       pathname.startsWith('/@') ||
       pathname.startsWith('/src') ||
+      pathname.startsWith('/shared/') ||
       pathname.startsWith('/node_modules') ||
       pathname.startsWith('/assets')
     ) {
